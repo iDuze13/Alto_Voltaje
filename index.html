@@ -1,0 +1,108 @@
+<!DOCTYPE <!DOCTYPE html>
+<html lang="es">
+
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Alto Voltaje</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <header>
+          <h2 class="logo">
+            <img src="altovoltaje_logo.png" alt="Alto Voltaje Logo">
+            </h2>
+          <nav class="navegador">
+            <a href="#">Inicio</a>
+            <a href="#">Sobre Nosotros</a>
+
+            <a href="#">Servicios</a>
+            <a href="#">Contacto</a>
+            <button class="BotonLogin">Login</button>
+          </nav>
+        </header>
+
+<div class="wrapper">
+    <span class="cerrar">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box login">
+        <h2>Login</h2>
+        <form action="#">
+            <div class="input-box">
+                <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                <input type="email" required>
+                <label>Email</label>
+            </div>
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock"></ion-icon></span>
+                <input type="password" required>
+                <label>Contraseña</label>
+            </div>
+            <div class="remember-forgot">
+                <label><input type="checkbox">Recordarme</label>
+                <a href="#">Olvidé mi contraseña</a>
+            </div>
+            <button type="submit" class="boton">Ingresar</button>
+            <div class="login-registro">
+                <p>¿No tienes una cuenta? <a href="#" class="link-registro">Registro</a></p>
+                <p>¿Eres empleado? <a href="#" class="link-empleado">Ingresar empleados</a></p>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-box registro">
+        <h2>Registro</h2>
+        <form action="#">
+            <div class="input-box">
+                <span class="icon"><ion-icon name="person"></ion-icon></span>
+                <input type="text" required>
+                <label>Usuario</label>
+            </div>
+            <div class="input-box">
+                <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                <input type="email" required>
+                <label>Email</label>
+            </div>
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock"></ion-icon></span>
+                <input type="password" required>
+                <label>Contraseña</label>
+            </div>
+            <div class="remember-forgot">
+                <label><input type="checkbox">He leído y aceptado los términos y condiciones</label>
+            </div>
+            <button type="submit" class="boton">Registrarme</button>
+            <div class="login-login">
+                <p>¿Ya tienes una cuenta? <a href="#" class="link-login">Ingresar</a></p>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-box empleado">
+        <h2>Empleados</h2>
+        <form action="#">
+           <div class="input-box">
+                <span class="icon"><ion-icon name="people"></ion-icon></span>
+                <input type="text" required>
+                <label>CUIL</label>
+            </div>
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock"></ion-icon></span>
+                <input type="password" required>
+                <label>Contraseña</label>
+            </div>
+            <button type="submit" class="boton">Ingresar</button>
+        </form>
+    </div>
+</div>
+
+        
+        <script src="script.js"></script>
+        <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+    </body>
+</html>
