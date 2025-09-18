@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'database.php';
+
 // Verificar que el usuario esté logueado como empleado o admin
 if (!isset($_SESSION['tipo_usuario']) || ($_SESSION['tipo_usuario'] != 'empleado' && $_SESSION['tipo_usuario'] != 'administrador')) {
     header("Location: index-.php");
@@ -13,6 +14,11 @@ class VentasManager {
     public function __construct() {
         global $pdo;
         $this->pdo = $pdo;
+        
+        // Verificar conexión
+        if (!$this->pdo) {
+            throw new Exception("Error: No hay conexión a la base de datos");
+        }
     }
     
     /**
@@ -24,7 +30,7 @@ class VentasManager {
                     FROM producto p
                     LEFT JOIN subrubro sr ON p.SubRubro_idSubRubro = sr.idSubRubro
                     LEFT JOIN rubro r ON sr.Rubro_idRubro = r.idRubro
-                    WHERE (p.Nombre_Producto LIKE ? OR p.SKU LIKE ? OR p.Marca LIKE ?)
+                    WHERE (p.Nombre_Producto LIKE ? OR p.SKU LIKE ? OR p.Marca LIKE ? OR p.idProducto LIKE ?)
                     AND p.Estado_Producto = 'Activo' 
                     AND p.Stock_Actual > 0
                     ORDER BY p.Nombre_Producto ASC
@@ -32,7 +38,7 @@ class VentasManager {
             
             $terminoBusqueda = "%$termino%";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$terminoBusqueda, $terminoBusqueda, $terminoBusqueda]);
+            $stmt->execute([$terminoBusqueda, $terminoBusqueda, $terminoBusqueda, $terminoBusqueda]);
             
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -76,35 +82,129 @@ class VentasManager {
             $producto = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($producto && $producto['Stock_Actual'] >= $cantidad) {
-                return true;
+                return ['success' => true, 'stock' => $producto['Stock_Actual']];
             }
             
-            return false;
+            return ['success' => false, 'stock' => $producto['Stock_Actual'] ?? 0];
         } catch (PDOException $e) {
             error_log("Error al verificar stock: " . $e->getMessage());
-            return false;
+            return ['success' => false, 'stock' => 0];
         }
     }
     
     /**
-     * Procesar venta completa
+     * Crear cliente temporal para ventas sin registro - VERSIÓN CORREGIDA
      */
-    public function procesarVenta($productos, $metodoPago, $idEmpleado) {
+    private function crearClienteTemporalSiNoExiste() {
         try {
+            error_log("INICIO - Creando/verificando cliente temporal");
+            
+            // PASO 1: Verificar/crear usuario temporal
+            $stmt = $this->pdo->prepare("SELECT id_Usuario FROM usuario WHERE Correo_Usuario = 'venta.mostrador@altovoltaje.com'");
+            $stmt->execute();
+            $usuarioTemp = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$usuarioTemp) {
+                error_log("Creando usuario temporal...");
+                $stmt = $this->pdo->prepare("
+                    INSERT INTO usuario (Nombre_Usuario, Apelido_Usuarios, Correo_Usuario, Contrasena_Usuario, Rol_Usuario)
+                    VALUES ('Cliente', 'Mostrador', 'venta.mostrador@altovoltaje.com', 'temporal', 'Cliente')
+                ");
+                $stmt->execute();
+                $idUsuarioTemp = $this->pdo->lastInsertId();
+                error_log("Usuario temporal creado con ID: " . $idUsuarioTemp);
+            } else {
+                $idUsuarioTemp = $usuarioTemp['id_Usuario'];
+                error_log("Usuario temporal existente con ID: " . $idUsuarioTemp);
+            }
+            
+            // PASO 2: Verificar/crear carrito principal para el cliente temporal
+            $stmt = $this->pdo->prepare("SELECT idCarrito FROM carrito WHERE Estado_Carrito = 'Activo' LIMIT 1");
+            $stmt->execute();
+            $carritoTemp = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$carritoTemp) {
+                error_log("Creando carrito principal temporal...");
+                $stmt = $this->pdo->prepare("INSERT INTO carrito (Estado_Carrito) VALUES ('Activo')");
+                $stmt->execute();
+                $idCarritoPrincipal = $this->pdo->lastInsertId();
+                error_log("Carrito principal creado con ID: " . $idCarritoPrincipal);
+            } else {
+                $idCarritoPrincipal = $carritoTemp['idCarrito'];
+                error_log("Carrito principal existente con ID: " . $idCarritoPrincipal);
+            }
+            
+            // PASO 3: Verificar/crear cliente temporal con carrito principal
+            $stmt = $this->pdo->prepare("SELECT id_Cliente FROM cliente WHERE Usuario_id_Usuario = ? AND Carrito_idCarrito = ?");
+            $stmt->execute([$idUsuarioTemp, $idCarritoPrincipal]);
+            $clienteExistente = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$clienteExistente) {
+                error_log("Creando cliente temporal...");
+                $stmt = $this->pdo->prepare("
+                    INSERT INTO cliente (DNI_Cliente, Usuario_id_Usuario, Carrito_idCarrito)
+                    VALUES (0, ?, ?)
+                ");
+                $stmt->execute([$idUsuarioTemp, $idCarritoPrincipal]);
+                $idClienteTemp = $this->pdo->lastInsertId();
+                error_log("Cliente temporal creado con ID: " . $idClienteTemp);
+            } else {
+                $idClienteTemp = $clienteExistente['id_Cliente'];
+                error_log("Cliente temporal existente con ID: " . $idClienteTemp);
+            }
+            
+            // PASO 4: Crear carrito específico para ESTA venta (para producto_carrito)
+            error_log("Creando carrito específico para esta venta...");
+            $stmt = $this->pdo->prepare("INSERT INTO carrito (Estado_Carrito) VALUES ('Pagado')");
+            $stmt->execute();
+            $idCarritoVenta = $this->pdo->lastInsertId();
+            error_log("Carrito de venta creado con ID: " . $idCarritoVenta);
+            
+            error_log("Cliente temporal configurado - Cliente: {$idClienteTemp}, Usuario: {$idUsuarioTemp}, Carrito Principal: {$idCarritoPrincipal}, Carrito Venta: {$idCarritoVenta}");
+            
+            return [
+                'id_Cliente' => (int)$idClienteTemp,
+                'Usuario_id_Usuario' => (int)$idUsuarioTemp,
+                'Carrito_idCarrito' => (int)$idCarritoPrincipal,  // Para la tabla venta
+                'Carrito_Venta' => (int)$idCarritoVenta          // Para producto_carrito
+            ];
+            
+        } catch (PDOException $e) {
+            error_log("Error PDO en crearClienteTemporalSiNoExiste: " . $e->getMessage());
+            throw new Exception("Error al crear cliente temporal: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Procesar venta completa - VERSIÓN CORREGIDA
+     */
+    public function procesarVenta($productos, $metodoPago, $idEmpleado, $datosCliente = []) {
+        try {
+            error_log("INICIO PROCESAMIENTO VENTA - Productos: " . json_encode($productos));
+            
             $this->pdo->beginTransaction();
             
-            // Calcular totales
-            $subtotal = 0;
+            // PASO 1: Crear/obtener cliente temporal
+            $clienteData = $this->crearClienteTemporalSiNoExiste();
+            error_log("Cliente temporal obtenido: " . json_encode($clienteData));
+            
+            // PASO 2: Verificar que el empleado existe
+            $stmt = $this->pdo->prepare("SELECT id_Usuario FROM empleado WHERE id_Empleado = ?");
+            $stmt->execute([$idEmpleado]);
+            $empleado = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$empleado) {
+                throw new Exception("Empleado no encontrado: " . $idEmpleado);
+            }
+            
+            // PASO 3: Verificar y procesar productos
             $productosVenta = [];
+            $subtotal = 0;
             
             foreach ($productos as $item) {
-                // Verificar stock nuevamente antes de procesar
-                if (!$this->verificarStock($item['idProducto'], $item['cantidad'])) {
-                    throw new Exception("Stock insuficiente para el producto ID: " . $item['idProducto']);
-                }
-                
-                // Obtener datos del producto
-                $stmt = $this->pdo->prepare("SELECT * FROM producto WHERE idProducto = ?");
+                // Bloquear fila del producto usando FOR UPDATE
+                $sql = "SELECT * FROM producto WHERE idProducto = ? FOR UPDATE";
+                $stmt = $this->pdo->prepare($sql);
                 $stmt->execute([$item['idProducto']]);
                 $producto = $stmt->fetch(PDO::FETCH_ASSOC);
                 
@@ -112,7 +212,15 @@ class VentasManager {
                     throw new Exception("Producto no encontrado: " . $item['idProducto']);
                 }
                 
-                $precio_unitario = $producto['Precio_Venta'];
+                // Verificar stock ACTUALIZADO
+                if ($producto['Stock_Actual'] < $item['cantidad']) {
+                    throw new Exception("Stock insuficiente para '{$producto['Nombre_Producto']}'. Disponible: {$producto['Stock_Actual']}, Solicitado: {$item['cantidad']}");
+                }
+                
+                $precio_unitario = $producto['En_Oferta'] && $producto['Precio_Oferta'] > 0 
+                    ? $producto['Precio_Oferta'] 
+                    : $producto['Precio_Venta'];
+                    
                 $subtotal_item = $precio_unitario * $item['cantidad'];
                 $subtotal += $subtotal_item;
                 
@@ -122,18 +230,15 @@ class VentasManager {
                     'precio_unitario' => $precio_unitario,
                     'subtotal' => $subtotal_item
                 ];
+                
+                error_log("Producto procesado: ID={$producto['idProducto']}, Stock Actual={$producto['Stock_Actual']}, Cantidad Solicitada={$item['cantidad']}");
             }
             
             $iva = $subtotal * 0.21;
             $total = $subtotal + $iva;
-            
-            // Generar número de venta único
             $numeroVenta = $this->generarNumeroVenta();
             
-            // Crear registro de venta (requiere crear cliente temporal para la estructura actual)
-            $idClienteTemp = $this->crearClienteTemporalSiNoExiste();
-            $idCarritoTemp = $this->crearCarritoTemporal();
-            
+            // PASO 4: Insertar venta usando el carrito principal (que SÍ existe en cliente)
             $stmt = $this->pdo->prepare("
                 INSERT INTO venta (
                     Numero_Venta, 
@@ -147,42 +252,88 @@ class VentasManager {
                 ) VALUES (?, NOW(), 'Completado', ?, ?, ?, ?, ?)
             ");
             
-            $stmt->execute([
+            $resultado = $stmt->execute([
                 $numeroVenta,
-                $idClienteTemp['id_Cliente'],
-                $idClienteTemp['Usuario_id_Usuario'],
-                $idCarritoTemp,
+                $clienteData['id_Cliente'],
+                $clienteData['Usuario_id_Usuario'],
+                $clienteData['Carrito_idCarrito'],  // Carrito principal que existe en tabla cliente
                 $idEmpleado,
-                $_SESSION['id_Usuario'] ?? $idEmpleado
+                $empleado['id_Usuario']
             ]);
             
-            $idVenta = $this->pdo->lastInsertId();
+            if (!$resultado) {
+                $errorInfo = $stmt->errorInfo();
+                throw new Exception("Error al insertar venta: " . $errorInfo[2]);
+            }
             
-            // Actualizar stock de productos
+            $idVenta = $this->pdo->lastInsertId();
+            error_log("Venta creada con ID: " . $idVenta);
+            
+            // PASO 5: *** ACTUALIZAR STOCK DE PRODUCTOS ***
             foreach ($productosVenta as $item) {
                 $nuevoStock = $item['producto']['Stock_Actual'] - $item['cantidad'];
                 
-                $stmt = $this->pdo->prepare("UPDATE producto SET Stock_Actual = ? WHERE idProducto = ?");
-                $stmt->execute([$nuevoStock, $item['producto']['idProducto']]);
+                error_log("ACTUALIZANDO STOCK - Producto ID: {$item['producto']['idProducto']}, Stock Anterior: {$item['producto']['Stock_Actual']}, Nuevo Stock: {$nuevoStock}");
+                
+                $sqlUpdate = "UPDATE producto SET Stock_Actual = ? WHERE idProducto = ?";
+                $stmt = $this->pdo->prepare($sqlUpdate);
+                $resultado = $stmt->execute([$nuevoStock, $item['producto']['idProducto']]);
+                
+                if (!$resultado) {
+                    throw new Exception("Error al actualizar stock del producto ID: " . $item['producto']['idProducto']);
+                }
+                
+                // Verificar que se actualizó correctamente
+                $filasAfectadas = $stmt->rowCount();
+                error_log("Stock actualizado - Producto ID: {$item['producto']['idProducto']}, Filas afectadas: {$filasAfectadas}");
+                
+                // Verificación adicional
+                $stmtVerif = $this->pdo->prepare("SELECT Stock_Actual FROM producto WHERE idProducto = ?");
+                $stmtVerif->execute([$item['producto']['idProducto']]);
+                $stockVerificado = $stmtVerif->fetchColumn();
+                error_log("VERIFICACIÓN - Producto ID: {$item['producto']['idProducto']}, Stock en BD: {$stockVerificado}");
             }
             
-            // Crear detalle de factura (simplificado)
-            $this->crearDetalleVenta($idVenta, $productosVenta, $subtotal, $iva, $total);
+            // PASO 6: Crear detalle de venta usando el carrito específico de la venta
+            foreach ($productosVenta as $item) {
+                $stmt = $this->pdo->prepare("
+                    INSERT INTO producto_carrito (Producto_idProducto, Carrito_idCarrito, Cantidad_Producto, Precio_Unitario, Subtotal)
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+                $resultado = $stmt->execute([
+                    $item['producto']['idProducto'],
+                    $clienteData['Carrito_Venta'],  // Carrito específico para esta venta
+                    $item['cantidad'],
+                    $item['precio_unitario'],
+                    $item['subtotal']
+                ]);
+                
+                if (!$resultado) {
+                    throw new Exception("Error al crear detalle de venta para producto ID: " . $item['producto']['idProducto']);
+                }
+            }
             
+            // TODO OK - HACER COMMIT
             $this->pdo->commit();
+            error_log("TRANSACCIÓN COMPLETADA EXITOSAMENTE - Venta ID: " . $idVenta);
             
             return [
                 'success' => true,
                 'id_venta' => $idVenta,
                 'numero_venta' => $numeroVenta,
                 'total' => $total,
+                'subtotal' => $subtotal,
+                'iva' => $iva,
                 'productos' => $productosVenta,
-                'metodo_pago' => $metodoPago
+                'metodo_pago' => $metodoPago,
+                'datos_cliente' => $datosCliente
             ];
             
         } catch (Exception $e) {
             $this->pdo->rollBack();
-            error_log("Error al procesar venta: " . $e->getMessage());
+            error_log("ERROR EN VENTA - ROLLBACK EJECUTADO: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -201,100 +352,74 @@ class VentasManager {
         
         return $fecha . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
     }
-    
-    /**
-     * Crear cliente temporal para ventas sin registro
-     */
-    private function crearClienteTemporalSiNoExiste() {
-        try {
-            // Verificar si existe usuario temporal
-            $stmt = $this->pdo->prepare("SELECT id_Usuario FROM usuario WHERE Correo_Usuario = 'venta.mostrador@altovoltaje.com'");
-            $stmt->execute();
-            $usuarioTemp = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$usuarioTemp) {
-                // Crear usuario temporal
-                $stmt = $this->pdo->prepare("
-                    INSERT INTO usuario (Nombre_Usuario, Apelido_Usuarios, Correo_Usuario, Contrasena_Usuario, Rol_Usuario)
-                    VALUES ('Cliente', 'Mostrador', 'venta.mostrador@altovoltaje.com', 'temporal', 'Cliente')
-                ");
-                $stmt->execute();
-                $idUsuarioTemp = $this->pdo->lastInsertId();
-            } else {
-                $idUsuarioTemp = $usuarioTemp['id_Usuario'];
-            }
-            
-            // Verificar si existe cliente temporal
-            $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE Usuario_id_Usuario = ?");
-            $stmt->execute([$idUsuarioTemp]);
-            $clienteTemp = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$clienteTemp) {
-                // Crear carrito temporal
-                $stmt = $this->pdo->prepare("INSERT INTO carrito (Estado_Carrito) VALUES ('Activo')");
-                $stmt->execute();
-                $idCarritoTemp = $this->pdo->lastInsertId();
-                
-                // Crear cliente temporal
-                $stmt = $this->pdo->prepare("
-                    INSERT INTO cliente (DNI_Cliente, Usuario_id_Usuario, Carrito_idCarrito)
-                    VALUES (0, ?, ?)
-                ");
-                $stmt->execute([$idUsuarioTemp, $idCarritoTemp]);
-                $idClienteTemp = $this->pdo->lastInsertId();
-                
-                return [
-                    'id_Cliente' => $idClienteTemp,
-                    'Usuario_id_Usuario' => $idUsuarioTemp,
-                    'Carrito_idCarrito' => $idCarritoTemp
-                ];
-            }
-            
-            return [
-                'id_Cliente' => $clienteTemp['id_Cliente'],
-                'Usuario_id_Usuario' => $clienteTemp['Usuario_id_Usuario'],
-                'Carrito_idCarrito' => $clienteTemp['Carrito_idCarrito']
-            ];
-            
-        } catch (PDOException $e) {
-            throw new Exception("Error al crear cliente temporal: " . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Crear carrito temporal
-     */
-    private function crearCarritoTemporal() {
-        $stmt = $this->pdo->prepare("INSERT INTO carrito (Estado_Carrito) VALUES ('Activo')");
-        $stmt->execute();
-        return $this->pdo->lastInsertId();
-    }
-    
-    /**
-     * Crear detalle de venta simplificado
-     */
-    private function crearDetalleVenta($idVenta, $productos, $subtotal, $iva, $total) {
-        // Por simplicidad, guardamos un resumen en una tabla de ventas_detalle
-        // En un sistema más complejo, esto iría a detalle_factura
-        
-        foreach ($productos as $item) {
-            // Aquí podrías crear registros individuales si tienes una tabla de detalles de venta
-            // Por ahora solo actualizamos el stock que ya se hizo arriba
-        }
-        
-        return true;
-    }
 }
 
+// Procesar peticiones AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ventasManager = new VentasManager();
+    $response = ['success' => false];
+    
+    $input = json_decode(file_get_contents('php://input'), true);
+    $action = $input['action'] ?? $_POST['action'] ?? '';
+    
+    switch ($action) {
+        case 'buscar_productos':
+            $termino = $input['termino'] ?? '';
+            if (strlen($termino) >= 1) {
+                $productos = $ventasManager->buscarProductos($termino);
+                $response = ['success' => true, 'productos' => $productos];
+            } else {
+                $response = ['success' => false, 'error' => 'Ingrese al menos un caracter'];
+            }
+            break;
+            
+        case 'obtener_todos_productos':
+            $productos = $ventasManager->obtenerProductosActivos();
+            $response = ['success' => true, 'productos' => $productos];
+            break;
+            
+        case 'verificar_stock':
+            $idProducto = $input['idProducto'] ?? 0;
+            $cantidad = $input['cantidad'] ?? 1;
+            $stockCheck = $ventasManager->verificarStock($idProducto, $cantidad);
+            $response = $stockCheck;
+            break;
+            
+        case 'procesar_venta':
+            $productos = $input['productos'] ?? [];
+            $metodoPago = $input['metodo_pago'] ?? 'Efectivo';
+            $datosCliente = $input['datos_cliente'] ?? [];
+            $idEmpleado = $_SESSION['id_Empleado'] ?? 0;
+            
+            if (!empty($productos) && $idEmpleado) {
+                $resultado = $ventasManager->procesarVenta($productos, $metodoPago, $idEmpleado, $datosCliente);
+                $response = $resultado;
+            } else {
+                $response = ['success' => false, 'error' => 'Datos insuficientes para procesar la venta'];
+            }
+            break;
+            
+        default:
+            $response = ['success' => false, 'error' => 'Acción no válida'];
+            break;
+    }
+    
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
 
 // Si no es POST, mostrar la interfaz
 $nombre_usuario = 'Usuario';
+$id_empleado = 'N/A';
 if ($_SESSION['tipo_usuario'] == 'empleado') {
     $nombre_usuario = $_SESSION['empleado_nombre'] ?? 'Empleado';
+    $id_empleado = $_SESSION['id_Empleado'] ?? 'N/A';
 } elseif ($_SESSION['tipo_usuario'] == 'administrador') {
     $nombre_usuario = $_SESSION['admin_nombre'] ?? 'Administrador';
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -525,9 +650,15 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             transition: all 0.3s;
         }
         
-        .add-btn:hover {
+        .add-btn:hover:not(:disabled) {
             background: #218838;
             transform: translateY(-1px);
+        }
+        
+        .add-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .cart-header {
@@ -680,6 +811,32 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             color: #667eea;
         }
         
+        .transfer-data {
+            display: none;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .transfer-data input {
+            width: 100%;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .transfer-data label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+        
         .checkout-actions {
             display: flex;
             gap: 10px;
@@ -698,7 +855,7 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             transition: transform 0.3s;
         }
         
-        .checkout-btn:hover {
+        .checkout-btn:hover:not(:disabled) {
             transform: translateY(-2px);
         }
         
@@ -741,6 +898,12 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             border-radius: 8px;
             margin-bottom: 20px;
             font-weight: 500;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .alert-success {
@@ -753,6 +916,12 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
         
         .receipt-modal {
@@ -772,7 +941,7 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             background: white;
             padding: 30px;
             border-radius: 15px;
-            max-width: 400px;
+            max-width: 450px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -798,6 +967,11 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             border-top: 2px solid #667eea;
             padding-top: 10px;
             margin-top: 15px;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
         
         @media (max-width: 1024px) {
@@ -842,22 +1016,22 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
         <div class="main-panel">
             <div class="header">
                 <div class="logo">
-                    ⚡ Alto Voltaje - Sistema de Ventas
+                    Alto Voltaje - Sistema de Ventas
                 </div>
                 <div class="user-info">
-                    <strong>Empleado: Juan Pérez</strong><br>
-                    <small>ID: 1011 | Turno: Mañana</small>
+                    <strong>Empleado: <?= htmlspecialchars($nombre_usuario) ?></strong><br>
+                    <small>ID: <?= htmlspecialchars($id_empleado) ?> | Turno: Mañana</small>
                 </div>
             </div>
             
             <div class="actions">
-                <a href="index-.php" class="btn btn-secondary">← Volver al Menú Principal</a>
+                <a href="listarProducto.php" class="btn btn-secondary">← Volver al Menú Principal</a>
                 <button class="btn btn-primary" onclick="showAllProducts()">Ver Todos los Productos</button>
             </div>
             
             <div class="search-section">
                 <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar productos por nombre, SKU o marca...">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre, ID, SKU, marca o código de barra...">
                     <button class="search-btn" onclick="searchProducts()">Buscar</button>
                 </div>
             </div>
@@ -881,8 +1055,8 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
                         <tbody id="productsTableBody">
                             <tr>
                                 <td colspan="9" class="empty-products">
-                                    <div>📦</div>
-                                    <p>Busca productos para comenzar la venta</p>
+                                    <div>Busca productos para comenzar la venta</div>
+                                    <small>Puedes buscar por nombre, ID, SKU, marca o código de barra</small>
                                 </td>
                             </tr>
                         </tbody>
@@ -894,12 +1068,12 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
         <!-- Panel del Carrito -->
         <div class="cart-panel">
             <div class="cart-header">
-                🛒 Carrito de Ventas
+                Carrito de Ventas
             </div>
             
             <div class="cart-items" id="cartItems">
                 <div class="empty-cart">
-                    <div style="font-size: 48px; margin-bottom: 15px;">🛒</div>
+                    <div style="font-size: 48px; margin-bottom: 15px;">Carrito</div>
                     <p>El carrito está vacío</p>
                     <small>Agrega productos para comenzar la venta</small>
                 </div>
@@ -924,21 +1098,32 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
                 <h3>Método de Pago</h3>
                 <div class="payment-methods">
                     <div class="payment-method">
-                        <input type="radio" name="payment" id="efectivo" value="efectivo" checked>
-                        <label for="efectivo">💵 Efectivo</label>
+                        <input type="radio" name="payment" id="efectivo" value="Efectivo" checked>
+                        <label for="efectivo">Efectivo</label>
                     </div>
                     <div class="payment-method">
-                        <input type="radio" name="payment" id="transferencia" value="transferencia">
-                        <label for="transferencia">🏦 Transferencia</label>
+                        <input type="radio" name="payment" id="transferencia" value="Transferencia">
+                        <label for="transferencia">Transferencia</label>
                     </div>
                 </div>
                 
+                <div class="transfer-data" id="transferData">
+                    <label for="clienteNombre">Nombre del Cliente:</label>
+                    <input type="text" id="clienteNombre" placeholder="Ingrese nombre completo">
+                    
+                    <label for="clienteAlias">Alias CBU/CVU:</label>
+                    <input type="text" id="clienteAlias" placeholder="Ejemplo: juan.perez.mp">
+                    
+                    <label for="clienteCBU">CBU/CVU (Opcional):</label>
+                    <input type="text" id="clienteCBU" placeholder="22 dígitos del CBU">
+                </div>
+                
                 <div class="checkout-actions">
-                    <button class="checkout-btn" onclick="processSale()">
-                        💳 Procesar Venta
+                    <button class="checkout-btn" onclick="processSale()" id="processBtn">
+                        Procesar Venta
                     </button>
                     <button class="clear-cart-btn" onclick="clearCart()">
-                        🗑️
+                        Limpiar
                     </button>
                 </div>
             </div>
@@ -949,11 +1134,13 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
     <div class="receipt-modal" id="receiptModal">
         <div class="receipt-content">
             <div class="receipt-header">
-                <h2>⚡ ALTO VOLTAJE</h2>
-                <p>Recibo de Venta</p>
+                <h2>ALTO VOLTAJE</h2>
+                <p>Comprobante de Venta</p>
                 <small id="receiptDate"></small>
                 <br>
-                <small>Empleado: Juan Pérez (ID: 1011)</small>
+                <small id="receiptEmployee"></small>
+                <br>
+                <small id="receiptNumber"></small>
             </div>
             
             <div id="receiptItems">
@@ -975,94 +1162,119 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
                 </div>
                 <div style="text-align: center; margin-top: 15px;">
                     <small>Método de pago: <span id="receiptPayment"></span></small>
+                    <div id="receiptClientData" style="margin-top: 10px;">
+                        <!-- Datos del cliente para transferencia -->
+                    </div>
                 </div>
             </div>
             
             <div style="text-align: center; margin-top: 25px;">
-                <button class="btn btn-primary" onclick="printReceipt()">🖨️ Imprimir</button>
+                <button class="btn btn-primary" onclick="printReceipt()">Imprimir</button>
                 <button class="btn btn-secondary" onclick="closeReceipt()">Cerrar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Datos simulados de productos
-        const productosDB = [
-            {
-                idProducto: 896451,
-                Nombre_Producto: "Taladro Profesional",
-                Descripcion_Producto: "Nuevo modelo de Taladro con 5 mechas",
-                SKU: "165ewfawf",
-                Marca: "ACME",
-                Precio_Venta: 45000.00,
-                Stock_Actual: 15,
-                Nombre_Rubro: "Herramientas",
-                Nombre_SubRubro: "Taladros"
-            },
-            {
-                idProducto: 896452,
-                Nombre_Producto: "Cable Eléctrico 2.5mm",
-                Descripcion_Producto: "Cable eléctrico para instalaciones domiciliarias",
-                SKU: "CAB-2.5-100",
-                Marca: "ElectroPro",
-                Precio_Venta: 8500.00,
-                Stock_Actual: 50,
-                Nombre_Rubro: "Electricidad",
-                Nombre_SubRubro: "Cables"
-            },
-            {
-                idProducto: 896453,
-                Nombre_Producto: "Disyuntor 32A",
-                Descripcion_Producto: "Disyuntor termomagnético 32 amperes",
-                SKU: "DIS-32A",
-                Marca: "Schneider",
-                Precio_Venta: 12500.00,
-                Stock_Actual: 8,
-                Nombre_Rubro: "Electricidad",
-                Nombre_SubRubro: "Protecciones"
-            },
-            {
-                idProducto: 896454,
-                Nombre_Producto: "Microondas Phillips",
-                Descripcion_Producto: "Microondas 700W con grill",
-                SKU: "165dawd",
-                Marca: "Phillips",
-                Precio_Venta: 85000.00,
-                Stock_Actual: 3,
-                Nombre_Rubro: "Electrodomésticos",
-                Nombre_SubRubro: "Cocina"
-            }
-        ];
-
         let cart = [];
-        let saleCounter = 1;
+        let currentProducts = [];
 
+        // Función para mostrar alertas
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        // Función para obtener clase de stock
         function getStockClass(stock) {
             if (stock < 10) return 'stock-low';
             if (stock < 25) return 'stock-medium';
             return 'stock-good';
         }
 
+        // Función para mostrar todos los productos
         function showAllProducts() {
-            displayProducts(productosDB);
+            const tbody = document.getElementById('productsTableBody');
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">Cargando productos...</td></tr>';
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'obtener_todos_productos'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentProducts = data.productos;
+                    displayProducts(data.productos);
+                } else {
+                    showAlert('Error al cargar productos', 'error');
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-products"><div>Error</div><p>Error al cargar productos</p></td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error de conexión', 'error');
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-products"><div>Error</div><p>Error de conexión</p></td></tr>';
+            });
         }
 
+        // Función para buscar productos
         function searchProducts() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            if (searchTerm.length < 2) {
-                displayProducts([]);
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const tbody = document.getElementById('productsTableBody');
+            
+            if (searchTerm.length < 1) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-products"><div>Busca productos para comenzar la venta</div><small>Puedes buscar por nombre, ID, SKU, marca o código de barra</small></td></tr>';
                 return;
             }
 
-            const filteredProducts = productosDB.filter(product => 
-                product.Nombre_Producto.toLowerCase().includes(searchTerm) ||
-                product.SKU.toLowerCase().includes(searchTerm) ||
-                product.Marca.toLowerCase().includes(searchTerm)
-            );
-
-            displayProducts(filteredProducts);
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">Buscando productos...</td></tr>';
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'buscar_productos',
+                    termino: searchTerm
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentProducts = data.productos;
+                    displayProducts(data.productos);
+                    if (data.productos.length === 0) {
+                        showAlert(`No se encontraron productos para "${searchTerm}"`, 'info');
+                    }
+                } else {
+                    showAlert(data.error || 'Error al buscar productos', 'error');
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-products"><div>No encontrado</div><p>No se encontraron productos</p></td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error de conexión', 'error');
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-products"><div>Error</div><p>Error de conexión</p></td></tr>';
+            });
         }
 
+        // Función para mostrar productos en la tabla
         function displayProducts(products) {
             const tbody = document.getElementById('productsTableBody');
             
@@ -1070,8 +1282,7 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="9" class="empty-products">
-                            <div>🔍</div>
-                            <p>No se encontraron productos</p>
+                            <div>No se encontraron productos</div>
                         </td>
                     </tr>
                 `;
@@ -1083,13 +1294,13 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
                     <td><strong>${product.idProducto}</strong></td>
                     <td>
                         <div class="product-name">${product.Nombre_Producto}</div>
-                        <div class="product-description">${product.Descripcion_Producto.substring(0, 50)}...</div>
+                        <div class="product-description">${(product.Descripcion_Producto || '').substring(0, 50)}${product.Descripcion_Producto && product.Descripcion_Producto.length > 50 ? '...' : ''}</div>
                     </td>
                     <td><code>${product.SKU}</code></td>
                     <td>${product.Marca}</td>
-                    <td>${product.Nombre_Rubro}</td>
-                    <td>${product.Nombre_SubRubro}</td>
-                    <td class="price">$${product.Precio_Venta.toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
+                    <td>${product.Nombre_Rubro || 'N/A'}</td>
+                    <td>${product.Nombre_SubRubro || 'N/A'}</td>
+                    <td class="price">${parseFloat(product.Precio_Venta).toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
                     <td class="stock ${getStockClass(product.Stock_Actual)}">${product.Stock_Actual}</td>
                     <td>
                         <button class="add-btn" onclick="addToCart(${product.idProducto})" ${product.Stock_Actual <= 0 ? 'disabled' : ''}>
@@ -1100,41 +1311,55 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             `).join('');
         }
 
+        // Función para agregar producto al carrito
         function addToCart(productId) {
-            const product = productosDB.find(p => p.idProducto === productId);
-            if (!product) return;
+            const product = currentProducts.find(p => p.idProducto == productId);
+            if (!product) {
+                showAlert('Producto no encontrado', 'error');
+                return;
+            }
 
-            const existingItem = cart.find(item => item.idProducto === productId);
+            const existingItem = cart.find(item => item.idProducto == productId);
             
             if (existingItem) {
                 if (existingItem.cantidad < product.Stock_Actual) {
                     existingItem.cantidad++;
                     existingItem.subtotal = existingItem.cantidad * existingItem.precio;
+                    showAlert(`Cantidad actualizada: ${product.Nombre_Producto}`, 'success');
                 } else {
-                    alert('No hay suficiente stock disponible');
+                    showAlert('No hay suficiente stock disponible', 'error');
                     return;
                 }
             } else {
                 cart.push({
                     idProducto: product.idProducto,
                     nombre: product.Nombre_Producto,
-                    precio: product.Precio_Venta,
+                    precio: parseFloat(product.Precio_Venta),
                     cantidad: 1,
-                    subtotal: product.Precio_Venta,
-                    stock: product.Stock_Actual
+                    subtotal: parseFloat(product.Precio_Venta),
+                    stock: product.Stock_Actual,
+                    rubro: product.Nombre_Rubro || 'N/A',
+                    subrubro: product.Nombre_SubRubro || 'N/A'
                 });
+                showAlert(`Producto agregado: ${product.Nombre_Producto}`, 'success');
             }
 
             updateCartDisplay();
         }
 
+        // Función para remover producto del carrito
         function removeFromCart(productId) {
-            cart = cart.filter(item => item.idProducto !== productId);
+            const item = cart.find(item => item.idProducto == productId);
+            cart = cart.filter(item => item.idProducto != productId);
+            if (item) {
+                showAlert(`Producto removido: ${item.nombre}`, 'info');
+            }
             updateCartDisplay();
         }
 
+        // Función para actualizar cantidad en el carrito
         function updateQuantity(productId, change) {
-            const item = cart.find(item => item.idProducto === productId);
+            const item = cart.find(item => item.idProducto == productId);
             if (!item) return;
 
             const newQuantity = item.cantidad + change;
@@ -1145,7 +1370,7 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             }
             
             if (newQuantity > item.stock) {
-                alert('No hay suficiente stock disponible');
+                showAlert('No hay suficiente stock disponible', 'error');
                 return;
             }
 
@@ -1154,6 +1379,7 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             updateCartDisplay();
         }
 
+        // Función para actualizar la vista del carrito
         function updateCartDisplay() {
             const cartItemsContainer = document.getElementById('cartItems');
             const cartSummary = document.getElementById('cartSummary');
@@ -1162,7 +1388,7 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = `
                     <div class="empty-cart">
-                        <div style="font-size: 48px; margin-bottom: 15px;">🛒</div>
+                        <div style="font-size: 48px; margin-bottom: 15px;">Carrito</div>
                         <p>El carrito está vacío</p>
                         <small>Agrega productos para comenzar la venta</small>
                     </div>
@@ -1178,16 +1404,19 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
                         <div class="cart-item-name">${item.nombre}</div>
                         <button class="remove-btn" onclick="removeFromCart(${item.idProducto})">×</button>
                     </div>
+                    <div style="font-size: 11px; color: #6c757d; margin-bottom: 8px;">
+                        ${item.rubro} > ${item.subrubro} | Stock: ${item.stock}
+                    </div>
                     <div class="cart-item-controls">
                         <div class="quantity-controls">
                             <button class="qty-btn" onclick="updateQuantity(${item.idProducto}, -1)">-</button>
                             <span class="quantity">${item.cantidad}</span>
                             <button class="qty-btn" onclick="updateQuantity(${item.idProducto}, 1)">+</button>
                         </div>
-                        <div class="item-total">$${item.subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>
+                        <div class="item-total">${item.subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>
                     </div>
                     <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">
-                        $${item.precio.toLocaleString('es-AR', {minimumFractionDigits: 2})} c/u
+                        ${item.precio.toLocaleString('es-AR', {minimumFractionDigits: 2})} c/u
                     </div>
                 </div>
             `).join('');
@@ -1197,115 +1426,196 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             const iva = subtotal * 0.21;
             const total = subtotal + iva;
 
-            document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
-            document.getElementById('iva').textContent = `$${iva.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
-            document.getElementById('total').textContent = `$${total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('subtotal').textContent = `${subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('iva').textContent = `${iva.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('total').textContent = `${total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
 
             cartSummary.style.display = 'block';
             paymentSection.style.display = 'block';
         }
 
+        // Función para limpiar carrito
         function clearCart() {
             if (confirm('¿Estás seguro de vaciar el carrito?')) {
                 cart = [];
                 updateCartDisplay();
+                showAlert('Carrito vaciado', 'info');
             }
         }
 
+        // Función para procesar venta
         function processSale() {
             if (cart.length === 0) {
-                alert('El carrito está vacío');
+                showAlert('El carrito está vacío', 'error');
                 return;
             }
 
             const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            const processBtn = document.getElementById('processBtn');
             
-            if (!confirm(`¿Procesar venta por ${paymentMethod.toUpperCase()}?\n\nTotal: ${calculateTotal().toLocaleString('es-AR', {minimumFractionDigits: 2})}`)) {
+            // Validar datos para transferencia
+            if (paymentMethod === 'Transferencia') {
+                const clienteNombre = document.getElementById('clienteNombre').value.trim();
+                const clienteAlias = document.getElementById('clienteAlias').value.trim();
+                
+                if (!clienteNombre || !clienteAlias) {
+                    showAlert('Complete los datos del cliente para transferencia', 'error');
+                    return;
+                }
+            }
+            
+            const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+            const total = subtotal * 1.21;
+            
+            if (!confirm(`¿Procesar venta por ${paymentMethod.toUpperCase()}?\n\nTotal: ${total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`)) {
                 return;
             }
 
-            // Simular procesamiento
-            const button = document.querySelector('.checkout-btn');
-            button.textContent = 'Procesando...';
-            button.disabled = true;
+            // Deshabilitar botón y mostrar loading
+            processBtn.textContent = 'Procesando...';
+            processBtn.disabled = true;
+            
+            // Preparar datos del cliente para transferencia
+            const datosCliente = paymentMethod === 'Transferencia' ? {
+                nombre: document.getElementById('clienteNombre').value.trim(),
+                alias: document.getElementById('clienteAlias').value.trim(),
+                cbu: document.getElementById('clienteCBU').value.trim()
+            } : {};
 
-            setTimeout(() => {
-                showReceipt(paymentMethod);
-                cart = [];
-                updateCartDisplay();
-                button.textContent = '💳 Procesar Venta';
-                button.disabled = false;
+            // Preparar productos para la venta
+            const productosVenta = cart.map(item => ({
+                idProducto: item.idProducto,
+                cantidad: item.cantidad
+            }));
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'procesar_venta',
+                    productos: productosVenta,
+                    metodo_pago: paymentMethod,
+                    datos_cliente: datosCliente
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                processBtn.textContent = 'Procesar Venta';
+                processBtn.disabled = false;
                 
-                // Actualizar stock (simulado)
-                updateProductStock();
-            }, 1000);
+                if (data.success) {
+                    showAlert('¡Venta procesada correctamente!', 'success');
+                    showReceipt(data);
+                    
+                    // Limpiar carrito
+                    cart = [];
+                    updateCartDisplay();
+                    
+                    // Limpiar datos de transferencia
+                    if (paymentMethod === 'Transferencia') {
+                        document.getElementById('clienteNombre').value = '';
+                        document.getElementById('clienteAlias').value = '';
+                        document.getElementById('clienteCBU').value = '';
+                    }
+                    
+                    // Actualizar productos si están visibles
+                    if (currentProducts.length > 0) {
+                        // Actualizar stock local
+                        productosVenta.forEach(ventaItem => {
+                            const producto = currentProducts.find(p => p.idProducto == ventaItem.idProducto);
+                            if (producto) {
+                                producto.Stock_Actual -= ventaItem.cantidad;
+                            }
+                        });
+                        displayProducts(currentProducts);
+                    }
+                    
+                } else {
+                    showAlert(data.error || 'Error al procesar la venta', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error de conexión al procesar la venta', 'error');
+                processBtn.textContent = 'Procesar Venta';
+                processBtn.disabled = false;
+            });
         }
 
-        function calculateTotal() {
-            const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            return subtotal * 1.21; // Con IVA
-        }
-
-        function showReceipt(paymentMethod) {
+        // Función para mostrar recibo
+        function showReceipt(saleData) {
             const modal = document.getElementById('receiptModal');
             const receiptItems = document.getElementById('receiptItems');
+            const receiptClientData = document.getElementById('receiptClientData');
             
             // Fecha y hora actual
             const now = new Date();
             document.getElementById('receiptDate').textContent = now.toLocaleString('es-AR');
+            document.getElementById('receiptEmployee').textContent = `Empleado: <?= htmlspecialchars($nombre_usuario) ?> (ID: <?= htmlspecialchars($id_empleado) ?>)`;
+            document.getElementById('receiptNumber').textContent = `N° Venta: ${saleData.numero_venta}`;
             
             // Items del recibo
-            receiptItems.innerHTML = cart.map(item => `
+            receiptItems.innerHTML = saleData.productos.map(item => `
                 <div class="receipt-item">
                     <div>
-                        <strong>${item.nombre}</strong><br>
-                        <small>${item.cantidad} x ${item.precio.toLocaleString('es-AR', {minimumFractionDigits: 2})}</small>
+                        <strong>${item.producto.Nombre_Producto}</strong><br>
+                        <small>${item.cantidad} x ${item.precio_unitario.toLocaleString('es-AR', {minimumFractionDigits: 2})}</small>
                     </div>
                     <span>${item.subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
                 </div>
             `).join('');
             
             // Totales
-            const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            const iva = subtotal * 0.21;
-            const total = subtotal + iva;
+            document.getElementById('receiptSubtotal').textContent = `${saleData.subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('receiptIVA').textContent = `${saleData.iva.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('receiptTotal').textContent = `${saleData.total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('receiptPayment').textContent = saleData.metodo_pago.toUpperCase();
             
-            document.getElementById('receiptSubtotal').textContent = `${subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
-            document.getElementById('receiptIVA').textContent = `${iva.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
-            document.getElementById('receiptTotal').textContent = `${total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
-            document.getElementById('receiptPayment').textContent = paymentMethod.toUpperCase();
+            // Datos del cliente para transferencia
+            if (saleData.metodo_pago === 'Transferencia' && saleData.datos_cliente) {
+                receiptClientData.innerHTML = `
+                    <div style="font-size: 12px; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                        <strong>Datos del Cliente:</strong><br>
+                        <strong>Nombre:</strong> ${saleData.datos_cliente.nombre}<br>
+                        <strong>Alias:</strong> ${saleData.datos_cliente.alias}
+                        ${saleData.datos_cliente.cbu ? `<br><strong>CBU:</strong> ${saleData.datos_cliente.cbu}` : ''}
+                    </div>
+                `;
+            } else {
+                receiptClientData.innerHTML = '';
+            }
             
             modal.style.display = 'flex';
         }
 
+        // Función para cerrar recibo
         function closeReceipt() {
             document.getElementById('receiptModal').style.display = 'none';
         }
 
+        // Función para imprimir recibo
         function printReceipt() {
             window.print();
-        }
-
-        function updateProductStock() {
-            // Simular actualización de stock en la base de datos
-            cart.forEach(cartItem => {
-                const product = productosDB.find(p => p.idProducto === cartItem.idProducto);
-                if (product) {
-                    product.Stock_Actual -= cartItem.cantidad;
-                }
-            });
-            
-            // Refrescar la vista de productos si está visible
-            const searchTerm = document.getElementById('searchInput').value;
-            if (searchTerm) {
-                searchProducts();
-            }
         }
 
         // Event listeners
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchProducts();
+            }
+        });
+
+        // Mostrar/ocultar datos de transferencia
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'payment') {
+                const transferData = document.getElementById('transferData');
+                if (e.target.value === 'Transferencia') {
+                    transferData.style.display = 'block';
+                } else {
+                    transferData.style.display = 'none';
+                }
             }
         });
 
@@ -1316,9 +1626,9 @@ if ($_SESSION['tipo_usuario'] == 'empleado') {
             }
         });
 
-        // Inicializar mostrando algunos productos por defecto
+        // Inicializar
         window.onload = function() {
-            showAllProducts();
+            showAlert('Sistema de ventas iniciado correctamente', 'success');
         };
     </script>
 </body>
