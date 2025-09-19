@@ -8,10 +8,10 @@ const BASE_URL = "http://localhost/seminario/AltoVoltaje/dashboard";
 
 // Datos de conexion a la base de datos
 const DB_HOST = "localhost";
-const DB_NAME = "alto_voltaje";
+const DB_NAME = "mydb";
 const DB_USER = "root";
 const DB_PASSWORD = "";
-const DB_CHARSET = "charset=utf8";
+const DB_CHARSET = "utf8";
 // //Deliminadores decimal y millar Ej. 24,1989.00
 // const SPD = ",";
 // const SPM = ".";
