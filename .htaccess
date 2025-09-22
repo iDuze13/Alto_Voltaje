@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Alto_Voltaje-main/
+    
+    # Permitir acceso directo a archivos y carpetas reales
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Redirigir todo lo demás a index.php
+    RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>
