@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/Views.php';
     class Controllers{
-        protected $views;
-        protected $model;
+        public $views;
+        public $model;
+
         public function __construct()
         {
             $this->views = new Views();
@@ -12,9 +13,9 @@ require_once __DIR__ . '/Views.php';
         {
             // HomeModel.php
 
-            $model = get_class($this) . "Model";
-            $routClass = "c:\\wamp64\\www\\AltoVoltajeAdmin\\Models\\" . $model . ".php";
-            if ($routClass && file_exists($routClass)) {
+            $model = get_class($this)."Model";
+            $routClass = __DIR__ . "/../../../Models/" . $model . ".php";
+            if (file_exists($routClass)) {
                 require_once $routClass;
                 $this->model = new $model();
             }

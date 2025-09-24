@@ -23,14 +23,14 @@
                 return $resInsert ? $this->conexion->lastInsertId() : 0;
             }
         //Buscar un registro
-            public function select(string $query, array $params = [])
+            public function select(string $query)
             {
                 if (!$this->conexion) {
                     throw new Exception("No database connection");
                 }
                 $this->strquery = $query;
                 $result = $this->conexion->prepare($this->strquery);
-                $result->execute($params);
+                $result->execute();
                 return $result->fetch(PDO::FETCH_ASSOC);
             }
         //Devuelve todos los registros
@@ -56,14 +56,14 @@
                 return $update->execute($this->arrValues);
             }
         //Eliminar registros
-            public function delete(string $query, array $params = [])
+            public function delete(string $query)
             {
                 if (!$this->conexion) {
                     throw new Exception("No database connection");
                 }
                 $this->strquery = $query;
                 $result = $this->conexion->prepare($this->strquery);
-                $del = $result->execute($params);
-                return $del;
+                $result->execute();
+                return $result;
             }
     }

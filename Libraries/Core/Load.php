@@ -5,7 +5,7 @@
         require_once($controllerFile);
         $controllerObj = new $controllerClass();
         if(method_exists($controllerObj, $method)) {
-            $controllerObj->{$method}($params);
+            call_user_func_array([$controllerObj, $method], $params);
         } else {
             require_once "Controllers/Error.php";
         }

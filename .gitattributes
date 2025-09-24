@@ -1,0 +1,16 @@
+﻿* text=auto
+*.php     text eol=lf
+*.html    text eol=lf
+*.css     text eol=lf
+*.js      text eol=lf
+*.scss    text eol=lf
+*.sass    text eol=lf
+*.pug     text eol=lf
+.htaccess text eol=lf
+
+# binarios
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.min.js text eol=lf

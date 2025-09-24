@@ -3,17 +3,48 @@
     function base_url(){
         return BASE_URL;
     }
+    //Retorna la url del Assets
+    function media(){   
+        return BASE_URL."/Assets";
+    }
+
+    function headerAdmin($data=""){
+        $view_header = __DIR__ . "/../Views/template/headerAdmin.php";
+        require_once($view_header);
+    }
+
+    function footerAdmin($data=""){
+        $view_footer = __DIR__ . "/../Views/template/footerAdmin.php";
+        require_once($view_footer);
+    }
+
+
+    function headerTienda($data="")
+    {
+        $view_header = __DIR__ . "/../Views/template/headerTienda.php";
+        require_once($view_header);
+    }
+
+    function footerTienda($data="")
+    {
+        $view_footer = __DIR__ . "/../Views/template/footerTienda.php";
+        require_once($view_footer);
+    }
+
+    function getModal($modalName, $data = [])
+    {
+        $modalFile = __DIR__ . "/../Views/template/Modals/$modalName.php";
+        if (file_exists($modalFile)) {
+            require_once($modalFile);
+        }
+    }
+    
     //Muestra información formateada
     function dep($data){
         $format  = print_r('<pre>');
         $format .= print_r($data);
         $format .= print_r('</pre>');
         return $format;
-    }
-
-    //Retorna la url del Assets
-    function media(){   
-        return BASE_URL."/Assets";
     }
 
     //Elimina exceso de espacios entre palabras
@@ -60,18 +91,4 @@
             $pass .= substr($cadena,$pos,1);
         }
         return $pass;
-    }
-    //Genera un token
-    function token(){
-        $r1 = bin2hex(random_bytes(10));
-        $r2 = bin2hex(random_bytes(10));
-        $r3 = bin2hex(random_bytes(10));
-        $r4 = bin2hex(random_bytes(10));
-        $token = $r1.'-'.$r2.'-'.$r3.'-'.$r4;
-        return $token;
-    }
-    //Formato para valor monetario
-    function formatMoney($cantidad){
-        $cantidad = number_format($cantidad,2,SPD,SPM);
-        return $cantidad;
     }
