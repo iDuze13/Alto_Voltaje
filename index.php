@@ -3,6 +3,13 @@
     require_once "Libraries/Core/Controllers.php";
     require_once "Helpers/Helpers.php";
     $url = !empty ($_GET['url']) ? $_GET['url'] : 'home/home';
+    
+    // Handle legacy logout routes - redirect to auth/logout
+    if ($url === 'logout' || $url === 'cerrarSesion') {
+        header('Location: ' . BASE_URL . '/auth/logout');
+        exit();
+    }
+    
     $arrUrl = explode("/", rtrim($url, '/'));
 
     $controller = !empty($arrUrl[0]) ? $arrUrl[0] : 'home';

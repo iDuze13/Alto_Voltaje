@@ -1,0 +1,16 @@
+/* Admin specific styles */
+.app-header__logo {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.app-sidebar__user-name {
+    font-weight: 600;
+}
+
+.app-sidebar__user-designation {
+    font-size: 12px;
+    color: #999;
+}
+
+/* Custom admin styles can be added here */
