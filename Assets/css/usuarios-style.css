@@ -1,0 +1,96 @@
+/* Usuarios Page Styles */
+.tile-title-w-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.tile-title-w-btn .title {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.tile-title-w-btn .btn-group {
+    min-width: 200px;
+}
+
+.tile-title-w-btn .btn-group select {
+    background-color: #fff;
+    border: 1px solid #e0e6ed;
+    border-radius: 4px;
+}
+
+/* Action buttons styling */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    margin: 0 2px;
+}
+
+.btn-sm i {
+    font-size: 12px;
+}
+
+/* Badge styling for status */
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+.badge-success {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.badge-danger {
+    color: #fff;
+    background-color: #dc3545;
+}
+
+/* DataTables responsive adjustments */
+@media (max-width: 768px) {
+    .tile-title-w-btn {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tile-title-w-btn .btn-group {
+        margin-top: 10px;
+        width: 100%;
+    }
+}
+
+/* Modal header colors */
+.modal-header.headerRegister {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-header.headerUpdate {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.modal-header.headerRegister .close,
+.modal-header.headerUpdate .close {
+    color: white;
+    opacity: 0.8;
+}
+
+.modal-header.headerRegister .close:hover,
+.modal-header.headerUpdate .close:hover {
+    opacity: 1;
+}
