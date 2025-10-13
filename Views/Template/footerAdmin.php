@@ -39,5 +39,9 @@
   <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
   <script src="<?= media(); ?>/js/functions_categorias.js"></script>
     <?php } ?>
+    <?php if($data['page_name'] == "proveedores"){ ?>
+  <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
+  <script src="<?= media(); ?>/js/functions_proveedores.js"></script>
+    <?php } ?>
   </body>
 </html>

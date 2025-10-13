@@ -4,13 +4,27 @@ session_start();
 // Configurar zona horaria de Argentina
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
-require_once 'database.php';
+// Incluir archivos del sistema MVC
+require_once __DIR__ . '/../../Config/Config.php';
+require_once __DIR__ . '/../../Libraries/Core/Conexion.php';
+require_once __DIR__ . '/../../Models/VentasModel.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isset($_SESSION['tipo_usuario']) || ($_SESSION['tipo_usuario'] != 'empleado' && $_SESSION['tipo_usuario'] != 'administrador')) {
+// Verificar autenticación - Adaptar a la estructura de sesiones del sistema
+if (!isset($_SESSION['empleado']) && !isset($_SESSION['admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'No autorizado']);
+    exit();
+}
+
+// Obtener conexión PDO
+$conexion = new Conexion();
+$pdo = $conexion->connect();
+
+if (!$pdo) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Error de conexión a la base de datos']);
     exit();
 }
 
@@ -27,27 +41,9 @@ try {
                 exit();
             }
             
-            $sql = "SELECT p.*, 
-                           r.Nombre_Rubro, 
-                           sr.Nombre_SubRubro,
-                           pr.Nombre_Proveedor
-                    FROM producto p
-                    LEFT JOIN subrubro sr ON p.SubRubro_idSubRubro = sr.idSubRubro
-                    LEFT JOIN rubro r ON sr.Rubro_idRubro = r.idRubro
-                    LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
-                    WHERE (p.Nombre_Producto LIKE ? 
-                           OR p.SKU LIKE ? 
-                           OR p.Marca LIKE ? 
-                           OR p.idProducto LIKE ?
-                           OR p.codigo_barras LIKE ?)
-                    AND p.Estado_Producto = 'Activo'
-                    ORDER BY p.Nombre_Producto ASC
-                    LIMIT 100";
-            
-            $terminoBusqueda = "%$termino%";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$terminoBusqueda, $terminoBusqueda, $terminoBusqueda, $terminoBusqueda, $terminoBusqueda]);
-            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Usar VentasModel para mantener consistencia
+            $ventasModel = new VentasModel();
+            $productos = $ventasModel->buscarProductos($termino);
             
             echo json_encode([
                 'success' => true,
@@ -57,20 +53,9 @@ try {
             break;
             
         case 'obtener_todos_productos':
-            $sql = "SELECT p.*, 
-                           r.Nombre_Rubro, 
-                           sr.Nombre_SubRubro,
-                           pr.Nombre_Proveedor
-                    FROM producto p
-                    LEFT JOIN subrubro sr ON p.SubRubro_idSubRubro = sr.idSubRubro
-                    LEFT JOIN rubro r ON sr.Rubro_idRubro = r.idRubro
-                    LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
-                    WHERE p.Estado_Producto = 'Activo'
-                    ORDER BY p.Nombre_Producto ASC";
-            
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute();
-            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Usar VentasModel para mantener consistencia
+            $ventasModel = new VentasModel();
+            $productos = $ventasModel->getProductosActivos();
             
             echo json_encode([
                 'success' => true,
@@ -80,9 +65,6 @@ try {
             break;
             
        case 'procesar_venta':
-    require_once 'VentasManager.php';
-    // require_once 'guardar_recibo_html.php'; // DESHABILITADO TEMPORALMENTE
-
     $productos = $input['productos'] ?? [];
     $metodoPago = $input['metodo_pago'] ?? 'Efectivo';
     $datosCliente = $input['datos_cliente'] ?? [];
@@ -95,15 +77,17 @@ try {
     $idEmpleado = null;
     $nombreEmpleado = 'Empleado';
 
-    if ($_SESSION['tipo_usuario'] == 'empleado') {
-        $idEmpleado = $_SESSION['id_Empleado'] ?? null;
-        $nombreEmpleado = $_SESSION['empleado_nombre'] ?? 'Empleado';
-    } elseif ($_SESSION['tipo_usuario'] == 'administrador') {
+    // Adaptar a la estructura de sesiones del sistema
+    if (isset($_SESSION['empleado'])) {
+        $idEmpleado = $_SESSION['empleado']['id_Empleado'] ?? null;
+        $nombreEmpleado = $_SESSION['empleado']['Nombre'] ?? 'Empleado';
+    } elseif (isset($_SESSION['admin'])) {
+        // Para admin, obtener un empleado por defecto o usar admin como empleado
         $stmt = $pdo->prepare("SELECT id_Empleado FROM empleado LIMIT 1");
         $stmt->execute();
         $emp = $stmt->fetch(PDO::FETCH_ASSOC);
         $idEmpleado = $emp['id_Empleado'] ?? null;
-        $nombreEmpleado = $_SESSION['admin_nombre'] ?? 'Administrador';
+        $nombreEmpleado = $_SESSION['admin']['Nombre'] ?? 'Administrador';
     }
 
     if (!$idEmpleado) {
@@ -111,29 +95,32 @@ try {
         exit();
     }
 
-    $ventasManager = new VentasManager();
-    $resultado = $ventasManager->procesarVenta($productos, $metodoPago, $idEmpleado, $datosCliente);
-
-    // COMENTADO: Generación de recibo
-    /*
-    if ($resultado['success']) {
-        $datosRecibo = [
-            'numero_venta' => $resultado['numero_venta'],
-            'empleado_nombre' => $nombreEmpleado,
-            'empleado_id' => $idEmpleado,
-            'metodo_pago' => $metodoPago,
-            'datos_cliente' => $datosCliente,
-            'productos' => $resultado['productos'],
-            'subtotal' => $resultado['subtotal'],
-            'iva' => $resultado['iva'],
-            'total' => $resultado['total']
-        ];
+    // Usar VentasModel en lugar de VentasManager
+    $ventasModel = new VentasModel();
     
-        guardarReciboHTML($datosRecibo);
+    // Preparar datos para la venta
+    $datosVenta = [
+        'empleado_id' => $idEmpleado,
+        'metodo_pago' => $metodoPago,
+        'productos' => $productos,
+        'datos_cliente' => $datosCliente
+    ];
+    
+    $resultado = $ventasModel->registrarVenta($datosVenta);
+    
+    if ($resultado) {
+        echo json_encode([
+            'success' => true,
+            'mensaje' => 'Venta procesada correctamente',
+            'numero_venta' => $resultado,
+            'empleado' => $nombreEmpleado
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error al procesar la venta'
+        ]);
     }
-    */
-
-    echo json_encode($resultado);
     break;
             
         case 'verificar_stock':

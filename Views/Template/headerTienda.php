@@ -32,7 +32,7 @@
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/vendor/perfect-scrollbar/perfect-scrollbar.css">
 <!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/util.css">
-	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/main.css">
+	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/main.css?v=1.3">
 <!--===============================================================================================-->
 </head>
 <body class="animsition">
@@ -72,7 +72,7 @@
 				<nav class="limiter-menu-desktop container">
 					
 					<!-- Logo superior-->
-					<a href="#" class="logo">
+					<a href="<?= BASE_URL ?>/" class="logo">
 						<img src="<?= media() ?>/tiendaOnline/images/icons/logo-01.png" alt="ALTO VOLTAJE">
 					</a>
 
@@ -80,7 +80,7 @@
 					<div class="menu-desktop">
 						<ul class="main-menu">
 							<li class="active-menu">
-								<a href="index.html">Incio</a>
+								<a href="<?= BASE_URL ?>/">Inicio</a>
 							</li>
 
 							<li>
@@ -89,11 +89,11 @@
 
 
 							<li>
-								<a href="about.html">Nosotros</a>
+								<a href="<?= BASE_URL ?>/nosotros">Nosotros</a>
 							</li>
 
 							<li>
-								<a href="contact.html">Contacto</a>
+								<a href="<?= BASE_URL ?>/contacto">Contacto</a>
 							</li>
 						</ul>
 					</div>	
@@ -120,7 +120,7 @@
 		<div class="wrap-header-mobile">
 			<!-- Logo moblie -->		
 			<div class="logo-mobile">
-				<a href="index.html"><img src="<?= media() ?>/tiendaOnline/images/icons/logo-01.png" alt="ALTO VOLTAJE"></a>
+				<a href="<?= BASE_URL ?>/"><img src="<?= media() ?>/tiendaOnline/images/icons/logo-01.png" alt="ALTO VOLTAJE"></a>
 			</div>
 
 			<!-- Icon header -->
@@ -176,7 +176,7 @@
 
 			<ul class="main-menu-m">
 				<li>
-					<a href="index.html">Inicio</a>
+					<a href="<?= BASE_URL ?>/">Inicio</a>
 				</li>
 
 				<li>
@@ -184,11 +184,11 @@
 				</li>
 
 				<li>
-					<a href="about.html">Nosotros</a>
+					<a href="<?= BASE_URL ?>/nosotros">Nosotros</a>
 				</li>
 
 				<li>
-					<a href="contact.html">Contacto</a>
+					<a href="<?= BASE_URL ?>/contacto">Contacto</a>
 				</li>
 			</ul>
 		</div>

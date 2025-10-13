@@ -1,7 +1,7 @@
 <?php headerAdmin($data); 
       getModal('modalProveedores',$data);
 ?>
-<link rel="stylesheet" type="text/css" href="<?= media(); ?>/css/proveedores-modern.css">
+<link rel="stylesheet" type="text/css" href="<?= media(); ?>/css/proveedores-modern.css?v=<?= time(); ?>">
 
 <main class="app-content">
   <div class="proveedores-header">
@@ -107,5 +107,4 @@
   </div>
 </main>
 
-<script src="<?= media(); ?>/js/functions_proveedores.js"></script>
 <?php footerAdmin($data); ?>

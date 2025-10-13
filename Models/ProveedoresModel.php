@@ -1,6 +1,7 @@
 <?php
-
+require_once __DIR__ . '/../Config/Config.php';
 require_once __DIR__ . '/../Libraries/Core/Msql.php';
+require_once __DIR__ . '/../Libraries/Core/Conexion.php';
 
 class ProveedoresModel extends Conexion
 {
@@ -31,7 +32,7 @@ class ProveedoresModel extends Conexion
         $this->strProvincia = $provincia;
 
         // Check if CUIT or email already exists
-        $sql = "SELECT * FROM proveedor WHERE (CUIT_Proveedor = '{$this->strCUIT}' OR Email_Proveedor = '{$this->strEmail}')";
+        $sql = "SELECT * FROM proveedor WHERE CUIT_Proveedor = '$this->strCUIT' OR Email_Proveedor = '$this->strEmail'";
         $request = $this->db->select_all($sql);
         
         if (empty($request)) {
@@ -79,7 +80,7 @@ class ProveedoresModel extends Conexion
         $this->strProvincia = $provincia;
 
         // Check if CUIT or email exists for other providers
-        $sql = "SELECT * FROM proveedor WHERE (CUIT_Proveedor = '{$this->strCUIT}' OR Email_Proveedor = '{$this->strEmail}') AND id_Proveedor != $this->intIdProveedor";
+        $sql = "SELECT * FROM proveedor WHERE (CUIT_Proveedor = '$this->strCUIT' OR Email_Proveedor = '$this->strEmail') AND id_Proveedor != $this->intIdProveedor";
         $request = $this->db->select_all($sql);
         
         if (empty($request)) {
@@ -106,16 +107,31 @@ class ProveedoresModel extends Conexion
         $this->intIdProveedor = $idProveedor;
         
         // Check if provider has associated products (if producto table has proveedor_id)
-        // For now, we'll allow deletion, but you can add checks here
-        $sql = "DELETE FROM proveedor WHERE id_Proveedor = $this->intIdProveedor";
-        $request = $this->db->delete($sql);
+        // First check if provider exists
+        $sqlCheck = "SELECT id_Proveedor FROM proveedor WHERE id_Proveedor = ?";
+        $checkResult = $this->db->select($sqlCheck, [$this->intIdProveedor]);
+        
+        if (empty($checkResult)) {
+            return 'not_found';
+        }
+        
+        // Check if provider has associated products (uncomment and modify if needed)
+        // $sqlProducts = "SELECT id_producto FROM producto WHERE proveedor_id = ?";
+        // $products = $this->db->select_all($sqlProducts, [$this->intIdProveedor]);
+        // if (!empty($products)) {
+        //     return 'exist';
+        // }
+        
+        // Delete the provider
+        $sql = "DELETE FROM proveedor WHERE id_Proveedor = ?";
+        $arrData = array($this->intIdProveedor);
+        $request = $this->db->delete($sql, $arrData);
         
         if($request) {
-            $request = 'ok';
+            return 'ok';
         } else {
-            $request = 'error';
+            return 'error';
         }
-        return $request;
     }
 }
 ?>
