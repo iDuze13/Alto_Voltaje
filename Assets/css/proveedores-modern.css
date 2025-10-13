@@ -247,10 +247,28 @@
 /* DataTables Styling */
 .modern-table-container {
   overflow-x: auto;
+  padding: 0;
 }
 
 .dataTables_wrapper {
   padding: 0;
+  margin: 0;
+}
+
+/* Override DataTables default styling */
+.dataTables_wrapper .dataTables_scroll {
+  margin: 0;
+  padding: 0;
+}
+
+.dataTables_wrapper .dataTables_scrollHead {
+  margin: 0;
+  padding: 0;
+}
+
+.dataTables_wrapper .dataTables_scrollBody {
+  margin: 0;
+  padding: 0;  
 }
 
 /* Hide the "Show entries" dropdown and default search */
@@ -327,20 +345,25 @@
 
 /* Modern Table */
 .modern-table {
-  width: 100%;
+  width: 100% !important;
   border-collapse: collapse;
   background: white;
   font-size: 14px;
+  margin: 0 !important;
+  border-spacing: 0;
 }
 
 .modern-table thead th {
-  background: #f8f9fa;
+  background: #f8f9fa !important;
   border-bottom: 2px solid #e9ecef;
-  padding: 15px 12px;
+  padding: 15px 12px !important;
   text-align: left;
   font-weight: 600;
-  color: #495057;
+  color: #495057 !important;
   white-space: nowrap;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
 }
 
 .th-content {
@@ -356,20 +379,51 @@
 }
 
 .modern-table tbody td {
-  padding: 12px;
+  padding: 12px !important;
   border-bottom: 1px solid #f1f3f4;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
   vertical-align: middle;
   color: #495057;
 }
 
 .modern-table tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: #f8f9fa !important;
 }
+
+/* Fix DataTables column alignment issues */
+#tableProveedores th,
+#tableProveedores td {
+  text-align: left !important;
+  vertical-align: middle !important;
+  padding: 12px !important;
+}
+
+/* Ensure proper column widths */
+#tableProveedores th:nth-child(1),
+#tableProveedores td:nth-child(1) { width: 15%; } /* Nombre */
+#tableProveedores th:nth-child(2),
+#tableProveedores td:nth-child(2) { width: 12%; } /* CUIT */
+#tableProveedores th:nth-child(3),
+#tableProveedores td:nth-child(3) { width: 12%; } /* Teléfono */
+#tableProveedores th:nth-child(4),
+#tableProveedores td:nth-child(4) { width: 18%; } /* Email */
+#tableProveedores th:nth-child(5),
+#tableProveedores td:nth-child(5) { width: 18%; } /* Dirección */
+#tableProveedores th:nth-child(6),
+#tableProveedores td:nth-child(6) { width: 10%; } /* Ciudad */
+#tableProveedores th:nth-child(7),
+#tableProveedores td:nth-child(7) { width: 10%; } /* Provincia */
+#tableProveedores th:nth-child(8),
+#tableProveedores td:nth-child(8) { width: 10%; text-align: center !important; } /* Acciones */
 
 /* Action Buttons */
 .action-buttons {
   display: flex;
   gap: 8px;
+  justify-content: center;
+  align-items: center;
 }
 
 .btn-action {
@@ -381,7 +435,10 @@
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  min-width: 35px;
+  height: 30px;
 }
 
 .btn-edit {
@@ -447,6 +504,43 @@
   
   .modern-table thead th,
   .modern-table tbody td {
-    padding: 8px 6px;
+    padding: 8px 6px !important;
   }
+  
+  /* Adjust column widths for mobile */
+  #tableProveedores th,
+  #tableProveedores td {
+    width: auto !important;
+    min-width: 100px;
+  }
+}
+
+/* Additional DataTables overrides */
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody {
+  border: none !important;
+}
+
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollHead table {
+  margin-bottom: 0 !important;
+}
+
+.dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody table {
+  border-top: none !important;
+  margin-top: 0 !important;
+}
+
+/* Fix any potential margin/padding issues */
+table.dataTable {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+table.dataTable thead th,
+table.dataTable thead td {
+  border-bottom: 2px solid #e9ecef !important;
+}
+
+table.dataTable tbody th,
+table.dataTable tbody td {
+  border-top: none !important;
 }

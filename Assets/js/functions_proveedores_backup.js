@@ -1,28 +1,17 @@
-console.log("functions_proveedores.js cargado");
 var base_url = "http://localhost/AltoVoltaje";
 let tableProveedores;
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing proveedores table...');
-    console.log('Base URL:', base_url);
-    console.log('SweetAlert available:', typeof swal !== 'undefined');
-    console.log('DataTables available:', typeof $.fn.DataTable !== 'undefined');
-    
     // Initialize DataTable
     tableProveedores = $('#tableProveedores').DataTable({
-        "processing": true,
-        "serverSide": false,
-        "autoWidth": false,
+        "aProcessing": true,
+        "aServerSide": false,
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
         },
         "ajax": {
             "url": base_url + "/Proveedores/getProveedores",
-            "dataSrc": "data",
-            "error": function(xhr, error, code) {
-                console.error('DataTables AJAX error:', error, code);
-                console.error('Response:', xhr.responseText);
-            }
+            "dataSrc": "data"
         },
         "columns": [
             {"data": "Nombre_Proveedor"},
@@ -48,23 +37,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         ],
-        "scrollX": false,
+        "scrollX": true,
         "scrollY": false,
         "responsive": false,
-        "destroy": true,
-        "displayLength": 10,
+        "bDestroy": true,
+        "iDisplayLength": 10,
         "order": [[0, "asc"]],
-        "dom": 'rtip', // Remove default search and length controls
-        "columnDefs": [
-            { "width": "15%", "targets": 0 }, // Nombre
-            { "width": "12%", "targets": 1 }, // CUIT
-            { "width": "12%", "targets": 2 }, // Teléfono
-            { "width": "18%", "targets": 3 }, // Email
-            { "width": "18%", "targets": 4 }, // Dirección
-            { "width": "10%", "targets": 5 }, // Ciudad
-            { "width": "10%", "targets": 6 }, // Provincia
-            { "width": "10%", "targets": 7, "className": "text-center" } // Acciones
-        ]
+        "dom": 'rtip' // Remove default search and length controls
     });
 
     // Load stats and province filter
@@ -72,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadProvinciaFilter();
     
     // Initialize form handler
-    initializeFormHandler();
+    initializeForm();
 });
 
 // Custom search function
@@ -90,8 +69,8 @@ function loadStats() {
     request.onreadystatechange = function() {
         if(request.readyState == 4 && request.status == 200) {
             let objData = JSON.parse(request.responseText);
-            if(objData.data && objData.data.length > 0) {
-                updateStats(objData.data);
+            if(objData.length > 0) {
+                updateStats(objData);
             }
         }
     }
@@ -99,27 +78,19 @@ function loadStats() {
 
 function updateStats(data) {
     // Total proveedores
-    if(document.getElementById('totalProveedores')) {
-        document.getElementById('totalProveedores').textContent = data.length;
-    }
+    document.getElementById('totalProveedores').textContent = data.length;
     
     // Count unique cities
     let ciudades = [...new Set(data.map(item => item.Ciudad_Proveedor).filter(ciudad => ciudad && ciudad.trim() !== ''))];
-    if(document.getElementById('totalCiudades')) {
-        document.getElementById('totalCiudades').textContent = ciudades.length;
-    }
+    document.getElementById('totalCiudades').textContent = ciudades.length;
     
     // Count unique provinces
     let provincias = [...new Set(data.map(item => item.Provincia_Proveedor).filter(provincia => provincia && provincia.trim() !== ''))];
-    if(document.getElementById('totalProvincias')) {
-        document.getElementById('totalProvincias').textContent = provincias.length;
-    }
+    document.getElementById('totalProvincias').textContent = provincias.length;
     
     // Count emails
     let emails = data.filter(item => item.Email_Proveedor && item.Email_Proveedor.trim() !== '').length;
-    if(document.getElementById('totalEmails')) {
-        document.getElementById('totalEmails').textContent = emails;
-    }
+    document.getElementById('totalEmails').textContent = emails;
 }
 
 function loadProvinciaFilter() {
@@ -133,22 +104,20 @@ function loadProvinciaFilter() {
             let objData = JSON.parse(request.responseText);
             let selectProvincia = document.getElementById('filterProvincia');
             
-            if(selectProvincia && objData.data) {
-                // Clear existing options (except the first one)
-                selectProvincia.innerHTML = '<option value="">Todas las provincias</option>';
-                
-                // Get unique provinces
-                let provincias = [...new Set(objData.data.map(item => item.Provincia_Proveedor).filter(provincia => provincia && provincia.trim() !== ''))];
-                provincias.sort();
-                
-                // Add options
-                provincias.forEach(provincia => {
-                    let option = document.createElement('option');
-                    option.value = provincia;
-                    option.textContent = provincia;
-                    selectProvincia.appendChild(option);
-                });
-            }
+            // Clear existing options (except the first one)
+            selectProvincia.innerHTML = '<option value="">Todas las provincias</option>';
+            
+            // Get unique provinces
+            let provincias = [...new Set(objData.map(item => item.Provincia_Proveedor).filter(provincia => provincia && provincia.trim() !== ''))];
+            provincias.sort();
+            
+            // Add options
+            provincias.forEach(provincia => {
+                let option = document.createElement('option');
+                option.value = provincia;
+                option.textContent = provincia;
+                selectProvincia.appendChild(option);
+            });
         }
     }
 }
@@ -202,12 +171,6 @@ function btnEditProveedor(idproveedor) {
 }
 
 function btnDelProveedor(idproveedor) {
-    // Validate ID
-    if(!idproveedor || idproveedor <= 0) {
-        swal("Error", "ID de proveedor inválido", "error");
-        return;
-    }
-    
     swal({
         title: "Eliminar Proveedor",
         text: "¿Realmente quiere eliminar el Proveedor?",
@@ -221,40 +184,22 @@ function btnDelProveedor(idproveedor) {
         if (isConfirm) {
             let request = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
             let ajaxUrl = base_url + '/Proveedores/delProveedor';
-            let strData = "idProveedor=" + encodeURIComponent(idproveedor);
-            
-            console.log('Eliminando proveedor ID:', idproveedor);
-            console.log('URL:', ajaxUrl);
-            console.log('Data:', strData);
-            
+            let strData = "idProveedor=" + idproveedor;
             request.open("POST", ajaxUrl, true);
             request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             request.send(strData);
             
             request.onreadystatechange = function() {
-                if(request.readyState == 4) {
-                    if(request.status == 200) {
-                        console.log('Response:', request.responseText);
-                        try {
-                            let objData = JSON.parse(request.responseText);
-                            if(objData.status) {
-                                swal("¡Eliminado!", objData.msg, "success");
-                                if(typeof tableProveedores !== 'undefined') {
-                                    tableProveedores.ajax.reload(function() {
-                                        loadStats();
-                                        loadProvinciaFilter();
-                                    });
-                                }
-                            } else {
-                                swal("Error", objData.msg, "error");
-                            }
-                        } catch(e) {
-                            console.error('Error parsing JSON:', e);
-                            swal("Error", "Error en la respuesta del servidor", "error");
-                        }
+                if(request.readyState == 4 && request.status == 200) {
+                    let objData = JSON.parse(request.responseText);
+                    if(objData.status) {
+                        swal("Eliminar!", objData.msg, "success");
+                        tableProveedores.ajax.reload(function() {
+                            loadStats();
+                            loadProvinciaFilter();
+                        });
                     } else {
-                        console.error('HTTP Error:', request.status);
-                        swal("Error", "Error de conexión: " + request.status, "error");
+                        swal("Atención!", objData.msg, "error");
                     }
                 }
             }
@@ -262,84 +207,64 @@ function btnDelProveedor(idproveedor) {
     });
 }
 
-function initializeFormHandler() {
-    // Wait for modal to be available
-    const checkForm = setInterval(function() {
-        const formProveedor = document.querySelector("#formProveedor");
-        if(formProveedor) {
-            clearInterval(checkForm);
+function initializeForm() {
+    const formProveedor = document.querySelector("#formProveedor");
+    if(formProveedor) {
+        formProveedor.onsubmit = function(e) {
+            e.preventDefault();
             
-            formProveedor.addEventListener('submit', function(e) {
-                e.preventDefault();
-                console.log('Form submitted!');
-                
-                let intIdProveedor = document.querySelector('#idProveedor').value;
-                let strNombre = document.querySelector('#txtNombre').value;
-                let strCUIT = document.querySelector('#txtCUIT').value;
-                let strTelefono = document.querySelector('#txtTelefono').value;
-                let strEmail = document.querySelector('#txtEmail').value;
-                let strDireccion = document.querySelector('#txtDireccion').value;
-                let strCiudad = document.querySelector('#txtCiudad').value;
-                let strProvincia = document.querySelector('#txtProvincia').value;
-                
-                if(strNombre == '' || strCUIT == '' || strTelefono == '' || strEmail == '' || strDireccion == '' || strCiudad == '' || strProvincia == '') {
-                    swal("Atención", "Todos los campos son obligatorios.", "error");
-                    return false;
-                }
-                
-                // Email validation
-                let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if(!emailRegex.test(strEmail)) {
-                    swal("Atención", "Por favor ingrese un email válido.", "error");
-                    return false;
-                }
-                
-                // CUIT validation
-                let cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
-                if(!cuitRegex.test(strCUIT)) {
-                    swal("Atención", "El formato del CUIT debe ser: XX-XXXXXXXX-X", "error");
-                    return false;
-                }
-                
-                let request = new XMLHttpRequest();
-                let ajaxUrl = base_url + '/Proveedores/setProveedor';
-                let formData = new FormData(formProveedor);
-                
-                console.log('Sending to:', ajaxUrl);
-                
-                request.open("POST", ajaxUrl, true);
-                request.send(formData);
-                
-                request.onreadystatechange = function() {
-                    if(request.readyState == 4 && request.status == 200) {
-                        console.log('Response:', request.responseText);
-                        try {
-                            let objData = JSON.parse(request.responseText);
-                            if(objData.status) {
-                                $('#modalFormProveedor').modal("hide");
-                                formProveedor.reset();
-                                swal("Proveedores", objData.msg, "success");
-                                if(typeof tableProveedores !== 'undefined') {
-                                    tableProveedores.ajax.reload(function() {
-                                        loadStats();
-                                        loadProvinciaFilter();
-                                    });
-                                }
-                            } else {
-                                swal("Error", objData.msg, "error");
-                            }
-                        } catch(e) {
-                            console.error('Error parsing JSON:', e);
-                            swal("Error", "Error en la respuesta del servidor", "error");
-                        }
-                    } else if(request.readyState == 4) {
-                        console.error('HTTP Error:', request.status);
-                        swal("Error", "Error de conexión: " + request.status, "error");
+            let intIdProveedor = document.querySelector('#idProveedor').value;
+            let strNombre = document.querySelector('#txtNombre').value;
+            let strCUIT = document.querySelector('#txtCUIT').value;
+            let strTelefono = document.querySelector('#txtTelefono').value;
+            let strEmail = document.querySelector('#txtEmail').value;
+            let strDireccion = document.querySelector('#txtDireccion').value;
+            let strCiudad = document.querySelector('#txtCiudad').value;
+            let strProvincia = document.querySelector('#txtProvincia').value;
+            
+            if(strNombre == '' || strCUIT == '' || strTelefono == '' || strEmail == '' || strDireccion == '' || strCiudad == '' || strProvincia == '') {
+                swal("Atención", "Todos los campos son obligatorios.", "error");
+                return false;
+            }
+            
+            // Email validation
+            let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if(!emailRegex.test(strEmail)) {
+                swal("Atención", "Por favor ingrese un email válido.", "error");
+                return false;
+            }
+            
+            // CUIT validation
+            let cuitRegex = /^\d{2}-\d{8}-\d{1}$/;
+            if(!cuitRegex.test(strCUIT)) {
+                swal("Atención", "El formato del CUIT debe ser: XX-XXXXXXXX-X", "error");
+                return false;
+            }
+            
+            let request = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+            let ajaxUrl = base_url + '/Proveedores/setProveedor';
+            let formData = new FormData(formProveedor);
+            request.open("POST", ajaxUrl, true);
+            request.send(formData);
+            
+            request.onreadystatechange = function() {
+                if(request.readyState == 4 && request.status == 200) {
+                    let objData = JSON.parse(request.responseText);
+                    if(objData.status) {
+                        $('#modalFormProveedor').modal("hide");
+                        formProveedor.reset();
+                        swal("Proveedores", objData.msg, "success");
+                        tableProveedores.ajax.reload(function() {
+                            loadStats();
+                            loadProvinciaFilter();
+                        });
+                    } else {
+                        swal("Error", objData.msg, "error");
                     }
                 }
-            });
+            }
         }
-    }, 100);
+    }
 }
 
 function exportProveedores() {
