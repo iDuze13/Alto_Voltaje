@@ -1,4 +1,5 @@
 <?php
+	require_once(__DIR__ . '/../Helpers/Helpers.php');
     headerTienda($data);
 	getModal('modalCarrito', $data);
 
@@ -10,60 +11,63 @@
 			<div class="slick1">
 				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-01.png);">
 					<div class="container h-full">
-						<div class="flex-col-l-m h-full p-t-100 p-b-30 respon5">
-							<div class="layer-slick1 animated visible-false" data-appear="fadeInDown" data-delay="0">
-								<span class="ltext-101 cl2 respon2">
-									Herramientas
-								</span>
-							</div>
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">
 								
-							<div class="layer-slick1 animated visible-false" data-appear="fadeInUp" data-delay="800">
-								<h2 class="ltext-201 cl2 p-t-19 p-b-43 respon1">
-									Las mejores marcas
-								</h2>
-							</div>
-								
-							<div class="layer-slick1 animated visible-false" data-appear="zoomIn" data-delay="1600">
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Comprar Ahora
-								</a>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-02.jpg);">
-					<div class="container h-full">
-						<div class="flex-col-l-m h-full p-t-100 p-b-30 respon5">
 							<div>
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Comprar Ahora
+								<a href="<?= BASE_URL ?>/tienda" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
 								</a>
 							</div>
 						</div>
 					</div>
 				</div>
 
-				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-03.jpg);">
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-02.png);">
 					<div class="container h-full">
-						<div class="flex-col-l-m h-full p-t-100 p-b-30 respon5">	
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">
 							<div>
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Comprar Ahora
+								<a href="<?= BASE_URL ?>/tienda" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
 								</a>
 							</div>
 						</div>
 					</div>
 				</div>
 
-				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-04.jpg);">
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-03.png);">
 					<div class="container h-full">
-						<div class="flex-col-l-m h-full p-t-100 p-b-30 respon5">	
-							<div class=>
-								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Comprar Ahora
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">	
+							<div>
+								<a href="<?= BASE_URL ?>/tienda" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
 								</a>
 							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-04.png);">
+					<div class="container h-full">
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">	
+							<div>
+								<a href="<?= BASE_URL ?>/tienda" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-05.png);">
+					<div class="container h-full">
+						<div class="flex-col-l-m h-full p-t-240 p-b-30 respon5">	
+						</div>
+					</div>
+				</div>
+
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-06.png);">
+					<div class="container h-full">
+						<div class="flex-col-l-m h-full p-t-240 p-b-30 respon5">	
 						</div>
 					</div>
 				</div>
@@ -79,7 +83,7 @@
             <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
                 <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column; justify-content: flex-end;">
                     <img src="<?= media() ?>/tiendaOnline/images/banner-01.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="product.html" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
+                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
                         <div class="block1-txt-child1 flex-col-l">
                             <span class="block1-name ltext-102 trans-04 p-b-8">Kit 1</span>
                             <span class="block1-info stext-102 trans-04">Cable 100 mts + Caja Termica + Llave de luz</span>
@@ -93,7 +97,7 @@
             <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
                 <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column;justify-content: flex-end;">
                     <img src="<?= media() ?>/tiendaOnline/images/banner-02.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="product.html" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
+                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
                         <div class="block1-txt-child1 flex-col-l">
                             <span class="block1-name ltext-102 trans-04 p-b-8">Kit 2</span>
                             <span class="block1-info stext-102 trans-04">Caja de herramientas + Taladro</span>
@@ -107,7 +111,7 @@
             <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
                 <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column; justify-content: flex-end;">
                     <img src="<?= media() ?>/tiendaOnline/images/banner-03.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="product.html" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
+                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
                         <div class="block1-txt-child1 flex-col-l">
                             <span class="block1-name ltext-102 trans-04 p-b-8">Kit 3</span>
                             <span class="block1-info stext-102 trans-04">Pinza Amperometrica + Multimetro</span>
@@ -121,7 +125,7 @@
             <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
                 <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column; justify-content: flex-end;">
                     <img src="<?= media() ?>/tiendaOnline/images/banner-04.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="product.html" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
+                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
                         <div class="block1-txt-child1 flex-col-l">
                             <span class="block1-name ltext-102 trans-04 p-b-8">Kit 4</span>
                             <span class="block1-info stext-102 trans-04">Camara de Seguridad + Alarma</span>
@@ -162,6 +166,10 @@
 
 					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".bag">
 						Instalacion Electrica
+					</button>
+
+					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".bag">
+						Hogar 
 					</button>
 
 					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".shoes">
