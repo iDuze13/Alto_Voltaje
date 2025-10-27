@@ -1,0 +1,30 @@
+/* Scoped styles for Employee dashboard to avoid collision with tienda theme */
+.emp-body{min-height:100vh;background:#2c2c2c;color:#fff;font-family: Arial, Helvetica, sans-serif}
+.emp-side-menu{position:fixed;top:0;left:0;background:#1a1a1a;width:20vw;min-height:100vh;display:flex;flex-direction:column;z-index:1000;border-right:2px solid #F5A623;padding-top:0}
+.emp-side-menu .brand{height:10vh;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #F5A623}
+.emp-side-menu .brand h1{color:#F5A623;text-shadow:0 0 10px rgba(245,166,35,.3)}
+.emp-side-menu li{font-size:20px;padding:15px 40px;color:#fff;display:flex;align-items:center;cursor:pointer;transition:all .3s ease;border-bottom:1px solid rgba(245,166,35,.1)}
+.emp-side-menu li:hover{background:#F5A623;color:#1a1a1a;transform:translateX(5px)}
+.emp-side-menu li ion-icon{margin-right:15px;font-size:24px}
+.emp-logout-btn{margin-top:auto;padding:15px 40px;background:#F5A623;color:#fff;text-align:center;cursor:pointer;transition:all .3s ease;border-top:2px solid #F5A623}
+.emp-logout-btn:hover{background:#F5A623;color:#1a1a1a}
+.emp-container{position:absolute;right:0;width:80vw;min-height:100vh;background:#2c2c2c}
+.emp-header{position:fixed;top:0;right:0;width:80vw;height:10vh;background:#1a1a1a;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(245,166,35,.2);z-index:999;border-bottom:2px solid #F5A623}
+.emp-header .nav{width:90%;display:flex;align-items:center;justify-content:space-between}
+.emp-search{flex:3;display:flex;justify-content:flex-start;align-items:center}
+.emp-search input{border:2px solid #F5A623;background:#2c2c2c;color:#fff;padding:10px 15px;width:300px;border-radius:25px;outline:none;transition:all .3s ease}
+.emp-search input:focus{box-shadow:0 0 15px rgba(245,166,35,.5);background:#1a1a1a}
+.emp-search button{width:40px;height:40px;border:none;background:#F5A623;color:#1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:10px;cursor:pointer;transition:all .3s ease}
+.emp-user{flex:1;display:flex;justify-content:flex-end;align-items:center}
+.emp-user-info{display:flex;align-items:center;margin-right:15px;color:#F5A623;font-size:14px;font-weight:700}
+.emp-badge{margin-left:8px;background:#F5A623;color:#1a1a1a;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700}
+.emp-back-link{margin-left:12px;color:#ffffff;background:transparent;border:1px solid #F5A623;border-radius:14px;padding:6px 10px;font-size:12px;text-decoration:none;transition:all .2s ease}
+.emp-back-link:hover{background:#F5A623;color:#1a1a1a}
+.emp-content{margin-top:10vh;padding:20px;height:calc(100vh - 10vh);overflow-y:auto}
+.emp-welcome{background:#1a1a1a;padding:30px;border-radius:10px;box-shadow:0 2px 20px rgba(245,166,35,.1);margin-bottom:20px;border:1px solid #F5A623}
+.emp-box{background:#2c2c2c;padding:15px;border-radius:8px;margin-top:15px;border-left:4px solid #F5A623;border:1px solid rgba(245,166,35,.3)}
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-top:20px}
+.emp-card{background:#1a1a1a;padding:20px;border-radius:10px;box-shadow:0 2px 15px rgba(245,166,35,.1);transition:all .3s ease;border:1px solid rgba(245,166,35,.3)}
+.emp-card h3{color:#F5A623;margin-bottom:10px}
+.emp-click{cursor:pointer}
+@media(max-width:768px){.emp-side-menu{width:100%;height:auto;position:relative}.emp-container{width:100%;position:relative}.emp-header{width:100%}.emp-search input{width:200px}}

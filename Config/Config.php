@@ -1,6 +1,6 @@
 <?php
 
-//define("BASE_URL", "http://localhost/Alto_Voltaje-main");
+//define("BASE_URL", "http://localhost/AltoVoltaje");
 const BASE_URL = "http://localhost/AltoVoltaje";
 
 //Zona horaria
@@ -8,13 +8,13 @@ const BASE_URL = "http://localhost/AltoVoltaje";
 
 // Datos de conexion a la base de datos
 const DB_HOST = "localhost";
-const DB_NAME = "alto_voltaje";
+const DB_NAME = "mydb";
 const DB_USER = "root";
 const DB_PASSWORD = "";
-const DB_CHARSET = "charset=utf8";
-// //Deliminadores decimal y millar Ej. 24,1989.00
-// const SPD = ",";
-// const SPM = ".";
+const DB_CHARSET = "utf8mb4";
+//Deliminadores decimal y millar Ej. 24,1989.00
+const SPD = ".";
+const SPM = ",";
 
-// //Simbolo de moneda
-// const SMONEY = "$";
+//Simbolo de moneda
+const SMONEY = "$";
