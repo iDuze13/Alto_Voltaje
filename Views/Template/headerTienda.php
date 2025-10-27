@@ -33,6 +33,7 @@
 <!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/util.css">
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/main.css?v=1.3">
+	<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/tienda-modern.css?v=1.0">
 <!--===============================================================================================-->
 </head>
 <body class="animsition">

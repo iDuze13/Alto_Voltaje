@@ -1,0 +1,221 @@
+/* Estilos adicionales para la tienda */
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Efectos hover para los botones */
+.btn-add-cart:hover {
+    animation: pulse 0.5s ease-in-out;
+}
+
+/* Mejoras responsivas */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 40px 0;
+        text-align: center;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .sidebar-widget {
+        margin-bottom: 20px;
+    }
+    
+    .product-card {
+        margin-bottom: 20px;
+    }
+    
+    .product-count {
+        padding: 10px 15px;
+    }
+    
+    .product-count .row {
+        text-align: center;
+    }
+    
+    .product-count .col-md-6 {
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        padding: 30px 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 1.5rem;
+    }
+    
+    .product-image {
+        height: 200px;
+    }
+    
+    .product-info {
+        padding: 15px;
+    }
+    
+    .search-input {
+        padding: 12px 40px 12px 15px;
+    }
+}
+
+/* Mejoras en la accesibilidad */
+.filter-link:focus,
+.btn-add-cart:focus,
+.search-btn:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Estados de carga */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #667eea;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mejoras en el contraste */
+.product-category {
+    background: rgba(103, 126, 234, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+/* Efectos de hover en las tarjetas */
+.product-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover {
+    transform: translateY(-8px) scale(1.02);
+}
+
+/* Indicadores de stock */
+.stock-low {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.stock-medium {
+    color: #f39c12;
+    font-weight: 600;
+}
+
+.stock-high {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+/* Mejoras en los badges */
+.product-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Animación de entrada para los productos */
+.product-item {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.product-item:nth-child(1) { animation-delay: 0.1s; }
+.product-item:nth-child(2) { animation-delay: 0.2s; }
+.product-item:nth-child(3) { animation-delay: 0.3s; }
+.product-item:nth-child(4) { animation-delay: 0.4s; }
+.product-item:nth-child(5) { animation-delay: 0.5s; }
+.product-item:nth-child(6) { animation-delay: 0.6s; }
+
+/* Mejoras en los filtros */
+.filter-link.active {
+    color: #667eea;
+    font-weight: 600;
+    background: rgba(103, 126, 234, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+}
+
+/* Estilo para productos sin stock */
+.out-of-stock {
+    position: relative;
+    opacity: 0.6;
+}
+
+.out-of-stock::before {
+    content: 'Sin Stock';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    z-index: 2;
+}
+
+/* Mejoras en la tipografía */
+.product-title {
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Efectos en los iconos */
+.product-actions i {
+    transition: all 0.3s ease;
+}
+
+.product-actions i:hover {
+    transform: scale(1.2);
+    color: #667eea !important;
+}
