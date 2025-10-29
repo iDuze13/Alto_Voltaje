@@ -1,0 +1,8 @@
+<!-- Default Product SVG Placeholder -->
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="8" fill="#f1f5f9"/>
+  <path d="M12 14L20 8L28 14V26C28 27.1046 27.1046 28 26 28H14C12.8954 28 12 27.1046 12 26V14Z" fill="#64748b" fill-opacity="0.3"/>
+  <path d="M12 14L20 8L28 14" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 14V26C12 27.1046 12.8954 28 14 28H26C27.1046 28 28 27.1046 28 26V14" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="20" cy="20" r="2" fill="#64748b"/>
+</svg>
