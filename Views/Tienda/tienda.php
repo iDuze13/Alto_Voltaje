@@ -179,10 +179,31 @@
 
 /* Product Cards - Estilo Farmacity */
 .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     gap: 20px;
     margin-top: 20px;
+    padding-bottom: 10px;
+    scroll-behavior: smooth;
+}
+
+.product-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.product-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.product-grid::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.product-grid::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 .farmacity-product-card {
@@ -195,6 +216,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    min-width: 280px;
+    flex-shrink: 0;
 }
 
 .farmacity-product-card:hover {
@@ -322,8 +345,11 @@
     }
     
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 15px;
+    }
+    
+    .farmacity-product-card {
+        min-width: 250px;
     }
     
     .filters-sidebar {
@@ -345,8 +371,11 @@
     }
     
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 10px;
+    }
+    
+    .farmacity-product-card {
+        min-width: 200px;
     }
     
     .products-header {
@@ -435,7 +464,7 @@
 }
 
 .btn-add-cart {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -503,7 +532,7 @@
     right: 5px;
     top: 50%;
     transform: translateY(-50%);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%);
     border: none;
     width: 40px;
     height: 40px;
@@ -522,7 +551,7 @@
 }
 
 .product-count {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%);
     color: white;
     padding: 15px 25px;
     border-radius: 10px;
@@ -531,7 +560,7 @@
 }
 
 .load-more-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%);
     color: white;
     border: none;
     padding: 15px 40px;
