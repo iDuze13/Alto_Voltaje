@@ -19,7 +19,8 @@ class ProductosModel extends Msql
                 LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
                 LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
                 ORDER BY p.idProducto DESC";
-        return $this->select_all($sql) ?: [];
+        $result = $this->select_all($sql);
+        return is_array($result) ? $result : [];
     }
 
     public function obtener(int $id)
@@ -309,17 +310,35 @@ class ProductosModel extends Msql
      */
     public function obtenerProductosActivos(): array
     {
-        $sql = "SELECT p.*, 
-                       c.nombre as Nombre_Categoria, 
-                       sc.Nombre_SubCategoria, 
-                       pr.Nombre_Proveedor
-                FROM producto p
-                LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
-                LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
-                LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
-                WHERE p.Estado_Producto = 'Activo' AND p.Stock_Actual > 0
-                ORDER BY p.idProducto DESC";
-        return $this->select_all($sql) ?: [];
+        try {
+            $sql = "SELECT p.*, 
+                           c.nombre as Nombre_Categoria, 
+                           sc.Nombre_SubCategoria, 
+                           pr.Nombre_Proveedor
+                    FROM producto p
+                    LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                    LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
+                    LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
+                    WHERE p.Estado_Producto = 'Activo' AND p.Stock_Actual > 0
+                    ORDER BY p.idProducto DESC";
+            $result = $this->select_all($sql);
+            
+            // Verificación estricta del tipo de retorno
+            if (is_array($result)) {
+                return $result;
+            }
+            
+            // Si no es array, intentar procesar como statement
+            if (is_object($result) && method_exists($result, 'fetchAll')) {
+                $data = $result->fetchAll(PDO::FETCH_ASSOC);
+                return is_array($data) ? $data : [];
+            }
+            
+            return [];
+        } catch (Exception $e) {
+            error_log('Error en obtenerProductosActivos: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -336,7 +355,8 @@ class ProductosModel extends Msql
                 LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
                 WHERE p.Estado_Producto = 'Activo'
                 ORDER BY p.idProducto DESC";
-        return $this->select_all($sql) ?: [];
+        $result = $this->select_all($sql);
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -346,7 +366,8 @@ class ProductosModel extends Msql
     public function obtenerProductosActivosBasico(): array
     {
         $sql = "SELECT * FROM producto WHERE Estado_Producto = 'Activo' ORDER BY idProducto DESC";
-        return $this->select_all($sql) ?: [];
+        $result = $this->select_all($sql);
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -355,8 +376,64 @@ class ProductosModel extends Msql
      */
     public function obtenerMarcasUnicas(): array
     {
-        $sql = "SELECT DISTINCT Marca FROM producto WHERE Estado_Producto = 'Activo' AND Marca IS NOT NULL AND Marca != '' ORDER BY Marca ASC";
-        return $this->select_all($sql) ?: [];
+        try {
+            $sql = "SELECT DISTINCT Marca FROM producto WHERE Estado_Producto = 'Activo' AND Marca IS NOT NULL AND Marca != '' ORDER BY Marca ASC";
+            $result = $this->select_all($sql);
+            
+            // Verificación estricta del tipo de retorno
+            if (is_array($result)) {
+                return $result;
+            }
+            
+            // Si no es array, intentar procesar como statement
+            if (is_object($result) && method_exists($result, 'fetchAll')) {
+                $data = $result->fetchAll(PDO::FETCH_ASSOC);
+                return is_array($data) ? $data : [];
+            }
+            
+            return [];
+        } catch (Exception $e) {
+            error_log('Error en obtenerMarcasUnicas: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene productos por subcategoría para mostrar productos relacionados
+     * @param int $subcategoriaId ID de la subcategoría
+     * @param int $excludeId ID del producto a excluir
+     * @param int $limit Límite de productos a obtener
+     * @return array
+     */
+    public function obtenerPorSubcategoria(int $subcategoriaId, int $excludeId = 0, int $limit = 4): array
+    {
+        try {
+            $subcategoriaId = (int)$subcategoriaId;
+            $excludeId = (int)$excludeId;
+            $limit = (int)$limit;
+            
+            $excludeClause = $excludeId > 0 ? "AND p.idProducto != {$excludeId}" : "";
+            
+            $sql = "SELECT p.*, 
+                           c.nombre as Nombre_Categoria, 
+                           sc.Nombre_SubCategoria, 
+                           pr.Nombre_Proveedor
+                    FROM producto p
+                    LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                    LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
+                    LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
+                    WHERE p.SubCategoria_idSubCategoria = {$subcategoriaId} 
+                    AND p.Estado_Producto = 'Activo'
+                    {$excludeClause}
+                    ORDER BY RAND()
+                    LIMIT {$limit}";
+            
+            $result = $this->select_all($sql);
+            return is_array($result) ? $result : [];
+        } catch (Exception $e) {
+            error_log('Error en obtenerPorSubcategoria: ' . $e->getMessage());
+            return [];
+        }
     }
 }
 ?>
