@@ -121,9 +121,10 @@ class Auth extends Controllers {
         
         if ($emp) {
             $_SESSION['empleado'] = [
-                'id' => (int)$emp['id_Empleado'],
-                'cuil' => $emp['CUIL'],
+                'id' => (int)$emp['id_Usuario'],
+                'cuil' => $emp['CUIL_Usuario'],
                 'nombre' => $emp['Nombre_Usuario'].' '.$emp['Apellido_Usuario'],
+                'rol' => $emp['Rol_Usuario']
             ];
             
             $debugLog = "LOGIN EXITOSO: " . date('Y-m-d H:i:s') . "\n";
@@ -155,6 +156,7 @@ class Auth extends Controllers {
                 'usuario' => $usuario,
                 'nombre' => $admin['Nombre_Usuario'].' '.$admin['Apellido_Usuario'],
                 'nivel' => isset($admin['Permisos']) ? (int)$admin['Permisos'] : 1,
+                'rol' => $admin['Rol_Usuario']
             ];
             return $this->redirect('dashboard/dashboard');
         }

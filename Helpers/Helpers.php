@@ -59,7 +59,22 @@ function media(){
     }
 
     function deleteFile(string $name){
-        unlink('Assets/images/uploads/'.$name);
+        if(file_exists('Assets/images/uploads/'.$name)){
+            unlink('Assets/images/uploads/'.$name);
+        }
+    }
+
+    // Subir imagen temporal
+    function uploadTempImage(array $data, string $name){
+        $url_temp = $data['tmp_name'];
+        $destino = 'Assets/images/temp/'.$name;        
+        $move = move_uploaded_file($url_temp, $destino);
+        return $move;
+    }
+
+    // Verificar si una imagen existe
+    function imageExists(string $name, string $folder = 'uploads'){
+        return file_exists('Assets/images/'.$folder.'/'.$name);
     }
 
     //Muestra información formateada

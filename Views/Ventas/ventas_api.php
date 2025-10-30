@@ -79,15 +79,12 @@ try {
 
     // Adaptar a la estructura de sesiones del sistema
     if (isset($_SESSION['empleado'])) {
-        $idEmpleado = $_SESSION['empleado']['id_Empleado'] ?? null;
-        $nombreEmpleado = $_SESSION['empleado']['Nombre'] ?? 'Empleado';
+        $idEmpleado = $_SESSION['empleado']['id'] ?? null;
+        $nombreEmpleado = $_SESSION['empleado']['nombre'] ?? 'Empleado';
     } elseif (isset($_SESSION['admin'])) {
-        // Para admin, obtener un empleado por defecto o usar admin como empleado
-        $stmt = $pdo->prepare("SELECT id_Empleado FROM empleado LIMIT 1");
-        $stmt->execute();
-        $emp = $stmt->fetch(PDO::FETCH_ASSOC);
-        $idEmpleado = $emp['id_Empleado'] ?? null;
-        $nombreEmpleado = $_SESSION['admin']['Nombre'] ?? 'Administrador';
+        // Para admin, usar el ID del admin directamente
+        $idEmpleado = $_SESSION['admin']['id'] ?? null;
+        $nombreEmpleado = $_SESSION['admin']['nombre'] ?? 'Administrador';
     }
 
     if (!$idEmpleado) {

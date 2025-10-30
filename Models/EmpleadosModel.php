@@ -8,12 +8,12 @@ class EmpleadosModel extends Conexion {
         $this->db = new Msql();
     }
 
-    public function getEmpleadoById(int $idEmpleado) {
-        $idEmpleado = (int)$idEmpleado;
-        $sql = "SELECT e.*, u.Nombre_Usuario, u.Apellido_Usuario
-                FROM empleado e
-                INNER JOIN usuario u ON e.id_Usuario = u.id_Usuario
-                WHERE e.id_Empleado = {$idEmpleado} LIMIT 1";
+    public function getEmpleadoById(int $idUsuario) {
+        $idUsuario = (int)$idUsuario;
+        $sql = "SELECT id_Usuario, Nombre_Usuario, Apellido_Usuario, Correo_Usuario, CUIL_Usuario, Telefono_Usuario, Estado_Usuario, Rol_Usuario
+                FROM usuario 
+                WHERE id_Usuario = {$idUsuario} AND Estado_Usuario = 'Activo' 
+                AND (Rol_Usuario = 'Empleado' OR Rol_Usuario = 'Admin') LIMIT 1";
         return $this->db->select($sql);
     }
 }

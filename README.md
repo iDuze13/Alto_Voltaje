@@ -1,5 +1,7 @@
 # Alto_Voltaje
 Trabajo de Seminario de Integración. Producto realizado a pedido del cliente
+<<<<<<< Updated upstream
+=======
 
 ## Rutas útiles (Auth)
 
@@ -9,3 +11,4 @@ Trabajo de Seminario de Integración. Producto realizado a pedido del cliente
 - Empleados (POST): `http://localhost/AltoVoltaje/auth/empleado`
 - Admin (POST): `http://localhost/AltoVoltaje/auth/admin`
 - Cerrar sesión: `http://localhost/AltoVoltaje/auth/logout`
+>>>>>>> Stashed changes

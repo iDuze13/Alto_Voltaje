@@ -36,20 +36,20 @@ class AuthModel extends Conexion {
         return $id > 0;
     }
 
-    public function findEmpleadoByIdAndCuil(int $idEmpleado, string $cuil) {
-        $idEmpleado = (int)$idEmpleado;
+    public function findEmpleadoByIdAndCuil(int $idUsuario, string $cuil) {
+        $idUsuario = (int)$idUsuario;
         $cuil = addslashes($cuil);
-        $sql = "SELECT e.*, u.Nombre_Usuario, u.Apellido_Usuario
-                FROM empleado e
-                INNER JOIN usuario u ON e.id_Usuario = u.id_Usuario
-                WHERE e.id_Empleado = {$idEmpleado} AND e.CUIL = '{$cuil}' LIMIT 1";
+        $sql = "SELECT id_Usuario, Nombre_Usuario, Apellido_Usuario, Correo_Usuario, CUIL_Usuario, Telefono_Usuario, Estado_Usuario, Rol_Usuario
+                FROM usuario 
+                WHERE id_Usuario = {$idUsuario} AND CUIL_Usuario = '{$cuil}' AND Estado_Usuario = 'Activo' 
+                AND (Rol_Usuario = 'Empleado' OR Rol_Usuario = 'Admin') LIMIT 1";
         return $this->db->select($sql);
     }
 
     public function findActiveAdminByUsername(string $usuarioOrEmail) {
         $val = addslashes($usuarioOrEmail);
-        // Interpret username as email within this schema
-        $sql = "SELECT u.id_Usuario, u.Nombre_Usuario, u.Apellido_Usuario, u.Contrasena_Usuario, u.Correo_Usuario, a.Permisos
+        // Buscar por email en la tabla usuario con rol Admin, incluyendo permisos si existen
+        $sql = "SELECT u.id_Usuario, u.Nombre_Usuario, u.Apellido_Usuario, u.Contrasena_Usuario, u.Correo_Usuario, u.Rol_Usuario, a.Permisos
                 FROM usuario u
                 LEFT JOIN administrador a ON a.id_Usuario = u.id_Usuario
                 WHERE u.Correo_Usuario = '{$val}' AND u.Estado_Usuario = 'Activo' AND u.Rol_Usuario = 'Admin' LIMIT 1";

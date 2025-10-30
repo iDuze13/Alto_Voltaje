@@ -1,5 +1,7 @@
 <?php 
+    require_once("Models/TCategoria.php");
     class Home extends Controllers {
+        use TCategoria;
         public function __construct() 
         {
             parent::__construct();
@@ -10,7 +12,8 @@
             $data['tag_page'] = "Home";
             $data['page_title'] = "Pagina Principal";
             $data['page_name'] = "home";
-            $data['page_content'] = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod.";
+            $data['slider'] = $this->getCategoriasT(CAT_SLIDER);
+			$data['banner'] = $this->getCategoriasT(CAT_BANNER);
             $this->views->getView($this,"home",$data);
         }
      }

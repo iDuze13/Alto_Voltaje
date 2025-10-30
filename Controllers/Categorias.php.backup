@@ -31,6 +31,8 @@
         }
 
         public function setCategoria(){
+<<<<<<< HEAD
+=======
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
 				$_SESSION['permisosMod'] = [
@@ -41,6 +43,7 @@
 				];
 			}
 			
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 			if($_POST){
 				if(empty($_POST['txtNombre']) || empty($_POST['txtDescripcion']) || empty($_POST['listStatus']) )
 				{
@@ -89,6 +92,16 @@
 						if($option == 1)
 						{
 							$arrResponse = array('status' => true, 'msg' => 'Datos guardados correctamente.');
+<<<<<<< HEAD
+							// if($nombre_foto != ''){ uploadImage($foto,$imgPortada); }
+						}else{
+							$arrResponse = array('status' => true, 'msg' => 'Datos Actualizados correctamente.');
+							// if($nombre_foto != ''){ uploadImage($foto,$imgPortada); }
+
+							if(($nombre_foto == '' && $_POST['foto_remove'] == 1 && $_POST['foto_actual'] != 'portada_categoria.png')
+								|| ($nombre_foto != '' && $_POST['foto_actual'] != 'portada_categoria.png')){
+								// deleteFile($_POST['foto_actual']);
+=======
 							if($nombre_foto != ''){ uploadImage($foto,$imgPortada); }
 						}else{
 							$arrResponse = array('status' => true, 'msg' => 'Datos Actualizados correctamente.');
@@ -97,6 +110,7 @@
 							if(($nombre_foto == '' && $_POST['foto_remove'] == 1 && $_POST['foto_actual'] != 'portada_categoria.png')
 								|| ($nombre_foto != '' && $_POST['foto_actual'] != 'portada_categoria.png')){
 								deleteFile($_POST['foto_actual']);
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 							}
 						}
 					}else if($request_cateria == 'exist'){
@@ -112,6 +126,10 @@
 
         public function getCategorias()
 		{
+<<<<<<< HEAD
+			if($_SESSION['permisosMod']['r']){
+				$arrData = $this->model->selectCategorias();
+=======
 			// Set proper JSON content type
 			header('Content-Type: application/json');
 			
@@ -130,6 +148,7 @@
 				if(empty($arrData)){
 					$arrData = [];
 				}
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 				for ($i=0; $i < count($arrData); $i++) {
 					$btnView = '';
 					$btnEdit = '';
@@ -142,6 +161,15 @@
 						$arrData[$i]['status'] = '<span class="badge badge-danger">Inactivo</span>';
 					}
 
+<<<<<<< HEAD
+					if($_SESSION['permisosMod']['r']){
+						$btnView = '<button class="btn btn-info btn-sm" onClick="fntViewInfo('.$arrData[$i]['idcategoria'].')" title="Ver categoría"><i class="far fa-eye"></i></button>';
+					}
+					if($_SESSION['permisosMod']['u']){
+						$btnEdit = '<button class="btn btn-primary  btn-sm" onClick="fntEditInfo(this,'.$arrData[$i]['idcategoria'].')" title="Editar categoría"><i class="fas fa-pencil-alt"></i></button>';
+					}
+					if($_SESSION['permisosMod']['d']){	
+=======
 					if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['r']){
 						$btnView = '<button class="btn btn-info btn-sm" onClick="fntViewInfo('.$arrData[$i]['idcategoria'].')" title="Ver categoría"><i class="far fa-eye"></i></button>';
 					}
@@ -149,20 +177,26 @@
 						$btnEdit = '<button class="btn btn-primary  btn-sm" onClick="fntEditInfo(this,'.$arrData[$i]['idcategoria'].')" title="Editar categoría"><i class="fas fa-pencil-alt"></i></button>';
 					}
 					if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['d']){	
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 						$btnDelete = '<button class="btn btn-danger btn-sm" onClick="fntDelInfo('.$arrData[$i]['idcategoria'].')" title="Eliminar categoría"><i class="far fa-trash-alt"></i></button>';
 					}
 					$arrData[$i]['options'] = '<div class="text-center">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
 				}
 				echo json_encode($arrData,JSON_UNESCAPED_UNICODE);
+<<<<<<< HEAD
+=======
 			}else{
 				// Return empty array for DataTables when no permissions
 				echo json_encode([], JSON_UNESCAPED_UNICODE);
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 			}
 			die();
 		}
 
         public function getCategoria($idcategoria)
 		{
+<<<<<<< HEAD
+=======
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
 				$_SESSION['permisosMod'] = [
@@ -173,6 +207,7 @@
 				];
 			}
 			
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 			if($_SESSION['permisosMod']['r']){
 				$intIdcategoria = intval($idcategoria);
 				if($intIdcategoria > 0)
@@ -193,6 +228,8 @@
 
 		public function delCategoria()
 		{
+<<<<<<< HEAD
+=======
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
 				$_SESSION['permisosMod'] = [
@@ -203,6 +240,7 @@
 				];
 			}
 			
+>>>>>>> e462302f9522a8ec9e42c376bd74fc550ec4edc2
 			if($_POST){
 				if($_SESSION['permisosMod']['d']){
 					$intIdcategoria = intval($_POST['idCategoria']);

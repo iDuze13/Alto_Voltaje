@@ -55,7 +55,7 @@
 			$sql = "SELECT * FROM categoria 
 					WHERE status != 0 ";
 			$request = $this->select_all($sql);
-			return $request;
+			return $request ? $request : [];
 		}
 
 		public function selectCategoria(int $idcategoria){

@@ -18,3 +18,13 @@ const SPM = ",";
 
 //Simbolo de moneda
 const SMONEY = "$";
+
+//Datos envio de correo
+const NOMBRE_REMITENTE = "Alto Voltaje";
+const EMAIL_REMITENTE = "altovoltaje025@gmail.com";
+const NOMBRE_EMPESA = "Alto Voltaje";
+const WEB_EMPRESA = "www.altovoltaje.site";
+
+//Categorias para home
+const CAT_SLIDER = "1,2,3";
+const CAT_BANNER = "4,5,6";
