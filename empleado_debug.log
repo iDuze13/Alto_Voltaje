@@ -1,0 +1,314 @@
+=== EMPLEADO LOGIN 2025-10-18 02:00:01 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1011'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Empleado] => 1011
+    [id_Usuario] => 1010
+    [CUIL] => 27-32460182-5
+    [Fecha_Ingreso] => 2025-08-19
+    [Salario] => 1651.00
+    [Turno] => Maniana
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+)
+
+LOGIN EXITOSO: 2025-10-18 02:00:01
+=== EMPLEADO LOGIN 2025-10-18 02:09:57 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1011'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Empleado] => 1011
+    [id_Usuario] => 1010
+    [CUIL] => 27-32460182-5
+    [Fecha_Ingreso] => 2025-08-19
+    [Salario] => 1651.00
+    [Turno] => Maniana
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+)
+
+LOGIN EXITOSO: 2025-10-18 02:09:57
+=== EMPLEADO LOGIN 2025-10-20 23:28:54 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1011'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Empleado] => 1011
+    [id_Usuario] => 1010
+    [CUIL] => 27-32460182-5
+    [Fecha_Ingreso] => 2025-08-19
+    [Salario] => 1651.00
+    [Turno] => Maniana
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+)
+
+LOGIN EXITOSO: 2025-10-20 23:28:54
+=== EMPLEADO LOGIN 2025-10-24 00:25:22 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1011'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Empleado] => 1011
+    [id_Usuario] => 1010
+    [CUIL] => 27-32460182-5
+    [Fecha_Ingreso] => 2025-08-19
+    [Salario] => 1651.00
+    [Turno] => Maniana
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+)
+
+LOGIN EXITOSO: 2025-10-24 00:25:22
+=== EMPLEADO LOGIN 2025-10-24 00:52:58 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1011'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Empleado] => 1011
+    [id_Usuario] => 1010
+    [CUIL] => 27-32460182-5
+    [Fecha_Ingreso] => 2025-08-19
+    [Salario] => 1651.00
+    [Turno] => Maniana
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+)
+
+LOGIN EXITOSO: 2025-10-24 00:52:58
+=== EMPLEADO LOGIN 2025-10-24 00:55:11 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: NO ENCONTRADO
+LOGIN FALLIDO: Empleado no encontrado
+=== EMPLEADO LOGIN 2025-10-24 23:30:28 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1011'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Empleado] => 1011
+    [id_Usuario] => 1010
+    [CUIL] => 27-32460182-5
+    [Fecha_Ingreso] => 2025-08-19
+    [Salario] => 1651.00
+    [Turno] => Maniana
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+)
+
+LOGIN EXITOSO: 2025-10-24 23:30:28
+=== EMPLEADO LOGIN 2025-10-30 00:11:20 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Usuario] => 1010
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+    [Correo_Usuario] => paqui@gmail.com
+    [CUIL_Usuario] => 27-32460182-5
+    [Telefono_Usuario] => 3704000000
+    [Estado_Usuario] => Activo
+    [Rol_Usuario] => Empleado
+)
+
+LOGIN EXITOSO: 2025-10-30 00:11:20
+=== EMPLEADO LOGIN 2025-10-30 00:17:16 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Usuario] => 1010
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+    [Correo_Usuario] => paqui@gmail.com
+    [CUIL_Usuario] => 27-32460182-5
+    [Telefono_Usuario] => 3704000000
+    [Estado_Usuario] => Activo
+    [Rol_Usuario] => Empleado
+)
+
+LOGIN EXITOSO: 2025-10-30 00:17:16
+=== EMPLEADO LOGIN 2025-10-30 01:24:08 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Usuario] => 1010
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+    [Correo_Usuario] => paqui@gmail.com
+    [CUIL_Usuario] => 27-32460182-5
+    [Telefono_Usuario] => 3704000000
+    [Estado_Usuario] => Activo
+    [Rol_Usuario] => Empleado
+)
+
+LOGIN EXITOSO: 2025-10-30 01:24:08
+=== EMPLEADO LOGIN 2025-10-30 01:34:31 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Usuario] => 1010
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+    [Correo_Usuario] => paqui@gmail.com
+    [CUIL_Usuario] => 27-32460182-5
+    [Telefono_Usuario] => 3704000000
+    [Estado_Usuario] => Activo
+    [Rol_Usuario] => Empleado
+)
+
+LOGIN EXITOSO: 2025-10-30 01:34:31
+=== EMPLEADO LOGIN 2025-10-30 20:45:24 ===
+POST: Array
+(
+    [id_Empleado] => 1011
+    [cuil] => 27324601825
+)
+
+ID Empleado: '1011'
+CUIL: '27324601825'
+ID numérico: SÍ
+CUIL normalizado: '27324601825'
+CUIL formato válido: SÍ
+Búsqueda BD: NO ENCONTRADO
+LOGIN FALLIDO: Empleado no encontrado
+=== EMPLEADO LOGIN 2025-10-30 20:48:46 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Usuario] => 1010
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+    [Correo_Usuario] => paqui@gmail.com
+    [CUIL_Usuario] => 27-32460182-5
+    [Telefono_Usuario] => 3704000000
+    [Estado_Usuario] => Activo
+    [Rol_Usuario] => Empleado
+)
+
+LOGIN EXITOSO: 2025-10-30 20:48:46
