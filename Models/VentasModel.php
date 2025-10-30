@@ -96,7 +96,7 @@ class VentasModel extends Msql
     {
         $sql = "SELECT v.*, CONCAT(u.Nombre_Usuario, ' ', u.Apellido_Usuario) as empleado_nombre
                 FROM venta v
-                LEFT JOIN usuario u ON v.Empleado_id_Empleado = u.id_Usuario
+                LEFT JOIN usuario u ON v.Usuario_id_Usuario = u.id_Usuario
                 WHERE v.id_Venta = ?";
         $arrData = array($venta_id);
         return $this->select($sql, $arrData);
@@ -120,7 +120,7 @@ class VentasModel extends Msql
         
         $sql = "SELECT v.*, CONCAT(u.Nombre_Usuario, ' ', u.Apellido_Usuario) as empleado_nombre
                 FROM venta v
-                LEFT JOIN usuario u ON v.Empleado_id_Empleado = u.id_Usuario
+                LEFT JOIN usuario u ON v.Usuario_id_Usuario = u.id_Usuario
                 WHERE DATE(v.Fecha_Venta) = ?
                 ORDER BY v.Fecha_Venta DESC";
         $arrData = array($fecha);

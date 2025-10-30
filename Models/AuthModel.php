@@ -48,11 +48,10 @@ class AuthModel extends Conexion {
 
     public function findActiveAdminByUsername(string $usuarioOrEmail) {
         $val = addslashes($usuarioOrEmail);
-        // Buscar por email en la tabla usuario con rol Admin, incluyendo permisos si existen
-        $sql = "SELECT u.id_Usuario, u.Nombre_Usuario, u.Apellido_Usuario, u.Contrasena_Usuario, u.Correo_Usuario, u.Rol_Usuario, a.Permisos
-                FROM usuario u
-                LEFT JOIN administrador a ON a.id_Usuario = u.id_Usuario
-                WHERE u.Correo_Usuario = '{$val}' AND u.Estado_Usuario = 'Activo' AND u.Rol_Usuario = 'Admin' LIMIT 1";
+        // Buscar por email en la tabla usuario con rol Admin
+        $sql = "SELECT id_Usuario, Nombre_Usuario, Apellido_Usuario, Contrasena_Usuario, Correo_Usuario, Rol_Usuario, 1 as Permisos
+                FROM usuario 
+                WHERE Correo_Usuario = '{$val}' AND Estado_Usuario = 'Activo' AND Rol_Usuario = 'Admin' LIMIT 1";
         return $this->db->select($sql);
     }
 }

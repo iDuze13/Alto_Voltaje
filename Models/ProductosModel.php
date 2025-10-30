@@ -302,5 +302,61 @@ class ProductosModel extends Msql
         $arr = [$imagen, $ruta, $id];
         return $this->update($query, $arr);
     }
+
+    /**
+     * Obtener productos activos para la tienda
+     * @return array Lista de productos activos con información completa
+     */
+    public function obtenerProductosActivos(): array
+    {
+        $sql = "SELECT p.*, 
+                       c.nombre as Nombre_Categoria, 
+                       sc.Nombre_SubCategoria, 
+                       pr.Nombre_Proveedor
+                FROM producto p
+                LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
+                LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
+                WHERE p.Estado_Producto = 'Activo' AND p.Stock_Actual > 0
+                ORDER BY p.idProducto DESC";
+        return $this->select_all($sql) ?: [];
+    }
+
+    /**
+     * Obtener productos activos (versión simplificada)
+     * @return array Lista de productos activos básica
+     */
+    public function obtenerProductosActivosSimple(): array
+    {
+        $sql = "SELECT p.*, 
+                       c.nombre as Nombre_Categoria, 
+                       sc.Nombre_SubCategoria
+                FROM producto p
+                LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
+                WHERE p.Estado_Producto = 'Activo'
+                ORDER BY p.idProducto DESC";
+        return $this->select_all($sql) ?: [];
+    }
+
+    /**
+     * Obtener productos activos (versión ultra básica)
+     * @return array Lista de productos activos mínima
+     */
+    public function obtenerProductosActivosBasico(): array
+    {
+        $sql = "SELECT * FROM producto WHERE Estado_Producto = 'Activo' ORDER BY idProducto DESC";
+        return $this->select_all($sql) ?: [];
+    }
+
+    /**
+     * Obtener marcas únicas de productos activos
+     * @return array Lista de marcas únicas
+     */
+    public function obtenerMarcasUnicas(): array
+    {
+        $sql = "SELECT DISTINCT Marca FROM producto WHERE Estado_Producto = 'Activo' AND Marca IS NOT NULL AND Marca != '' ORDER BY Marca ASC";
+        return $this->select_all($sql) ?: [];
+    }
 }
 ?>
