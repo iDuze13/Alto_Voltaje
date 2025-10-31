@@ -32,7 +32,8 @@ body {
 }
 
 /* ========== HERO SECTION ========== */
-.hero-section {
+.hero-section,
+.bg-img1 {
     background: url('../images/heroTienda.png') center center/cover no-repeat;
     position: relative;
     min-height: 300px;
@@ -40,31 +41,37 @@ body {
     align-items: center;
     justify-content: center;
     margin-bottom: 0;
+    padding: 60px 15px;
 }
 
-.hero-section::before {
+.hero-section .container,
+.bg-img1 .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title,
+.bg-img1 h2,
+.ltext-105 {
+    font-size: 3rem;
+    font-weight: 650;
+    color: rgb(51, 51, 51);
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Overlay sutil para mejor legibilidad */
+.hero-section::before,
+.bg-img1::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
     z-index: 1;
-}
-
-.hero-section .container {
-    position: relative;
-    z-index: 2;
-}
-
-.hero-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    margin: 0;
-    text-align: center;
 }
 
 /* ========== BREADCRUMB ========== */
@@ -560,6 +567,146 @@ body {
     transform: scale(1.1);
 }
 
+/* ========== ESTILOS PARA PÁGINAS NOSOTROS Y CONTACTO ========== */
+.bg0 {
+    background: var(--bg-white);
+}
+
+.mtext-111 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.stext-113 {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-medium);
+    margin-bottom: 1.5rem;
+}
+
+.cl2 {
+    color: var(--text-dark);
+}
+
+.cl6 {
+    color: var(--text-medium);
+}
+
+.p-t-75 {
+    padding-top: 75px;
+}
+
+.p-b-120 {
+    padding-bottom: 120px;
+}
+
+.p-b-16 {
+    padding-bottom: 16px;
+}
+
+.p-b-26 {
+    padding-bottom: 26px;
+}
+
+.p-t-104 {
+    padding-top: 104px;
+}
+
+.p-b-116 {
+    padding-bottom: 116px;
+}
+
+.how-bor1 {
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.hov-img0 img {
+    width: 100%;
+    height: auto;
+    transition: var(--transition);
+}
+
+.hov-img0:hover img {
+    transform: scale(1.05);
+}
+
+/* Estilos para formulario de contacto */
+.bor10 {
+    border-radius: var(--border-radius);
+}
+
+.bor8 {
+    border: 1px solid var(--border-medium);
+    border-radius: var(--border-radius);
+}
+
+.size-116 {
+    width: 100%;
+    height: 50px;
+}
+
+.size-120 {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+}
+
+.size-121 {
+    height: 50px;
+    padding: 0 30px;
+}
+
+.stext-111 {
+    font-size: 14px;
+    padding: 12px 15px;
+    border: none;
+    outline: none;
+    background: var(--bg-white);
+    color: var(--text-dark);
+}
+
+.stext-111:focus {
+    border-color: var(--primary-yellow);
+}
+
+.bg3 {
+    background: var(--primary-yellow);
+}
+
+.bg3:hover {
+    background: var(--primary-yellow-hover);
+}
+
+.mtext-105 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.mtext-110 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.stext-115 {
+    font-size: 14px;
+    color: var(--text-medium);
+    line-height: 1.6;
+}
+
+.cl5 {
+    color: var(--primary-yellow-hover);
+}
+
+.fs-18 {
+    font-size: 18px;
+}
+
 /* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 1200px) {
     .product-grid {
@@ -569,7 +716,9 @@ body {
 }
 
 @media (max-width: 992px) {
-    .hero-title {
+    .hero-title,
+    .bg-img1 h2,
+    .ltext-105 {
         font-size: 2rem;
     }
     
@@ -583,14 +732,35 @@ body {
         width: 100%;
         justify-content: space-between;
     }
+    
+    /* Ajustes para páginas nosotros y contacto */
+    .p-t-75 {
+        padding-top: 50px;
+    }
+    
+    .p-b-120 {
+        padding-bottom: 80px;
+    }
+    
+    .p-t-104 {
+        padding-top: 60px;
+    }
+    
+    .p-b-116 {
+        padding-bottom: 80px;
+    }
 }
 
 @media (max-width: 768px) {
-    .hero-section {
+    .hero-section,
+    .bg-img1 {
         min-height: 200px;
+        padding: 40px 15px;
     }
     
-    .hero-title {
+    .hero-title,
+    .bg-img1 h2,
+    .ltext-105 {
         font-size: 1.5rem;
     }
     
@@ -617,6 +787,26 @@ body {
     
     .main-content {
         padding-top: 20px;
+    }
+    
+    /* Ajustes específicos para nosotros y contacto */
+    .mtext-111 {
+        font-size: 1.3rem;
+    }
+    
+    .mtext-105,
+    .mtext-110 {
+        font-size: 1.1rem;
+    }
+    
+    .p-t-75,
+    .p-t-104 {
+        padding-top: 40px;
+    }
+    
+    .p-b-120,
+    .p-b-116 {
+        padding-bottom: 60px;
     }
 }
 
@@ -648,7 +838,9 @@ body {
         font-size: 13px;
     }
     
-    .hero-title {
+    .hero-title,
+    .bg-img1 h2,
+    .ltext-105 {
         font-size: 1.3rem;
     }
     
@@ -658,6 +850,37 @@ body {
     
     .products-header {
         padding: 12px;
+    }
+    
+    /* Ajustes móviles para nosotros y contacto */
+    .hero-section,
+    .bg-img1 {
+        min-height: 180px;
+        padding: 30px 15px;
+    }
+    
+    .mtext-111 {
+        font-size: 1.2rem;
+    }
+    
+    .mtext-105,
+    .mtext-110 {
+        font-size: 1rem;
+    }
+    
+    .stext-113,
+    .stext-115 {
+        font-size: 14px;
+    }
+    
+    .p-t-75,
+    .p-t-104 {
+        padding-top: 30px;
+    }
+    
+    .p-b-120,
+    .p-b-116 {
+        padding-bottom: 40px;
     }
 }
 

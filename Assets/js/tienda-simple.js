@@ -13,7 +13,7 @@ $(document).ready(function() {
  */
 function initializeBasicFeatures() {
     // Filtros por checkbox
-    $('input[data-category], input[data-brand]').on('change', function() {
+    $('input[data-category], input[data-subcategory], input[data-brand]').on('change', function() {
         filterProductsByCheckbox();
     });
     
@@ -34,11 +34,17 @@ function initializeBasicFeatures() {
  */
 function filterProductsByCheckbox() {
     var selectedCategories = [];
+    var selectedSubcategories = [];
     var selectedBrands = [];
     
     // Obtener categorías seleccionadas
     $('input[data-category]:checked').each(function() {
         selectedCategories.push($(this).data('category'));
+    });
+    
+    // Obtener subcategorías seleccionadas
+    $('input[data-subcategory]:checked').each(function() {
+        selectedSubcategories.push($(this).data('subcategory'));
     });
     
     // Obtener marcas seleccionadas
@@ -48,11 +54,17 @@ function filterProductsByCheckbox() {
     
     $('.product-item').each(function() {
         var productCategory = $(this).data('category');
+        var productSubcategory = $(this).data('subcategory');
         var productBrand = $(this).data('brand');
         var showProduct = true;
         
         // Si hay categorías seleccionadas y el producto no está en ninguna
         if (selectedCategories.length > 0 && !selectedCategories.includes(productCategory)) {
+            showProduct = false;
+        }
+        
+        // Si hay subcategorías seleccionadas y el producto no está en ninguna
+        if (selectedSubcategories.length > 0 && !selectedSubcategories.includes(productSubcategory)) {
             showProduct = false;
         }
         

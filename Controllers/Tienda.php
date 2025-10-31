@@ -6,13 +6,18 @@
         /** @var CategoriasModel */
         public $categoriasModel;
         
+        /** @var SubcategoriasModel */
+        public $subcategoriasModel;
+        
         public function __construct() 
         {
             parent::__construct();
             require_once __DIR__ . '/../Models/ProductosModel.php';
             require_once __DIR__ . '/../Models/CategoriasModel.php';
+            require_once __DIR__ . '/../Models/SubcategoriasModel.php';
             $this->model = new ProductosModel();
             $this->categoriasModel = new CategoriasModel();
+            $this->subcategoriasModel = new SubcategoriasModel();
         }
         
         public function tienda()
@@ -64,6 +69,22 @@
                 }
             } catch (Exception $e) {
                 $data['categorias'] = [];
+            }
+            
+            // Obtener subcategorías para el filtro
+            try {
+                $data['subcategorias'] = $this->subcategoriasModel->selectSubCategorias();
+                if (!is_array($data['subcategorias'])) {
+                    $data['subcategorias'] = [];
+                }
+                // Debug temporal
+                error_log('Subcategorías obtenidas: ' . count($data['subcategorias']));
+                if (!empty($data['subcategorias'])) {
+                    error_log('Primera subcategoría: ' . print_r($data['subcategorias'][0], true));
+                }
+            } catch (Exception $e) {
+                error_log('Error obteniendo subcategorías: ' . $e->getMessage());
+                $data['subcategorias'] = [];
             }
             
             // Obtener marcas únicas de los productos

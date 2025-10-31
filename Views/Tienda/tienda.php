@@ -42,7 +42,7 @@
 
 						<!-- Categorías -->
 						<div class="filter-section">
-							<h6>Departamento</h6>
+							<h6>Categorías</h6>
 							<div class="filter-option">
 								<input type="checkbox" id="cat-all" checked>
 								<label for="cat-all">Todas las categorías (<?= !empty($data['productos']) ? count($data['productos']) : 0 ?>)</label>
@@ -57,10 +57,37 @@
 							<?php endif; ?>
 						</div>
 
+						<!-- Sub-Categorías -->
+						<div class="filter-section">
+							<h6>Sub-Categorías</h6>
+							<div class="filter-option">
+								<input type="checkbox" id="subcat-all" checked>
+								<label for="subcat-all">Todas las sub-categorías (<?= !empty($data['subcategorias']) ? count($data['subcategorias']) : 0 ?>)</label>
+							</div>
+							<?php if (!empty($data['subcategorias'])): ?>
+								<?php foreach ($data['subcategorias'] as $index => $subcategoria): ?>
+									<?php 
+									// Debug temporal - comentar después de verificar
+									if ($index === 0) {
+										echo "<!-- DEBUG: Campos disponibles en subcategoria: " . implode(', ', array_keys($subcategoria)) . " -->";
+									}
+									
+									// Manejar diferentes nombres de campos posibles
+									$subcatId = $subcategoria['IdSubCategoria'] ?? $subcategoria['idSubCategoria'] ?? $subcategoria['id'] ?? 0;
+									$subcatNombre = $subcategoria['Nombre_SubCategoria'] ?? $subcategoria['nombre'] ?? $subcategoria['Nombre'] ?? 'Sin nombre';
+									?>
+									<div class="filter-option">
+										<input type="checkbox" id="subcat-<?= $subcatId ?>" data-subcategory="<?= htmlspecialchars($subcatNombre) ?>">
+										<label for="subcat-<?= $subcatId ?>"><?= htmlspecialchars($subcatNombre) ?></label>
+									</div>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</div>
+
 						<!-- Marcas -->
 						<?php if (!empty($data['marcas'])): ?>
 						<div class="filter-section">
-							<h6>Sub-Categoría</h6>
+							<h6>Marcas</h6>
 							<?php foreach ($data['marcas'] as $marca): ?>
 								<div class="filter-option">
 									<input type="checkbox" id="brand-<?= htmlspecialchars($marca['Marca']) ?>" data-brand="<?= htmlspecialchars($marca['Marca']) ?>">
@@ -119,6 +146,7 @@
 						<?php foreach ($data['productos'] as $producto): ?>
 							<div class="farmacity-product-card product-item" 
 								 data-category="<?= htmlspecialchars($producto['Nombre_Categoria'] ?? '') ?>"
+								 data-subcategory="<?= htmlspecialchars($producto['Nombre_SubCategoria'] ?? '') ?>"
 								 data-brand="<?= htmlspecialchars($producto['Marca'] ?? '') ?>"
 								 data-price="<?= $producto['Precio_Venta'] ?>"
 								 data-name="<?= htmlspecialchars($producto['Nombre_Producto']) ?>"

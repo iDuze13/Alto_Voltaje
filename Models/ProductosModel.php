@@ -316,7 +316,7 @@ class ProductosModel extends Msql
                            sc.Nombre_SubCategoria, 
                            pr.Nombre_Proveedor
                     FROM producto p
-                    LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                    LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.IdSubCategoria
                     LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
                     LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
                     WHERE p.Estado_Producto = 'Activo' AND p.Stock_Actual > 0
@@ -351,7 +351,7 @@ class ProductosModel extends Msql
                        c.nombre as Nombre_Categoria, 
                        sc.Nombre_SubCategoria
                 FROM producto p
-                LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.IdSubCategoria
                 LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
                 WHERE p.Estado_Producto = 'Activo'
                 ORDER BY p.idProducto DESC";

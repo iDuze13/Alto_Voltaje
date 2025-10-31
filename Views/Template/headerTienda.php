@@ -35,6 +35,7 @@
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/util.css">
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/main.css?v=1.4">
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/tienda-modern.css?v=1.1">
+	<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/tienda-minimal.css?v=1.0">
 	
 	<style>
 	
