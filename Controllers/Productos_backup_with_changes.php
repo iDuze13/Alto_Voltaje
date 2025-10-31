@@ -128,51 +128,18 @@ class Productos extends Controllers {
             $_SESSION['permisosMod'] = ['r' => 1, 'w' => 1, 'u' => 1, 'd' => 1];
         }
         
-        try {
-            $arrData = $this->model->obtenerTodos();
-            
-            // Format data for DataTables
-            for($i = 0; $i < count($arrData); $i++) {
-                // Ensure all expected fields exist
-                $arrData[$i]['codigo_barras'] = $arrData[$i]['codigo_barras'] ?? '';
-                $arrData[$i]['Marca'] = $arrData[$i]['Marca'] ?? '';
-                $arrData[$i]['Stock'] = $arrData[$i]['Stock'] ?? 0;
-                $arrData[$i]['En_Oferta'] = $arrData[$i]['En_Oferta'] ?? 0;
-                $arrData[$i]['Destacado'] = $arrData[$i]['Es_Destacado'] ?? 0; // Mapeo correcto desde Es_Destacado
-                $arrData[$i]['Estado_Producto'] = $arrData[$i]['Estado_Producto'] ?? 'Activo';
-                
-                // Calculate margin percentage
-                $precioCosto = floatval($arrData[$i]['Precio_Costo'] ?? 0);
-                $precioVenta = floatval($arrData[$i]['Precio_Venta'] ?? 0);
-                if($precioCosto > 0 && $precioVenta > 0) {
-                    $margen = (($precioVenta - $precioCosto) / $precioCosto) * 100;
-                    $arrData[$i]['margen_porcentaje'] = number_format($margen, 1) . '%';
-                } else {
-                    $arrData[$i]['margen_porcentaje'] = '0%';
-                }
-                
-                // Format prices
-                $arrData[$i]['precio_formateado'] = SMONEY . number_format(floatval($arrData[$i]['Precio_Venta'] ?? 0), 2, '.', ',');
-                $arrData[$i]['precio_costo_formateado'] = SMONEY . number_format(floatval($arrData[$i]['Precio_Costo'] ?? 0), 2, '.', ',');
-                
-                $precioOferta = floatval($arrData[$i]['Precio_Oferta'] ?? 0);
-                $arrData[$i]['precio_oferta_formateado'] = $precioOferta > 0 ? SMONEY . number_format($precioOferta, 2, '.', ',') : null;
-                
-                // Add action buttons
-                $btnView = '<button class="btn btn-info btn-sm" onclick="fntViewProducto('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
-                $btnEdit = '<button class="btn btn-primary btn-sm" onclick="fntEditProducto('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
-                $btnDelete = '<button class="btn btn-danger btn-sm" onclick="fntDelProducto('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
-                $arrData[$i]['options'] = '<div class="btn-group" role="group">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
-            }
-            
-            header('Content-Type: application/json');
-            echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
-            
-        } catch (Exception $e) {
-            error_log("Error in getProductos: " . $e->getMessage());
-            header('Content-Type: application/json');
-            echo json_encode(['data' => [], 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        $arrData = $this->model->obtenerTodos();
+        
+        // Add action buttons to each product
+        for($i = 0; $i < count($arrData); $i++) {
+            $btnView = '<button class="btn btn-secondary btn-sm" onclick="viewProduct('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
+            $btnEdit = '<button class="btn btn-primary btn-sm" onclick="editProduct('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
+            $btnDelete = '<button class="btn btn-danger btn-sm" onclick="deleteProduct('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
+            $arrData[$i]['options'] = '<div class="text-center">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
         }
+        
+        header('Content-Type: application/json');
+        echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
         die();
     }
 
@@ -206,33 +173,40 @@ class Productos extends Controllers {
                 
                 // Manejar subida de múltiples imágenes
                 $strImagen = '';
+                $strRuta = '';
                 $ruta = strtolower(clear_cadena($strNombre));
 				$ruta = str_replace(" ","-",$ruta);
                 $totalImages = intval($_POST['totalImages'] ?? 0);
                 
-                // Debug logging
-                error_log("DEBUG: Total images to process: " . $totalImages);
-                error_log("DEBUG: Files received: " . print_r(array_keys($_FILES), true));
+                // Debug logging específico para este producto
+                error_log("DEBUG [$strSKU]: Processing product - Total images: " . $totalImages);
+                error_log("DEBUG [$strSKU]: Files received: " . print_r(array_keys($_FILES), true));
+                error_log("DEBUG [$strSKU]: Product ID: " . $idProducto . " (0 = new product)");
                 
                 if ($totalImages > 0) {
                     $uploadedImages = [];
                     $uploadedPaths = [];
                     
+                    error_log("DEBUG [$strSKU]: Starting image upload process for $totalImages images");
+                    
                     for ($i = 0; $i < $totalImages; $i++) {
                         $fileKey = "imagen_$i";
-                        error_log("DEBUG: Looking for file key: " . $fileKey);
+                        error_log("DEBUG [$strSKU]: Looking for file key: " . $fileKey);
                         if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] == 0) {
-                            error_log("DEBUG: Processing file: " . $_FILES[$fileKey]['name']);
+                            error_log("DEBUG [$strSKU]: Processing file: " . $_FILES[$fileKey]['name'] . " (size: " . $_FILES[$fileKey]['size'] . ")");
                             $uploadResult = $this->uploadImage($_FILES[$fileKey]);
                             if ($uploadResult['status']) {
                                 $uploadedImages[] = $uploadResult['filename'];
                                 $uploadedPaths[] = $uploadResult['path'];
-                                error_log("DEBUG: Image uploaded successfully: " . $uploadResult['filename']);
+                                error_log("DEBUG [$strSKU]: Image uploaded successfully: " . $uploadResult['filename']);
                             } else {
+                                error_log("ERROR [$strSKU]: Failed to upload image: " . $uploadResult['msg']);
                                 $arrResponse = array('status' => false, 'msg' => $uploadResult['msg']);
                                 echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
                                 die();
                             }
+                        } else {
+                            error_log("DEBUG [$strSKU]: No file found for key $fileKey or upload error");
                         }
                     }
                     
@@ -240,11 +214,14 @@ class Productos extends Controllers {
                     if (!empty($uploadedImages)) {
                         $strImagen = $uploadedImages[0];
                         $strRuta = $uploadedPaths[0];
-                        error_log("DEBUG: Final image set: " . $strImagen . " in " . $strRuta);
+                        error_log("DEBUG [$strSKU]: Final image set: " . $strImagen . " in " . $strRuta);
                     } else {
-                        error_log("DEBUG: No images were uploaded successfully");
+                        error_log("WARNING [$strSKU]: No images were uploaded successfully despite totalImages = $totalImages");
+                        $strImagen = '';
+                        $strRuta = '';
                     }
-                }
+                } else {
+                    error_log("DEBUG [$strSKU]: No images to process (totalImages = 0)");
                 
                 if($idProducto == 0) {
                     // Create new product
@@ -290,7 +267,6 @@ class Productos extends Controllers {
             }
             header('Content-Type: application/json');
             echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
-        }
         die();
     }
 
@@ -328,10 +304,12 @@ class Productos extends Controllers {
                     $arrResponse = array('status' => false, 'msg' => 'ID de producto inválido.');
                 } else {
                     $requestDelete = $this->model->eliminar($intIdProducto);
-                    if($requestDelete) {
-                        $arrResponse = array('status' => true, 'msg' => 'Producto eliminado exitosamente.');
+                    if($requestDelete === 'deleted') {
+                        $arrResponse = array('status' => true, 'msg' => 'Producto eliminado permanentemente.');
+                    } elseif($requestDelete === 'disabled') {
+                        $arrResponse = array('status' => true, 'msg' => 'El producto tenía ventas asociadas, se ha desactivado en lugar de eliminarse para preservar el historial de ventas.');
                     } else {
-                        $arrResponse = array('status' => false, 'msg' => 'No se pudo eliminar el producto. Puede tener registros relacionados.');
+                        $arrResponse = array('status' => false, 'msg' => 'No se pudo eliminar el producto. Error en la base de datos.');
                     }
                 }
             } catch (Exception $e) {
@@ -370,10 +348,20 @@ class Productos extends Controllers {
             mkdir($uploadDir, 0755, true);
         }
 
-        // Generar nombre único
+        // Generar nombre único más robusto
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'producto_' . uniqid() . '.' . $extension;
+        $timestamp = microtime(true);
+        $random = mt_rand(1000, 9999);
+        $filename = 'producto_' . date('Ymd_His') . '_' . $timestamp . '_' . $random . '.' . $extension;
         $fullPath = $uploadDir . $filename;
+        
+        // Verificar que el archivo no existe (por si acaso)
+        $counter = 1;
+        while (file_exists($fullPath)) {
+            $filename = 'producto_' . date('Ymd_His') . '_' . $timestamp . '_' . $random . '_' . $counter . '.' . $extension;
+            $fullPath = $uploadDir . $filename;
+            $counter++;
+        }
 
         // Mover archivo
         if (move_uploaded_file($file['tmp_name'], $fullPath)) {
@@ -456,6 +444,107 @@ class Productos extends Controllers {
         
         header('Content-Type: application/json');
         echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function getVentasAsociadas()
+    {
+        if($_POST) {
+            $intIdProducto = intval($_POST['idProducto']);
+            if($intIdProducto > 0) {
+                $arrData = $this->model->getVentasAsociadas($intIdProducto);
+                $arrResponse = array('status' => true, 'data' => $arrData);
+                echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+            }
+        }
+        die();
+    }
+
+    public function desactivarProducto()
+    {
+        if($_POST) {
+            $intIdProducto = intval($_POST['idProducto']);
+            if($intIdProducto > 0) {
+                // Desactivar el producto
+                $sql = "UPDATE producto SET Estado_Producto = 0 WHERE idProducto = ?";
+                $result = $this->model->update($sql, [$intIdProducto]);
+                
+                if($result) {
+                    $arrResponse = array('status' => true, 'msg' => 'Producto desactivado correctamente. Se mantiene en el historial de ventas.');
+                } else {
+                    $arrResponse = array('status' => false, 'msg' => 'Error al desactivar el producto.');
+                }
+                echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+            }
+        }
+        die();
+    }
+
+    public function eliminarTodosForzado()
+    {
+        // Método para eliminar todos los productos forzadamente
+        // Solo para uso administrativo en reinicio completo del sistema
+        
+        if($_POST && isset($_POST['confirmar']) && $_POST['confirmar'] === 'ELIMINAR_TODOS') {
+            try {
+                // Usar conexión directa para comandos especiales
+                $conexion = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+                $conexion->set_charset(DB_CHARSET);
+                
+                // Deshabilitar verificaciones de claves foráneas
+                $conexion->query("SET FOREIGN_KEY_CHECKS = 0");
+                
+                // Eliminar en orden correcto para evitar conflictos
+                $queries = [
+                    "DELETE FROM detalle_venta",
+                    "DELETE FROM venta", 
+                    "DELETE FROM producto"
+                ];
+                
+                $total_eliminados = 0;
+                foreach ($queries as $query) {
+                    if ($conexion->query($query)) {
+                        $total_eliminados++;
+                    }
+                }
+                
+                // Reiniciar auto_increment
+                $conexion->query("ALTER TABLE producto AUTO_INCREMENT = 1");
+                $conexion->query("ALTER TABLE venta AUTO_INCREMENT = 1");
+                $conexion->query("ALTER TABLE detalle_venta AUTO_INCREMENT = 1");
+                
+                // Rehabilitar verificaciones de claves foráneas
+                $conexion->query("SET FOREIGN_KEY_CHECKS = 1");
+                $conexion->close();
+                
+                // Eliminar imágenes físicas
+                $upload_dir = "Assets/images/uploads/";
+                if (is_dir($upload_dir)) {
+                    $files = glob($upload_dir . "*");
+                    foreach ($files as $file) {
+                        if (is_file($file) && basename($file) !== 'index.html') {
+                            unlink($file);
+                        }
+                    }
+                }
+                
+                $arrResponse = array(
+                    'status' => true, 
+                    'msg' => 'Se han eliminado todos los productos, ventas e imágenes exitosamente. Sistema reiniciado.'
+                );
+                
+            } catch (Exception $e) {
+                $arrResponse = array(
+                    'status' => false, 
+                    'msg' => 'Error durante la eliminación: ' . $e->getMessage()
+                );
+            }
+            
+            echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+        } else {
+            $arrResponse = array('status' => false, 'msg' => 'Confirmación requerida');
+            echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+        }
         die();
     }
 

@@ -128,51 +128,18 @@ class Productos extends Controllers {
             $_SESSION['permisosMod'] = ['r' => 1, 'w' => 1, 'u' => 1, 'd' => 1];
         }
         
-        try {
-            $arrData = $this->model->obtenerTodos();
-            
-            // Format data for DataTables
-            for($i = 0; $i < count($arrData); $i++) {
-                // Ensure all expected fields exist
-                $arrData[$i]['codigo_barras'] = $arrData[$i]['codigo_barras'] ?? '';
-                $arrData[$i]['Marca'] = $arrData[$i]['Marca'] ?? '';
-                $arrData[$i]['Stock'] = $arrData[$i]['Stock'] ?? 0;
-                $arrData[$i]['En_Oferta'] = $arrData[$i]['En_Oferta'] ?? 0;
-                $arrData[$i]['Destacado'] = $arrData[$i]['Es_Destacado'] ?? 0; // Mapeo correcto desde Es_Destacado
-                $arrData[$i]['Estado_Producto'] = $arrData[$i]['Estado_Producto'] ?? 'Activo';
-                
-                // Calculate margin percentage
-                $precioCosto = floatval($arrData[$i]['Precio_Costo'] ?? 0);
-                $precioVenta = floatval($arrData[$i]['Precio_Venta'] ?? 0);
-                if($precioCosto > 0 && $precioVenta > 0) {
-                    $margen = (($precioVenta - $precioCosto) / $precioCosto) * 100;
-                    $arrData[$i]['margen_porcentaje'] = number_format($margen, 1) . '%';
-                } else {
-                    $arrData[$i]['margen_porcentaje'] = '0%';
-                }
-                
-                // Format prices
-                $arrData[$i]['precio_formateado'] = SMONEY . number_format(floatval($arrData[$i]['Precio_Venta'] ?? 0), 2, '.', ',');
-                $arrData[$i]['precio_costo_formateado'] = SMONEY . number_format(floatval($arrData[$i]['Precio_Costo'] ?? 0), 2, '.', ',');
-                
-                $precioOferta = floatval($arrData[$i]['Precio_Oferta'] ?? 0);
-                $arrData[$i]['precio_oferta_formateado'] = $precioOferta > 0 ? SMONEY . number_format($precioOferta, 2, '.', ',') : null;
-                
-                // Add action buttons
-                $btnView = '<button class="btn btn-info btn-sm" onclick="fntViewProducto('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
-                $btnEdit = '<button class="btn btn-primary btn-sm" onclick="fntEditProducto('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
-                $btnDelete = '<button class="btn btn-danger btn-sm" onclick="fntDelProducto('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
-                $arrData[$i]['options'] = '<div class="btn-group" role="group">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
-            }
-            
-            header('Content-Type: application/json');
-            echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
-            
-        } catch (Exception $e) {
-            error_log("Error in getProductos: " . $e->getMessage());
-            header('Content-Type: application/json');
-            echo json_encode(['data' => [], 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        $arrData = $this->model->obtenerTodos();
+        
+        // Add action buttons to each product
+        for($i = 0; $i < count($arrData); $i++) {
+            $btnView = '<button class="btn btn-secondary btn-sm" onclick="viewProduct('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
+            $btnEdit = '<button class="btn btn-primary btn-sm" onclick="editProduct('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
+            $btnDelete = '<button class="btn btn-danger btn-sm" onclick="deleteProduct('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
+            $arrData[$i]['options'] = '<div class="text-center">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
         }
+        
+        header('Content-Type: application/json');
+        echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
         die();
     }
 
@@ -204,47 +171,13 @@ class Productos extends Controllers {
                 $intEnOferta = intval($_POST['chkEnOferta'] ?? 0);
                 $intDestacado = intval($_POST['chkDestacado'] ?? 0);
                 
-                // Manejar subida de múltiples imágenes
+                // NO procesamos imágenes aquí - solo datos del producto
                 $strImagen = '';
+                $strRuta = '';
                 $ruta = strtolower(clear_cadena($strNombre));
 				$ruta = str_replace(" ","-",$ruta);
-                $totalImages = intval($_POST['totalImages'] ?? 0);
                 
-                // Debug logging
-                error_log("DEBUG: Total images to process: " . $totalImages);
-                error_log("DEBUG: Files received: " . print_r(array_keys($_FILES), true));
-                
-                if ($totalImages > 0) {
-                    $uploadedImages = [];
-                    $uploadedPaths = [];
-                    
-                    for ($i = 0; $i < $totalImages; $i++) {
-                        $fileKey = "imagen_$i";
-                        error_log("DEBUG: Looking for file key: " . $fileKey);
-                        if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] == 0) {
-                            error_log("DEBUG: Processing file: " . $_FILES[$fileKey]['name']);
-                            $uploadResult = $this->uploadImage($_FILES[$fileKey]);
-                            if ($uploadResult['status']) {
-                                $uploadedImages[] = $uploadResult['filename'];
-                                $uploadedPaths[] = $uploadResult['path'];
-                                error_log("DEBUG: Image uploaded successfully: " . $uploadResult['filename']);
-                            } else {
-                                $arrResponse = array('status' => false, 'msg' => $uploadResult['msg']);
-                                echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
-                                die();
-                            }
-                        }
-                    }
-                    
-                    // Usar la primera imagen como imagen principal
-                    if (!empty($uploadedImages)) {
-                        $strImagen = $uploadedImages[0];
-                        $strRuta = $uploadedPaths[0];
-                        error_log("DEBUG: Final image set: " . $strImagen . " in " . $strRuta);
-                    } else {
-                        error_log("DEBUG: No images were uploaded successfully");
-                    }
-                }
+                error_log("DEBUG [$strSKU]: Processing product data only (images handled separately)");
                 
                 if($idProducto == 0) {
                     // Create new product
@@ -315,39 +248,119 @@ class Productos extends Controllers {
         die();
     }
 
-    public function delProducto() {
-        // Initialize session permissions
-        if (empty($_SESSION['permisosMod'])) {
-            $_SESSION['permisosMod'] = ['r' => 1, 'w' => 1, 'u' => 1, 'd' => 1];
+    public function setImage(){
+        if($_POST){
+            if(empty($_POST['idproducto'])){
+                $arrResponse = array('status' => false, 'msg' => 'Error de dato.');
+            }else{
+                $idProducto = intval($_POST['idproducto']);
+                $foto = $_FILES['foto'];
+                
+        // Use custom name if provided, otherwise generate unique filename
+        if ($customName) {
+            $filename = $customName;
+        } else {
+            $timestamp = date('Ymd_His');
+            $hash = substr(md5(uniqid() . microtime()), 0, 8);
+            $random = rand(100000, 999999);
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $filename = 'producto_' . $timestamp . '_' . $hash . '_' . $random . '.' . $extension;
         }
         
-        if($_POST) {
-            try {
-                $intIdProducto = intval($_POST['idProducto']);
-                if ($intIdProducto <= 0) {
-                    $arrResponse = array('status' => false, 'msg' => 'ID de producto inválido.');
-                } else {
-                    $requestDelete = $this->model->eliminar($intIdProducto);
-                    if($requestDelete) {
-                        $arrResponse = array('status' => true, 'msg' => 'Producto eliminado exitosamente.');
-                    } else {
-                        $arrResponse = array('status' => false, 'msg' => 'No se pudo eliminar el producto. Puede tener registros relacionados.');
+        $fullPath = $uploadDir . $filename;
+
+        // Check if file already exists and modify name if needed (only if no custom name provided)
+        if (!$customName) {
+            $counter = 1;
+            while (file_exists($fullPath)) {
+                $filename = 'producto_' . date('Ymd_His') . '_' . $hash . '_' . $random . '_' . $counter . '.' . $extension;
+                $fullPath = $uploadDir . $filename;
+                $counter++;
+                if ($counter > 100) break; // Evitar bucle infinito
+            }
+        }                error_log("DEBUG setImage: Generated name: " . $imgNombre . " for product: " . $idProducto);
+                
+                // Verificar duplicación antes de subir
+                $productoData = $this->model->selectProducto($idProducto);
+                if ($productoData && !empty($productoData['SubCategoria_idSubCategoria'])) {
+                    $isDuplicated = $this->model->verificarImagenDuplicada($imgNombre, $productoData['SubCategoria_idSubCategoria'], $idProducto);
+                    if ($isDuplicated) {
+                        $arrResponse = array('status' => false, 'msg' => 'Esta imagen ya existe en la subcategoría.');
+                        echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+                        die();
                     }
                 }
-            } catch (Exception $e) {
-                $arrResponse = array('status' => false, 'msg' => 'Error en la base de datos: ' . $e->getMessage());
+                
+                // Subir imagen física
+                $uploadResult = $this->uploadImage($foto, $imgNombre);
+                if($uploadResult['status']){
+                    // Actualizar solo los campos de imagen del producto
+                    $request_image = $this->model->actualizarImagenes($idProducto, $imgNombre, $uploadResult['path']);
+                    if($request_image){
+                        $arrResponse = array('status' => true, 'imgname' => $imgNombre, 'msg' => 'Archivo cargado.');
+                    }else{
+                        $arrResponse = array('status' => false, 'msg' => 'Error al actualizar imagen en base de datos.');
+                    }
+                }else{
+                    $arrResponse = array('status' => false, 'msg' => $uploadResult['msg']);
+                }
             }
-            header('Content-Type: application/json');
-            echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
-        } else {
-            $arrResponse = array('status' => false, 'msg' => 'Método no permitido.');
-            header('Content-Type: application/json');
+            echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
+        }
+        die();
+    }
+
+    public function delFile()
+    {
+        if ($_POST) {
+            if (empty($_POST['idproducto']) || empty($_POST['file'])) {
+                $arrResponse = array("status" => false, "msg" => 'Datos incorrectos.');
+            } else {
+                $idProducto = intval($_POST['idproducto']);
+                $imagen = strClean($_POST['file']);
+                
+                // Obtener datos del producto para verificación
+                $producto = $this->model->selectProducto($idProducto);
+                
+                if ($producto) {
+                    // Verificar si la imagen existe físicamente
+                    $rutaImagen = 'Assets/images/uploads/' . $imagen;
+                    $rutaCompleta = __DIR__ . '/../' . $rutaImagen;
+                    
+                    $imageDeleted = false;
+                    
+                    // Eliminar archivo físico si existe
+                    if (file_exists($rutaCompleta)) {
+                        $imageDeleted = unlink($rutaCompleta);
+                    } else {
+                        $imageDeleted = true; // Si no existe físicamente, consideramos exitoso
+                    }
+                    
+                    if ($imageDeleted) {
+                        // Si es la imagen principal, limpiar los campos imagen y ruta
+                        if ($producto['imagen'] === $imagen) {
+                            $updateResult = $this->model->actualizarImagenes($idProducto, '', '');
+                            if ($updateResult) {
+                                $arrResponse = array('status' => true, 'msg' => 'Imagen eliminada correctamente');
+                            } else {
+                                $arrResponse = array('status' => false, 'msg' => 'Error al actualizar producto');
+                            }
+                        } else {
+                            $arrResponse = array('status' => true, 'msg' => 'Imagen eliminada correctamente');
+                        }
+                    } else {
+                        $arrResponse = array('status' => false, 'msg' => 'Error al eliminar archivo físico');
+                    }
+                } else {
+                    $arrResponse = array('status' => false, 'msg' => 'Producto no encontrado');
+                }
+            }
             echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         }
         die();
     }
 
-    private function uploadImage($file) {
+    private function uploadImage($file, $customName = null) {
         $uploadDir = 'Assets/images/uploads/';
         $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize = 5 * 1024 * 1024; // 5MB
@@ -370,10 +383,22 @@ class Productos extends Controllers {
             mkdir($uploadDir, 0755, true);
         }
 
-        // Generar nombre único
+        // Generar nombre único más robusto para evitar duplicaciones
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'producto_' . uniqid() . '.' . $extension;
+        $timestamp = microtime(true);
+        $random = mt_rand(100000, 999999);
+        $hash = substr(md5($file['name'] . $timestamp . $random), 0, 8);
+        $filename = 'producto_' . date('Ymd_His') . '_' . $hash . '_' . $random . '.' . $extension;
         $fullPath = $uploadDir . $filename;
+        
+        // Verificar que el archivo no existe (protección adicional)
+        $counter = 1;
+        while (file_exists($fullPath)) {
+            $filename = 'producto_' . date('Ymd_His') . '_' . $hash . '_' . $random . '_' . $counter . '.' . $extension;
+            $fullPath = $uploadDir . $filename;
+            $counter++;
+            if ($counter > 100) break; // Evitar bucle infinito
+        }
 
         // Mover archivo
         if (move_uploaded_file($file['tmp_name'], $fullPath)) {
@@ -456,6 +481,50 @@ class Productos extends Controllers {
         
         header('Content-Type: application/json');
         echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+        die();
+    }
+
+    public function checkImageDuplication()
+    {
+        if ($_POST && isset($_FILES['image_file'])) {
+            $subcategoriaId = intval($_POST['subcategoria_id'] ?? 0);
+            $sessionId = $_POST['session_id'] ?? '';
+            $file = $_FILES['image_file'];
+            
+            // Generar hash del archivo para comparación
+            $fileHash = md5_file($file['tmp_name']);
+            $fileName = $file['name'];
+            
+            // Verificar si existe una imagen similar en la subcategoría
+            $isDuplicate = false;
+            
+            if ($subcategoriaId > 0) {
+                // Obtener productos de la misma subcategoría
+                $productos = $this->model->select_all(
+                    "SELECT imagen FROM producto WHERE SubCategoria_idSubCategoria = ? AND imagen IS NOT NULL",
+                    [$subcategoriaId]
+                );
+                
+                foreach ($productos as $producto) {
+                    $imagePath = 'Assets/images/uploads/' . $producto['imagen'];
+                    if (file_exists($imagePath)) {
+                        $existingHash = md5_file($imagePath);
+                        if ($existingHash === $fileHash) {
+                            $isDuplicate = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            echo json_encode([
+                'isDuplicate' => $isDuplicate,
+                'message' => $isDuplicate ? 'Imagen duplicada detectada' : 'Imagen única',
+                'session_id' => $sessionId
+            ]);
+        } else {
+            echo json_encode(['isDuplicate' => false, 'message' => 'No se pudo verificar']);
+        }
         die();
     }
 

@@ -176,12 +176,49 @@ function fntDelInfo(idsubcategoria) {
                         swal("Eliminar!", objData.msg, "success");
                         tableSubcategorias.ajax.reload();
                     } else {
-                        swal("Atención!", objData.msg, "error");
+                        // Si hay productos asociados, mostrar cuáles son
+                        if(objData.msg.includes("productos asociados")) {
+                            showProductosAsociados(idsubcategoria);
+                        } else {
+                            swal("Atención!", objData.msg, "error");
+                        }
                     }
                 }
             }
         }
     });
+}
+
+function showProductosAsociados(idsubcategoria) {
+    let request = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+    let ajaxUrl = base_url + '/Subcategorias/getProductosAsociados';
+    let strData = "idSubcategoria=" + idsubcategoria;
+    request.open("POST", ajaxUrl, true);
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    request.send(strData);
+    
+    request.onreadystatechange = function () {
+        if(request.readyState == 4 && request.status == 200) {
+            let objData = JSON.parse(request.responseText);
+            if(objData.status && objData.data.length > 0) {
+                let productList = "<ul style='text-align: left; margin: 10px 0;'>";
+                objData.data.forEach(function(producto) {
+                    productList += "<li>" + producto.nombre + " - $" + producto.precio + "</li>";
+                });
+                productList += "</ul>";
+                
+                swal({
+                    title: "No se puede eliminar",
+                    text: "Esta subcategoría tiene " + objData.data.length + " producto(s) asociado(s):",
+                    html: "Esta subcategoría tiene <b>" + objData.data.length + " producto(s)</b> asociado(s):" + productList + "<p>Debe eliminar o reasignar estos productos antes de eliminar la subcategoría.</p>",
+                    type: "warning",
+                    confirmButtonText: "Entendido"
+                });
+            } else {
+                swal("Atención!", "No es posible eliminar una subcategoría con productos asociados.", "error");
+            }
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

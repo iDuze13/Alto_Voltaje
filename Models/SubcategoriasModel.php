@@ -107,10 +107,18 @@
         {
             $this->intIdSubCategoria = $idSubCategoria;
             
+            // Primero verificar si hay productos asociados
+            $sql_check = "SELECT COUNT(*) as total FROM producto WHERE subcategoria_IdSubCategoria = ?";
+            $check_result = $this->select($sql_check, [$this->intIdSubCategoria]);
             
-                // se elimina físicamente
-            $sql = "DELETE FROM subcategoria WHERE IdSubCategoria = $this->intIdSubCategoria";
-            $request = $this->delete($sql);
+            if($check_result && $check_result['total'] > 0) {
+                return 'exist';
+            }
+            
+            // Si no hay productos asociados, eliminar físicamente
+            $sql = "DELETE FROM subcategoria WHERE IdSubCategoria = ?";
+            $request = $this->delete($sql, [$this->intIdSubCategoria]);
+            
             if($request)
             {
                 $request = 'ok';	
@@ -118,6 +126,16 @@
                 $request = 'error';
             }
             
+            return $request;
+        }
+
+        public function getProductosAsociados(int $idSubCategoria)
+        {
+            $sql = "SELECT p.IdProducto, p.nombre, p.descripcion, p.precio 
+                    FROM producto p 
+                    WHERE p.subcategoria_IdSubCategoria = ? 
+                    ORDER BY p.nombre ASC";
+            $request = $this->select_all($sql, [$idSubCategoria]);
             return $request;
         }
     }        

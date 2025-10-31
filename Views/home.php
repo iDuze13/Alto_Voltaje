@@ -16,24 +16,54 @@
 	<section class="section-slide">
 		<div class="wrap-slick1">
 			<div class="slick1">
-				<?php 
-			for ($i=0; $i < count($arrSlider) ; $i++) { 
-				$ruta = $arrSlider[$i]['ruta'];
-			 ?>
-				<div class="item-slick1" style="background-image: url(<?= $arrSlider[$i]['portada'] ?>);">
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-01.png);">
 					<div class="container h-full">
-						<div class="flex-col-l-m h-full p-t-100 p-b-30 respon5">
-							<div class="layer-slick1 animated visible-false" data-appear="zoomIn" data-delay="1600">
-								<a href="<?= base_url().'/tienda/categoria/'.$arrSlider[$i]['idcategoria'].'/'.$ruta; ?>" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
-									Ver productos
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">
+								
+							<div>
+								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
 								</a>
 							</div>
 						</div>
 					</div>
 				</div>
-			<?php 
-			}
-			?>
+
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-02.png);">
+					<div class="container h-full">
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">
+							<div>
+								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-03.png);">
+					<div class="container h-full">
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">	
+							<div>
+								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-04.png);">
+					<div class="container h-full">
+						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">	
+							<div>
+								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+									Ver Productos
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-05.png);">
 					<div class="container h-full">
 						<div class="flex-col-l-m h-full p-t-240 p-b-30 respon5">	
@@ -52,69 +82,56 @@
 	</section>
 
 
-	<!-- Banner Mejorado -->
+	<!-- Banner -->
 	<div class="sec-banner bg0 p-t-80 p-b-50">
-    <div class="container">
-        <div class="row d-flex justify-content-center align-items-stretch">
-            <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
-                <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column; justify-content: flex-end;">
-                    <img src="<?= media() ?>/tiendaOnline/images/banner-01.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
-                        <div class="block1-txt-child1 flex-col-l">
-                            <span class="block1-name ltext-102 trans-04 p-b-8">Kit 1</span>
-                            <span class="block1-info stext-102 trans-04">Cable 100 mts + Caja Termica + Llave de luz</span>
-                        </div>
-                        <div class="block1-txt-child2 p-b-4 trans-05">
-                            <div class="block1-link stext-101 cl0 trans-09">Comprar Ahora</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
-                <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column;justify-content: flex-end;">
-                    <img src="<?= media() ?>/tiendaOnline/images/banner-02.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
-                        <div class="block1-txt-child1 flex-col-l">
-                            <span class="block1-name ltext-102 trans-04 p-b-8">Kit 2</span>
-                            <span class="block1-info stext-102 trans-04">Caja de herramientas + Taladro</span>
-                        </div>
-                        <div class="block1-txt-child2 p-b-4 trans-05">
-                            <div class="block1-link stext-101 cl0 trans-09">Comprar Ahora</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
-                <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column; justify-content: flex-end;">
-                    <img src="<?= media() ?>/tiendaOnline/images/banner-03.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
-                        <div class="block1-txt-child1 flex-col-l">
-                            <span class="block1-name ltext-102 trans-04 p-b-8">Kit 3</span>
-                            <span class="block1-info stext-102 trans-04">Pinza Amperometrica + Multimetro</span>
-                        </div>
-                        <div class="block1-txt-child2 p-b-4 trans-05">
-                            <div class="block1-link stext-101 cl0 trans-09">Comprar Ahora</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3 p-b-30 d-flex">
-                <div class="block1 wrap-pic-w w-100" style="height: 350px; display: flex; flex-direction: column; justify-content: flex-end;">
-                    <img src="<?= media() ?>/tiendaOnline/images/banner-04.png" alt="IMG-BANNER" style="object-fit: cover; height: 200px; width: 100%;">
-                    <a href="<?= BASE_URL ?>/tienda" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3 flex-grow-1">
-                        <div class="block1-txt-child1 flex-col-l">
-                            <span class="block1-name ltext-102 trans-04 p-b-8">Kit 4</span>
-                            <span class="block1-info stext-102 trans-04">Camara de Seguridad + Alarma</span>
-                        </div>
-                        <div class="block1-txt-child2 p-b-4 trans-05">
-                            <div class="block1-link stext-101 cl0 trans-09">Comprar Ahora</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+		<div class="container">
+			<?php 
+			if(count($arrBanner) > 0) {
+				$totalCategorias = count($arrBanner);
+				$categoriasPorFila = 3; // Máximo 3 categorías por fila
+				
+				// Dividir en filas
+				for ($fila = 0; $fila < ceil($totalCategorias / $categoriasPorFila); $fila++) {
+					$inicio = $fila * $categoriasPorFila;
+					$fin = min($inicio + $categoriasPorFila, $totalCategorias);
+					$categoriasEnEstaFila = $fin - $inicio;
+					
+					// Si es la segunda fila o tiene menos de 3 categorías, centrarla
+					$claseRow = ($fila > 0 || $categoriasEnEstaFila < 3) ? 'row justify-content-center m-b-40' : 'row m-b-40';
+					
+					echo '<div class="' . $claseRow . '">';
+					
+					for ($j = $inicio; $j < $fin; $j++) {
+						$ruta = $arrBanner[$j]['ruta']; 
+			 ?>
+				<div class="col-12 col-sm-6 col-lg-4 d-flex justify-content-center p-b-30">
+					<!-- Block1 -->
+					<div class="block1 wrap-pic-w">
+						<img src="<?= $arrBanner[$j]['portada'] ?>" alt="<?= $arrBanner[$j]['nombre'] ?>">
+
+						<a href="<?= base_url().'/tienda/categoria/'.$arrBanner[$j]['idcategoria'].'/'.$ruta; ?>" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3">
+							<div class="block1-txt-child1 flex-col-l">
+								<span class="block1-name ltext-102 trans-04 p-b-8">
+									<?= $arrBanner[$j]['nombre'] ?>
+								</span>
+							</div>
+							<div class="block1-txt-child2 p-b-4 trans-05">
+								<div class="block1-link stext-101 cl0 trans-09">
+									Ver productos
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+				<?php 
+					}
+					echo '</div>'; // Cierre de fila
+				}
+			}
+			 ?>
+			</div>
+		</div>
+	</div>
 
 
 	<!-- Productos -->

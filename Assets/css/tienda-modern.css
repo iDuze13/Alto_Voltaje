@@ -1,6 +1,210 @@
 /* Estilos adicionales para la tienda */
 
-/* Animaciones */
+/* ========== ESTILOS PARA CATEGORÍAS CON MEDIDAS ESPECÍFICAS ========== */
+/* Contenedores de categorías más compactos manteniendo proporciones */
+.block1.wrap-pic-w {
+    width: 360px !important;
+    height: 240px !important;
+    margin: 0 auto 30px;
+    overflow: hidden;
+}
+
+.block1.wrap-pic-w img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+    display: block;
+}
+
+/* Ajustes responsive para categorías */
+@media (max-width: 1200px) {
+    .block1.wrap-pic-w {
+        width: 320px !important;
+        height: 213px !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .block1.wrap-pic-w {
+        width: 280px !important;
+        height: 187px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .block1.wrap-pic-w {
+        width: 250px !important;
+        height: 167px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .block1.wrap-pic-w {
+        width: 220px !important;
+        height: 147px !important;
+    }
+}
+
+/* ========== ESTILOS PARA CATEGORÍAS ========== */
+/* Header de sección */
+.section-header {
+    position: relative;
+}
+
+.section-title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 15px;
+}
+
+.section-divider {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    margin: 0 auto 20px;
+    border-radius: 2px;
+}
+
+.section-subtitle {
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+/* Contenedores tipo Kit */
+.kit-container {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.kit-container:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+}
+
+.kit-header {
+    margin-bottom: 15px;
+    flex-shrink: 0;
+}
+
+.kit-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.kit-description {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+    margin: 0;
+    text-align: left;
+}
+
+.kit-image {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    min-height: 180px;
+}
+
+.kit-image img {
+    max-width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.kit-footer {
+    margin-top: auto;
+    padding-top: 15px;
+    flex-shrink: 0;
+}
+
+.kit-btn {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    text-align: center;
+    width: 100%;
+}
+
+.kit-btn:hover {
+    background: #0056b3;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Estilos eliminados - reemplazados por los contenedores Kit */
+
+/* Responsive para contenedores Kit */
+@media (max-width: 768px) {
+    .kit-container {
+        padding: 15px;
+    }
+    
+    .kit-title {
+        font-size: 1.2rem;
+    }
+    
+    .kit-description {
+        font-size: 0.85rem;
+    }
+    
+    .kit-image {
+        min-height: 150px;
+    }
+    
+    .kit-image img {
+        max-height: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .kit-container {
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .kit-title {
+        font-size: 1.1rem;
+    }
+    
+    .kit-image {
+        min-height: 120px;
+    }
+    
+    .kit-image img {
+        max-height: 120px;
+    }
+    
+    .kit-btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ========== ANIMACIONES ========== */
 @keyframes fadeInUp {
     from {
         opacity: 0;

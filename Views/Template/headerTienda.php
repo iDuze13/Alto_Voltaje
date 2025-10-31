@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-	<title>Alto Voltaje - Tienda de Electrónica</title>
+	<title>Alto Voltaje</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="Alto Voltaje - Los mejores productos de electrónica al mejor precio">

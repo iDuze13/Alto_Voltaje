@@ -195,7 +195,13 @@
 					{
 						$arrResponse = array('status' => true, 'msg' => 'Se ha eliminado la subcategoría correctamente');
 					}else if($requestDelete == 'exist'){
-						$arrResponse = array('status' => false, 'msg' => 'No es posible eliminar una subcategoría con productos asociados.');
+						// Obtener la cantidad de productos asociados
+						$productos = $this->model->getProductosAsociados($intIdSubcategoria);
+						$cantidad = count($productos);
+						$arrResponse = array(
+							'status' => false, 
+							'msg' => 'No es posible eliminar una subcategoría con productos asociados. Hay ' . $cantidad . ' producto(s) que deben ser reasignados o eliminados primero.'
+						);
 					}else{
 						$arrResponse = array('status' => false, 'msg' => 'Error al eliminar la subcategoría.');
 					}
@@ -266,6 +272,19 @@
 				echo json_encode(['status' => true, 'data' => $arrData], JSON_UNESCAPED_UNICODE);
 			} else {
 				echo json_encode(['status' => false, 'msg' => 'No tiene permisos'], JSON_UNESCAPED_UNICODE);
+			}
+			die();
+		}
+
+		public function getProductosAsociados()
+		{
+			if($_POST){
+				$intIdSubcategoria = intval($_POST['idSubcategoria']);
+				if($intIdSubcategoria > 0){
+					$arrData = $this->model->getProductosAsociados($intIdSubcategoria);
+					$arrResponse = array('status' => true, 'data' => $arrData);
+					echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+				}
 			}
 			die();
 		}
