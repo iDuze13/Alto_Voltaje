@@ -50,13 +50,8 @@
   <script src="<?= media(); ?>/js/functions_subcategorias.js"></script>
     <?php } ?>
     <?php if($data['page_name'] == "productos"){ ?>
-  <script>
-    const base_url = "<?= BASE_URL; ?>";
-    const smoney = "<?= SMONEY; ?>";
-  </script>
   <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
   <script src="<?= media(); ?>/js/functions_productos.js"></script>
-  <script src="<?= media(); ?>/js/image-duplication-prevention.js"></script>
     <?php } ?>
   </body>
 </html>

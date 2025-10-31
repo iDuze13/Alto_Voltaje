@@ -8,11 +8,9 @@ const BASE_URL = "http://localhost/AltoVoltaje";
 
 // Datos de conexion a la base de datos
 const DB_HOST = "localhost";
-<<<<<<< Updated upstream
+
 const DB_NAME = "mydb";
-=======
-const DB_NAME = "mydbz";
->>>>>>> Stashed changes
+
 const DB_USER = "root";
 const DB_PASSWORD = "";
 const DB_CHARSET = "utf8mb4";
