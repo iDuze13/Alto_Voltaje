@@ -112,6 +112,11 @@
 					$btnEdit = '';
 					$btnDelete = '';
 
+					// Mapear IdSubCategoria a idSubCategoria para consistencia con DataTables
+					if (isset($arrData[$i]['IdSubCategoria'])) {
+						$arrData[$i]['idSubCategoria'] = $arrData[$i]['IdSubCategoria'];
+					}
+
 					// Verificar el nombre correcto del campo de estado
 					$estadoField = isset($arrData[$i]['Estado_SubCategoria']) ? 'Estado_SubCategoria' : 'estado_subcategoria';
 					
