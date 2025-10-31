@@ -193,6 +193,64 @@ class TiendaAjax extends Controllers {
     }
     
     /**
+     * Agregar producto al carrito (método alternativo)
+     */
+    public function addCart() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['status' => 'error', 'message' => 'Método no permitido']);
+            return;
+        }
+        
+        $idproducto = intval($_POST['idproducto'] ?? 0);
+        $cantidad = intval($_POST['cantidad'] ?? 1);
+        $precio = floatval($_POST['precio'] ?? 0);
+        
+        if ($idproducto <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'ID de producto inválido']);
+            return;
+        }
+        
+        if ($cantidad <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Cantidad inválida']);
+            return;
+        }
+        
+        try {
+            // Inicializar carrito en sesión si no existe
+            if (!isset($_SESSION['carrito'])) {
+                $_SESSION['carrito'] = [];
+            }
+            
+            // Agregar o actualizar producto en carrito
+            if (isset($_SESSION['carrito'][$idproducto])) {
+                $_SESSION['carrito'][$idproducto]['cantidad'] += $cantidad;
+            } else {
+                $_SESSION['carrito'][$idproducto] = [
+                    'cantidad' => $cantidad,
+                    'precio' => $precio
+                ];
+            }
+            
+            // Calcular totales
+            $totalItems = 0;
+            foreach ($_SESSION['carrito'] as $item) {
+                $totalItems += $item['cantidad'];
+            }
+            
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Producto agregado al carrito',
+                'cartCount' => $totalItems
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error en addCart: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'Error interno del servidor']);
+        }
+    }
+
+    /**
      * Método por defecto
      */
     public function index() {

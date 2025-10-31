@@ -36,6 +36,7 @@
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/tiendaOnline/css/main.css?v=1.4">
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/tienda-modern.css?v=1.1">
 	<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/tienda-minimal.css?v=1.0">
+	<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/carrito-lateral.css?v=1.0">
 	
 	<style>
 	
@@ -1550,7 +1551,8 @@
 						<!-- Cart Button with Price -->
 						<button class="cart-button" onclick="toggleCart()" title="Carrito de compras">
 							<i class="fa fa-shopping-cart"></i>
-							<span>$0,00</span>
+							<span class="cart-price">$0,00</span>
+							<span class="cart-count-main" style="display: none;">0</span>
 						</button>
 
 						<!-- Login Button -->

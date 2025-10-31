@@ -199,7 +199,13 @@
 										<div class="product-tax-info">Precio sin impuestos nacionales</div>
 									</div>
 									
-									<button class="product-add-button" onclick="event.stopPropagation(); addToCart(<?= $producto['idProducto'] ?>)">
+									<button class="product-add-button" onclick="event.stopPropagation(); addToCart(
+										<?= $producto['idProducto'] ?>, 
+										'<?= htmlspecialchars($producto['Nombre_Producto'], ENT_QUOTES) ?>', 
+										<?= !empty($producto['En_Oferta']) && $producto['En_Oferta'] == 1 ? $producto['Precio_Oferta'] : $producto['Precio_Venta'] ?>, 
+										'<?= !empty($producto['imagen']) && !empty($producto['ruta']) ? BASE_URL . '/' . $producto['ruta'] . $producto['imagen'] : BASE_URL . '/Assets/images/product-not-available.svg' ?>', 
+										'<?= htmlspecialchars($producto['Marca'] ?? 'Alto Voltaje', ENT_QUOTES) ?>'
+									)">
 										Agregar al carrito
 									</button>
 								</div>

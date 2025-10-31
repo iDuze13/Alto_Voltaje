@@ -326,6 +326,10 @@
 	</script>
 <!--===============================================================================================-->
 	<script src="<?= media() ?>/tiendaOnline/js/main.js"></script>
+	
+	<!-- Carrito Lateral -->
+	<?php require_once 'carritoLateral.php'; ?>
+	<script src="<?= media() ?>/js/carrito-lateral.js?v=1.0"></script>
 
 </body>
 </html>

@@ -105,4 +105,110 @@
         {
             $this->tienda();
         }
+        
+        // Método para mostrar detalle de producto individual
+        public function producto($params = null)
+        {
+            if (empty($params)) {
+                header('Location: ' . BASE_URL . '/tienda');
+                die();
+            }
+            
+            $idproducto = intval($params);
+            if ($idproducto <= 0) {
+                header('Location: ' . BASE_URL . '/tienda');
+                die();
+            }
+            
+            try {
+                // Obtener datos del producto
+                $producto = $this->model->obtenerProducto($idproducto);
+                
+                if (empty($producto)) {
+                    // Producto no encontrado, redirigir a tienda
+                    header('Location: ' . BASE_URL . '/tienda');
+                    die();
+                }
+                
+                $data['tag_page'] = "Producto";
+                $data['page_title'] = $producto['nombre'] . " - Alto Voltaje";
+                $data['page_name'] = "producto";
+                $data['producto'] = $producto;
+                
+                // Obtener productos relacionados de la misma categoría
+                try {
+                    $data['productos_relacionados'] = $this->model->obtenerProductosRelacionados($idproducto, $producto['idcategoria'] ?? 0);
+                    if (!is_array($data['productos_relacionados'])) {
+                        $data['productos_relacionados'] = [];
+                    }
+                } catch (Exception $e) {
+                    $data['productos_relacionados'] = [];
+                }
+                
+                $this->views->getView($this, "producto", $data);
+                
+            } catch (Exception $e) {
+                error_log('Error en detalle de producto: ' . $e->getMessage());
+                header('Location: ' . BASE_URL . '/tienda');
+                die();
+            }
+        }
+        
+        /**
+         * Agregar producto al carrito
+         */
+        public function addCart() {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['status' => 'error', 'message' => 'Método no permitido']);
+                return;
+            }
+            
+            $idproducto = intval($_POST['idproducto'] ?? 0);
+            $cantidad = intval($_POST['cantidad'] ?? 1);
+            $precio = floatval($_POST['precio'] ?? 0);
+            
+            if ($idproducto <= 0) {
+                echo json_encode(['status' => 'error', 'message' => 'ID de producto inválido']);
+                return;
+            }
+            
+            if ($cantidad <= 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Cantidad inválida']);
+                return;
+            }
+            
+            try {
+                // Inicializar carrito en sesión si no existe
+                if (!isset($_SESSION['carrito'])) {
+                    $_SESSION['carrito'] = [];
+                }
+                
+                // Agregar o actualizar producto en carrito
+                if (isset($_SESSION['carrito'][$idproducto])) {
+                    $_SESSION['carrito'][$idproducto]['cantidad'] += $cantidad;
+                } else {
+                    $_SESSION['carrito'][$idproducto] = [
+                        'cantidad' => $cantidad,
+                        'precio' => $precio
+                    ];
+                }
+                
+                // Calcular totales
+                $totalItems = 0;
+                foreach ($_SESSION['carrito'] as $item) {
+                    $totalItems += $item['cantidad'];
+                }
+                
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Producto agregado al carrito',
+                    'cartCount' => $totalItems
+                ]);
+                
+            } catch (Exception $e) {
+                error_log('Error en addCart: ' . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => 'Error interno del servidor']);
+            }
+        }
      }
