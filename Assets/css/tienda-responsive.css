@@ -1,0 +1,538 @@
+/**
+ * Responsive Design y Accesibilidad para la Tienda
+ * Mejoras específicas para dispositivos móviles y accesibilidad
+ */
+
+/* ========== MEJORAS PARA MÓVILES ========== */
+@media (max-width: 576px) {
+    /* Hero Section Móvil */
+    .hero-section {
+        padding: 40px 0 30px;
+        background: linear-gradient(135deg, var(--primary-yellow) 0%, #FFA500 100%);
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+        line-height: 1.2;
+        margin-bottom: 0;
+    }
+    
+    /* Breadcrumb Móvil */
+    .breadcrumb-section {
+        padding: 10px 0;
+    }
+    
+    .custom-breadcrumb {
+        font-size: 12px;
+    }
+    
+    /* Contenido Principal Móvil */
+    .main-content {
+        padding-top: 15px;
+    }
+    
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    /* Filtros Móviles */
+    .filters-sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        z-index: 9999;
+        background: var(--bg-white);
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+        transition: left 0.3s ease;
+        overflow-y: auto;
+        padding: 20px;
+        margin: 0;
+    }
+    
+    .filters-sidebar.active {
+        left: 0;
+    }
+    
+    .mobile-filter-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9998;
+        display: none;
+    }
+    
+    .mobile-filter-overlay.active {
+        display: block;
+    }
+    
+    .mobile-filter-toggle {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: var(--primary-yellow);
+        color: var(--text-dark);
+        border: none;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        font-size: 18px;
+        z-index: 1000;
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+    }
+    
+    .mobile-filter-toggle:hover {
+        background: var(--primary-yellow-hover);
+        transform: scale(1.1);
+    }
+    
+    /* Header de Productos Móvil */
+    .products-header {
+        padding: 15px;
+        margin-bottom: 15px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .results-info h2 {
+        font-size: 1.4rem;
+        text-align: center;
+    }
+    
+    .results-count {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .sort-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .sort-select {
+        width: 100%;
+        max-width: none;
+        min-width: auto;
+    }
+    
+    /* Grid de Productos Móvil */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0 5px;
+    }
+    
+    /* Tarjetas de Producto Móviles */
+    .farmacity-product-card {
+        font-size: 14px;
+    }
+    
+    .product-image-container {
+        height: 120px;
+    }
+    
+    .product-info {
+        padding: 10px;
+        gap: 6px;
+    }
+    
+    .product-brand {
+        font-size: 10px;
+    }
+    
+    .product-name {
+        font-size: 13px;
+        line-height: 1.3;
+        min-height: 32px;
+        -webkit-line-clamp: 2;
+    }
+    
+    .product-pricing {
+        margin: 8px 0 10px;
+    }
+    
+    .product-price-current {
+        font-size: 1.1rem;
+    }
+    
+    .product-price-old {
+        font-size: 0.9rem;
+    }
+    
+    .product-tax-info {
+        font-size: 10px;
+    }
+    
+    .product-add-button {
+        padding: 8px 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .product-discount {
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+    
+    .product-favorite {
+        top: 8px;
+        right: 8px;
+        width: 30px;
+        height: 30px;
+    }
+    
+    .product-favorite i {
+        font-size: 14px;
+    }
+}
+
+/* ========== MEJORAS PARA TABLETS ========== */
+@media (min-width: 577px) and (max-width: 992px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .filters-sidebar {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .products-header {
+        padding: 20px;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .product-image-container {
+        height: 160px;
+    }
+}
+
+/* ========== MEJORAS DE ACCESIBILIDAD ========== */
+
+/* Focus visible mejorado */
+.focus-visible:focus,
+.product-add-button:focus-visible,
+.sort-select:focus-visible,
+input:focus-visible,
+button:focus-visible {
+    outline: 3px solid var(--primary-yellow);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--bg-white), 0 0 0 5px var(--primary-yellow);
+}
+
+/* Mejoras para lectores de pantalla */
+.screen-reader-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip links */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--text-dark);
+    color: var(--bg-white);
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 10000;
+    transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+/* Mejoras de contraste */
+@media (prefers-contrast: high) {
+    .product-add-button {
+        border: 2px solid var(--text-dark);
+    }
+    
+    .farmacity-product-card {
+        border: 2px solid var(--text-dark);
+    }
+    
+    .filter-option input[type="checkbox"] {
+        border: 2px solid var(--text-dark);
+    }
+}
+
+/* ========== MODO OSCURO (PREPARADO) ========== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-white: #1a1a1a;
+        --bg-light: #121212;
+        --text-dark: #ffffff;
+        --text-medium: #cccccc;
+        --text-light: #999999;
+        --border-light: #333333;
+        --border-medium: #444444;
+        --shadow-sm: 0 2px 4px rgba(255,255,255,0.1);
+        --shadow-md: 0 4px 8px rgba(255,255,255,0.15);
+        --shadow-lg: 0 8px 16px rgba(255,255,255,0.2);
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, #B8860B 0%, #DAA520 100%);
+    }
+    
+    .product-image-container {
+        background: #2a2a2a;
+    }
+}
+
+/* ========== MEJORAS PARA TOUCH DEVICES ========== */
+@media (pointer: coarse) {
+    /* Aumentar tamaños táctiles */
+    .product-add-button {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 16px;
+    }
+    
+    .product-favorite {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .filter-option input[type="checkbox"] {
+        min-width: 24px;
+        min-height: 24px;
+    }
+    
+    .sort-select {
+        min-height: 44px;
+        padding: 12px 15px;
+    }
+    
+    /* Eliminar hover effects en touch */
+    .farmacity-product-card:hover {
+        transform: none;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .product-add-button:hover {
+        transform: none;
+    }
+}
+
+/* ========== MEJORAS PARA PANTALLAS PEQUEÑAS ========== */
+@media (max-width: 360px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .farmacity-product-card {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .hero-title {
+        font-size: 1.5rem;
+    }
+    
+    .filters-sidebar {
+        width: 100%;
+        left: -100%;
+    }
+    
+    .filters-sidebar.active {
+        left: 0;
+    }
+}
+
+/* ========== MEJORAS PARA PANTALLAS GRANDES ========== */
+@media (min-width: 1400px) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 30px;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+    }
+    
+    .container {
+        max-width: 1320px;
+    }
+    
+    .filters-sidebar {
+        padding: 30px;
+    }
+    
+    .products-header {
+        padding: 30px;
+    }
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+    .hero-section,
+    .filters-sidebar,
+    .mobile-filter-toggle,
+    .sort-controls,
+    .load-more-btn,
+    .product-favorite,
+    .product-add-button {
+        display: none !important;
+    }
+    
+    .main-content {
+        background: white !important;
+    }
+    
+    .farmacity-product-card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+        margin-bottom: 20px;
+    }
+    
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px !important;
+    }
+    
+    .product-price-current {
+        color: #000 !important;
+    }
+    
+    .results-info h2 {
+        color: #000 !important;
+        font-size: 24px !important;
+    }
+}
+
+/* ========== ORIENTATION CHANGES ========== */
+@media (orientation: landscape) and (max-height: 500px) {
+    .hero-section {
+        padding: 30px 0 20px;
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .filters-sidebar {
+        height: calc(100vh - 100px);
+    }
+}
+
+/* ========== UTILIDADES RESPONSIVE ========== */
+.show-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .show-mobile {
+        display: block !important;
+    }
+    
+    .show-mobile-flex {
+        display: flex !important;
+    }
+    
+    .show-mobile-grid {
+        display: grid !important;
+    }
+}
+
+.show-tablet {
+    display: none;
+}
+
+@media (min-width: 577px) and (max-width: 992px) {
+    .hide-tablet {
+        display: none !important;
+    }
+    
+    .show-tablet {
+        display: block !important;
+    }
+}
+
+.show-desktop {
+    display: none;
+}
+
+@media (min-width: 993px) {
+    .hide-desktop {
+        display: none !important;
+    }
+    
+    .show-desktop {
+        display: block !important;
+    }
+}
+
+/* ========== SPACING RESPONSIVE ========== */
+@media (max-width: 576px) {
+    .p-mobile-sm { padding: 10px !important; }
+    .p-mobile-md { padding: 15px !important; }
+    .p-mobile-lg { padding: 20px !important; }
+    
+    .m-mobile-sm { margin: 10px !important; }
+    .m-mobile-md { margin: 15px !important; }
+    .m-mobile-lg { margin: 20px !important; }
+    
+    .mb-mobile-sm { margin-bottom: 10px !important; }
+    .mb-mobile-md { margin-bottom: 15px !important; }
+    .mb-mobile-lg { margin-bottom: 20px !important; }
+}
+
+/* ========== PERFORMANCE OPTIMIZATIONS ========== */
+.farmacity-product-card,
+.product-image-container img,
+.product-add-button {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* GPU acceleration for smooth animations */
+.hero-section,
+.filters-sidebar,
+.products-section {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+}
+
+/* ========== BODY STATES ========== */
+body.filter-open {
+    overflow: hidden;
+}
+
+@media (min-width: 993px) {
+    body.filter-open {
+        overflow: auto;
+    }
+}

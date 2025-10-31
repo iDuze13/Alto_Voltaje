@@ -44,7 +44,9 @@ require_once __DIR__ . '/Conexion.php';
                 $this->strquery = $query;
                 $this->arrValues = $arrValues;
                 $result = $this->conexion->prepare($this->strquery);
-                $result->execute($this->arrValues);
+                if (!$result->execute($this->arrValues)) {
+                    return false;
+                }
                 return $result->fetch(PDO::FETCH_ASSOC);
             }
         //Devuelve todos los registros
@@ -56,8 +58,11 @@ require_once __DIR__ . '/Conexion.php';
                 $this->strquery = $query;
                 $this->arrValues = $arrValues;
                 $result = $this->conexion->prepare($this->strquery);
-                $result->execute($this->arrValues);
-                return $result->fetchAll(PDO::FETCH_ASSOC);
+                if (!$result->execute($this->arrValues)) {
+                    return [];
+                }
+                $data = $result->fetchAll(PDO::FETCH_ASSOC);
+                return is_array($data) ? $data : [];
             }
         //Actualizar registros
             public function update(string $query, array $arrValues)

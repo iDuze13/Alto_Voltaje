@@ -18,12 +18,12 @@ trait TCategoria{
 
 	public function getCategorias(){
 		$this->con = new Msql();
-		$sql = "SELECT c.idcategoria, c.nombre, c.portada, c.ruta, count(p.categoriaid) AS cantidad
-				FROM producto p 
-				INNER JOIN categoria c
-				ON p.categoriaid = c.idcategoria
+		$sql = "SELECT c.idcategoria, c.nombre, c.portada, c.ruta, count(p.idProducto) AS cantidad
+				FROM categoria c 
+				LEFT JOIN subcategoria s ON c.idcategoria = s.categoria_idcategoria
+				LEFT JOIN producto p ON s.idSubCategoria = p.SubCategoria_idSubCategoria AND p.Estado_Producto = 'Activo'
 				WHERE c.status = 1
-				GROUP BY p.categoriaid, c.idcategoria";
+				GROUP BY c.idcategoria, c.nombre, c.portada, c.ruta";
 		$request = $this->con->select_all($sql);
 		if(count($request) > 0){
 			for ($c=0; $c < count($request) ; $c++) { 

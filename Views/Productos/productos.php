@@ -21,14 +21,22 @@
               <div class="tile">
                 <div class="tile-body">
                   <div class="table-responsive">
-                    <table class="table table-hover table-bordered" id="tableProductos">
+                    <table class="table table-hover table-bordered table-striped" id="tableProductos" style="width: 100%;">
                       <thead>
                         <tr>
                           <th>ID</th>
-                          <th>Código</th>
+                          <th>Imagen</th>
+                          <th>SKU</th>
+                          <th>Código Barras</th>
                           <th>Nombre</th>
+                          <th>Marca</th>
+                          <th>P. Costo</th>
+                          <th>P. Venta</th>
+                          <th>P. Oferta</th>
+                          <th>Margen %</th>
                           <th>Stock</th>
-                          <th>Precio</th>
+                          <th>Oferta</th>
+                          <th>Destacado</th>
                           <th>Estado</th>
                           <th>Acciones</th>
                         </tr>

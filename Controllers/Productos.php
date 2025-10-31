@@ -128,18 +128,51 @@ class Productos extends Controllers {
             $_SESSION['permisosMod'] = ['r' => 1, 'w' => 1, 'u' => 1, 'd' => 1];
         }
         
-        $arrData = $this->model->obtenerTodos();
-        
-        // Add action buttons to each product
-        for($i = 0; $i < count($arrData); $i++) {
-            $btnView = '<button class="btn btn-secondary btn-sm" onclick="viewProduct('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
-            $btnEdit = '<button class="btn btn-primary btn-sm" onclick="editProduct('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
-            $btnDelete = '<button class="btn btn-danger btn-sm" onclick="deleteProduct('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
-            $arrData[$i]['options'] = '<div class="text-center">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
+        try {
+            $arrData = $this->model->obtenerTodos();
+            
+            // Format data for DataTables
+            for($i = 0; $i < count($arrData); $i++) {
+                // Ensure all expected fields exist
+                $arrData[$i]['codigo_barras'] = $arrData[$i]['codigo_barras'] ?? '';
+                $arrData[$i]['Marca'] = $arrData[$i]['Marca'] ?? '';
+                $arrData[$i]['Stock'] = $arrData[$i]['Stock'] ?? 0;
+                $arrData[$i]['En_Oferta'] = $arrData[$i]['En_Oferta'] ?? 0;
+                $arrData[$i]['Destacado'] = $arrData[$i]['Es_Destacado'] ?? 0; // Mapeo correcto desde Es_Destacado
+                $arrData[$i]['Estado_Producto'] = $arrData[$i]['Estado_Producto'] ?? 'Activo';
+                
+                // Calculate margin percentage
+                $precioCosto = floatval($arrData[$i]['Precio_Costo'] ?? 0);
+                $precioVenta = floatval($arrData[$i]['Precio_Venta'] ?? 0);
+                if($precioCosto > 0 && $precioVenta > 0) {
+                    $margen = (($precioVenta - $precioCosto) / $precioCosto) * 100;
+                    $arrData[$i]['margen_porcentaje'] = number_format($margen, 1) . '%';
+                } else {
+                    $arrData[$i]['margen_porcentaje'] = '0%';
+                }
+                
+                // Format prices
+                $arrData[$i]['precio_formateado'] = SMONEY . number_format(floatval($arrData[$i]['Precio_Venta'] ?? 0), 2, '.', ',');
+                $arrData[$i]['precio_costo_formateado'] = SMONEY . number_format(floatval($arrData[$i]['Precio_Costo'] ?? 0), 2, '.', ',');
+                
+                $precioOferta = floatval($arrData[$i]['Precio_Oferta'] ?? 0);
+                $arrData[$i]['precio_oferta_formateado'] = $precioOferta > 0 ? SMONEY . number_format($precioOferta, 2, '.', ',') : null;
+                
+                // Add action buttons
+                $btnView = '<button class="btn btn-info btn-sm" onclick="fntViewProducto('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
+                $btnEdit = '<button class="btn btn-primary btn-sm" onclick="fntEditProducto('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
+                $btnDelete = '<button class="btn btn-danger btn-sm" onclick="fntDelProducto('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
+                $arrData[$i]['options'] = '<div class="btn-group" role="group">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
+            
+        } catch (Exception $e) {
+            error_log("Error in getProductos: " . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode(['data' => [], 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
         }
-        
-        header('Content-Type: application/json');
-        echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
         die();
     }
 
@@ -424,6 +457,46 @@ class Productos extends Controllers {
         header('Content-Type: application/json');
         echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         die();
+    }
+
+    /**
+     * Muestra los detalles de un producto específico
+     * GET /productos/detalle/{id}
+     */
+    public function detalle($id = null) {
+        if (empty($id) || !ctype_digit((string)$id)) {
+            header('Location: ' . BASE_URL . '/tienda');
+            exit();
+        }
+
+        $productId = (int)$id;
+        
+        // Obtener el producto
+        $producto = $this->model->obtener($productId);
+        if (!$producto) {
+            header('Location: ' . BASE_URL . '/tienda');
+            exit();
+        }
+
+        // Obtener productos relacionados (misma categoría, excluyendo el actual)
+        $productosRelacionados = [];
+        if (!empty($producto['SubCategoria_idSubCategoria'])) {
+            $productosRelacionados = $this->model->obtenerPorSubcategoria(
+                $producto['SubCategoria_idSubCategoria'], 
+                $productId, 
+                4 // Límite de 4 productos relacionados
+            );
+        }
+
+        $data = [
+            'page_tag' => htmlspecialchars($producto['Nombre_Producto']),
+            'page_title' => htmlspecialchars($producto['Nombre_Producto']) . ' - Alto Voltaje',
+            'page_name' => 'producto_detalle',
+            'producto' => $producto,
+            'productos_relacionados' => $productosRelacionados
+        ];
+
+        $this->views->getView($this, 'detalle', $data);
     }
 
     private function flash(string $msg, string $type = 'info') { $_SESSION['flash'] = ['msg' => $msg, 'type' => $type]; }

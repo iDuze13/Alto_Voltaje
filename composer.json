@@ -1,0 +1,17 @@
+{
+    "name": "altovoltaje/tienda",
+    "description": "Tienda online Alto Voltaje con integración MercadoPago",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "mercadopago/dx-php": "^2.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "AltoVoltaje\\": "src/"
+        }
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}

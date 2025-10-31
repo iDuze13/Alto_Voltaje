@@ -1,0 +1,28 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo gris claro -->
+  <rect width="300" height="300" fill="#f8f9fa"/>
+  
+  <!-- Borde -->
+  <rect x="1" y="1" width="298" height="298" fill="none" stroke="#e9ecef" stroke-width="2"/>
+  
+  <!-- Icono de imagen -->
+  <g transform="translate(150, 120)">
+    <!-- Marco de imagen -->
+    <rect x="-40" y="-25" width="80" height="60" fill="none" stroke="#dee2e6" stroke-width="2" rx="4"/>
+    
+    <!-- Montañas -->
+    <path d="M-35,-10 L-25,-20 L-15,-10 L-5,-15 L5,-5 L15,-10 L25,-5 L35,-10 L35,30 L-35,30 Z" fill="#dee2e6"/>
+    
+    <!-- Sol -->
+    <circle cx="20" cy="-15" r="6" fill="#dee2e6"/>
+  </g>
+  
+  <!-- Texto -->
+  <text x="150" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#999">
+    Imagen no disponible
+  </text>
+  
+  <!-- Líneas decorativas -->
+  <line x1="80" y1="200" x2="220" y2="200" stroke="#e9ecef" stroke-width="1"/>
+  <line x1="100" y1="210" x2="200" y2="210" stroke="#e9ecef" stroke-width="1"/>
+</svg>

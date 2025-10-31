@@ -1,0 +1,670 @@
+/**
+ * Tienda Moderna CSS
+ * Estilos modernos para la página de tienda de Alto Voltaje
+ * Inspirado en diseños de ecommerce modernos como Mercado Libre, Amazon
+ */
+
+/* ========== VARIABLES CSS ========== */
+:root {
+    --primary-yellow: #FFD700;
+    --primary-yellow-hover: #FFC107;
+    --primary-yellow-dark: #E6B800;
+    --text-dark: #333;
+    --text-medium: #666;
+    --text-light: #999;
+    --bg-light: #f8f9fa;
+    --bg-white: #ffffff;
+    --border-light: #e9ecef;
+    --border-medium: #dee2e6;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --transition: all 0.3s ease;
+}
+
+/* ========== HERO SECTION ========== */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-yellow) 0%, #FFA500 100%);
+    padding: 80px 0 60px;
+    margin-bottom: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    margin: 0;
+    text-align: center;
+    letter-spacing: -1px;
+    position: relative;
+    z-index: 2;
+}
+
+/* ========== BREADCRUMB ========== */
+.breadcrumb-section {
+    background: var(--bg-white);
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.custom-breadcrumb {
+    font-size: 14px;
+    color: var(--text-medium);
+    margin: 0;
+}
+
+.custom-breadcrumb a {
+    color: var(--primary-yellow-dark);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.custom-breadcrumb a:hover {
+    color: var(--text-dark);
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+    background-color: var(--bg-light);
+    min-height: calc(100vh - 200px);
+    padding-top: 30px;
+}
+
+/* ========== SIDEBAR FILTROS ========== */
+.filters-sidebar {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 25px;
+    margin-bottom: 30px;
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+    border: 1px solid var(--border-light);
+}
+
+.filter-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--primary-yellow);
+    display: flex;
+    align-items: center;
+}
+
+.filter-title i {
+    color: var(--primary-yellow-dark);
+    margin-right: 8px;
+}
+
+.filter-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.filter-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.filter-section h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    transition: var(--transition);
+}
+
+.filter-option:hover {
+    background: rgba(255, 215, 0, 0.05);
+    border-radius: 6px;
+    padding-left: 8px;
+    margin-left: -8px;
+}
+
+.filter-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    accent-color: var(--primary-yellow);
+    cursor: pointer;
+}
+
+.filter-option label {
+    font-size: 14px;
+    color: var(--text-medium);
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+    transition: var(--transition);
+}
+
+.filter-option input[type="checkbox"]:checked + label {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* ========== PRODUCTOS SECTION ========== */
+.products-section {
+    background: transparent;
+}
+
+.products-header {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    border: 1px solid var(--border-light);
+}
+
+.results-info h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 5px 0;
+}
+
+.results-count {
+    font-size: 14px;
+    color: var(--text-medium);
+    font-weight: 500;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-label {
+    font-size: 14px;
+    color: var(--text-medium);
+    font-weight: 500;
+}
+
+.sort-select {
+    padding: 8px 15px;
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius);
+    background: var(--bg-white);
+    color: var(--text-dark);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    min-width: 180px;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+/* ========== PRODUCT GRID ========== */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+/* ========== PRODUCT CARDS ========== */
+.farmacity-product-card {
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    border: 1px solid var(--border-light);
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.farmacity-product-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    border-color: var(--border-medium);
+}
+
+.product-image-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.farmacity-product-card:hover .product-image-container img {
+    transform: scale(1.08);
+}
+
+.product-discount {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #e74c3c;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: var(--shadow-sm);
+}
+
+.product-favorite {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 2;
+    box-shadow: var(--shadow-sm);
+}
+
+.product-favorite:hover {
+    background: var(--primary-yellow);
+    transform: scale(1.1);
+}
+
+.product-favorite.active {
+    background: #e74c3c;
+    color: white;
+}
+
+.product-favorite i {
+    font-size: 16px;
+    color: var(--text-medium);
+    transition: var(--transition);
+}
+
+.product-favorite:hover i,
+.product-favorite.active i {
+    color: white;
+}
+
+.product-info {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.product-brand {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.product-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 44px;
+}
+
+.product-pricing {
+    margin: 10px 0 15px;
+}
+
+.product-price-current {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: block;
+    line-height: 1.2;
+}
+
+.product-price-old {
+    font-size: 1rem;
+    color: var(--text-light);
+    text-decoration: line-through;
+    margin-left: 8px;
+    font-weight: 400;
+}
+
+.product-tax-info {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.product-add-button {
+    background: var(--primary-yellow);
+    color: var(--text-dark);
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: auto;
+    width: 100%;
+}
+
+.product-add-button:hover {
+    background: var(--primary-yellow-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.product-add-button:active {
+    transform: translateY(0);
+}
+
+/* ========== LOAD MORE BUTTON ========== */
+.load-more-btn {
+    background: var(--bg-white);
+    color: var(--text-dark);
+    border: 2px solid var(--border-medium);
+    padding: 15px 40px;
+    border-radius: var(--border-radius-lg);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.load-more-btn:hover {
+    background: var(--primary-yellow);
+    border-color: var(--primary-yellow);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1200px) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .filters-sidebar {
+        position: relative;
+        top: auto;
+        margin-bottom: 25px;
+    }
+    
+    .products-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .sort-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .sort-select {
+        flex: 1;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 60px 0 40px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .filters-sidebar {
+        padding: 20px;
+    }
+    
+    .products-header {
+        padding: 20px;
+    }
+    
+    .product-image-container {
+        height: 180px;
+    }
+    
+    .product-info {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding-top: 20px;
+    }
+    
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+    
+    .product-image-container {
+        height: 140px;
+    }
+    
+    .product-info {
+        padding: 12px;
+    }
+    
+    .product-name {
+        font-size: 14px;
+        min-height: 36px;
+    }
+    
+    .product-price-current {
+        font-size: 1.2rem;
+    }
+    
+    .product-add-button {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+    
+    .filters-sidebar {
+        padding: 15px;
+    }
+    
+    .products-header {
+        padding: 15px;
+    }
+    
+    .hero-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* ========== EMPTY STATE ========== */
+.empty-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    background: var(--bg-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+}
+
+.empty-products i {
+    font-size: 5rem;
+    color: var(--text-light);
+    margin-bottom: 25px;
+    display: block;
+}
+
+.empty-products h4 {
+    font-size: 1.5rem;
+    color: var(--text-medium);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.empty-products p {
+    color: var(--text-light);
+    font-size: 16px;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.farmacity-product-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.filters-sidebar {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.products-header {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+/* ========== UTILITIES ========== */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ========== CUSTOM SCROLLBAR ========== */
+.filters-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filters-sidebar::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 3px;
+}
+
+.filters-sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+}
+
+.filters-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-light);
+}

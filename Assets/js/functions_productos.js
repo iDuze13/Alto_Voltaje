@@ -1,11 +1,10 @@
-var base_url = "http://localhost/AltoVoltaje";
 let tableProductos;
 
 // Variables globales para manejar imágenes
 var selectedImages = [];
 var imageCounter = 0;
 
-// Inicialización solo para página de productos
+// Inicialización directa
 $(document).ready(function() {
     // Verificar que estamos en la página de productos
     if ($('#tableProductos').length === 0) {
@@ -14,39 +13,39 @@ $(document).ready(function() {
     }
     
     console.log('Products page detected, initializing...');
+    console.log('Base URL:', base_url);
     
-    // Esperar a que todo esté cargado
-    setTimeout(function() {
-        initProductsPage();
-    }, 2000);
+    // Inicializar DataTable directamente
+    initBasicDataTable();
+    
+    // Inicializar funciones de productos
+    initializeProductHandlers();
+    
+    // Cargar categorías para los modales
+    loadProductCategories();
 });
 
 function initProductsPage() {
-    // Verificar dependencias
-    if (!window.jQuery || !$.fn.DataTable) {
-        console.error('Required libraries not loaded');
-        return;
-    }
-    
-    // Inicializar DataTable muy simple
+    // Función mantenida para compatibilidad
     initBasicDataTable();
-    
-    // Inicializar handlers del formulario
-    initProductForm();
-    
-    // Cargar categorías
-    loadProductCategories();
 }
 
 function initBasicDataTable() {
+    console.log('Initializing DataTable...');
+    console.log('Base URL:', typeof base_url !== 'undefined' ? base_url : 'NOT DEFINED');
+    
+    // Verificar que base_url esté definido
+    if (typeof base_url === 'undefined') {
+        console.error('base_url is not defined!');
+        alert('Error: base_url no está definido. Recarga la página.');
+        return;
+    }
+    
     // Destruir tabla existente si existe
     if ($.fn.DataTable.isDataTable('#tableProductos')) {
         $('#tableProductos').DataTable().destroy();
+        $('#tableProductos').empty();
     }
-    
-    $('#tableProductos').empty();
-    
-    console.log('Initializing DataTable...');
     
     // Configuración simple de DataTable
     tableProductos = $('#tableProductos').DataTable({
@@ -94,117 +93,73 @@ function initBasicDataTable() {
             }
         },
         "columns": [
-            {"data": "idProducto", "title": "ID", "width": "60px", "className": "text-center"},
+            {"data": "idProducto", "title": "ID"},
             {
                 "data": "imagen", 
                 "title": "Imagen",
                 "orderable": false,
-                "width": "90px",
-                "className": "text-center",
                 "render": function(data, type, row) {
                     if (data && data !== '' && data !== null) {
-                        return '<img src="' + base_url + '/Assets/images/uploads/' + data + '" alt="Producto" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">';
+                        return '<img src="' + base_url + '/Assets/images/uploads/' + data + '" style="width: 50px; height: 50px; object-fit: cover;">';
                     } else {
-                        return '<div style="width: 50px; height: 50px; background-color: #f8f9fa; border: 1px dashed #dee2e6; display: flex; align-items: center; justify-content: center; border-radius: 4px;"><i class="fas fa-image text-muted"></i></div>';
+                        return '<span class="text-muted">Sin imagen</span>';
                     }
                 }
             },
-            {"data": "SKU", "title": "SKU", "width": "120px", "className": "text-center"},
+            {"data": "SKU", "title": "SKU"},
+            {"data": "codigo_barras", "title": "Código Barras"},
+            {"data": "Nombre_Producto", "title": "Nombre"},
+            {"data": "Marca", "title": "Marca"},
             {
-                "data": "codigo_barras", 
-                "title": "Código Barras",
-                "width": "140px",
-                "className": "text-center",
-                "render": function(data, type, row) {
-                    return (data && data !== '' && data !== null) ? data : '<span class="text-muted">-</span>';
-                }
-            },
-            {"data": "Nombre_Producto", "title": "Nombre", "width": "200px", "className": "text-left"},
-            {
-                "data": "Marca", 
-                "title": "Marca", 
-                "width": "120px", 
-                "className": "text-center",
-                "render": function(data, type, row) {
-                    return (data && data !== '' && data !== null) ? data : '<span class="text-muted">-</span>';
-                }
+                "data": "precio_costo_formateado", 
+                "title": "P. Costo"
             },
             {
-                "data": "Precio_Costo", 
-                "title": "P. Costo",
-                "width": "100px",
-                "className": "text-right",
-                "render": function(data, type, row) { 
-                    return '$' + parseFloat(data || 0).toLocaleString('es-CO', {minimumFractionDigits: 2}); 
-                }
+                "data": "precio_formateado", 
+                "title": "P. Venta"
             },
             {
-                "data": "Precio_Venta", 
-                "title": "P. Venta",
-                "width": "100px",
-                "className": "text-right",
-                "render": function(data, type, row) { 
-                    return '$' + parseFloat(data || 0).toLocaleString('es-CO', {minimumFractionDigits: 2}); 
-                }
-            },
-            {
-                "data": "Precio_Oferta", 
+                "data": "precio_oferta_formateado", 
                 "title": "P. Oferta",
-                "width": "100px",
-                "className": "text-right",
                 "render": function(data, type, row) {
-                    if (row.En_Oferta == 1 && data && parseFloat(data) > 0) {
-                        return '<span class="text-warning font-weight-bold">$' + parseFloat(data).toLocaleString('es-CO', {minimumFractionDigits: 2}) + '</span>';
-                    } else {
-                        return '<span class="text-muted">-</span>';
+                    if (data && row.En_Oferta == 1) {
+                        return '<span class="precio-oferta">' + data + '</span>';
                     }
+                    return data || '<span class="text-muted">-</span>';
                 }
             },
             {
-                "data": "Margen_Ganancia", 
-                "title": "Margen %",
-                "width": "90px",
-                "className": "text-center",
-                "render": function(data, type, row) { 
-                    return parseFloat(data || 0).toFixed(1) + '%'; 
-                }
+                "data": "margen_porcentaje", 
+                "title": "Margen %"
             },
-            {"data": "Stock_Actual", "title": "Stock", "width": "80px", "className": "text-center"},
+            {"data": "Stock", "title": "Stock"},
             {
                 "data": "En_Oferta",
                 "title": "Oferta",
-                "width": "80px",
-                "className": "text-center",
                 "render": function(data, type, row) {
-                    return (data == 1 || data == '1') ? '<span class="badge badge-warning">Sí</span>' : '<span class="badge badge-light">No</span>';
+                    return (data == 1) ? '<span class="badge badge-warning">Sí</span>' : '<span class="badge badge-secondary">No</span>';
                 }
             },
             {
-                "data": "Es_Destacado",
+                "data": "Destacado",
                 "title": "Destacado",
-                "width": "90px",
-                "className": "text-center",
                 "render": function(data, type, row) {
-                    return (data == 1 || data == '1') ? '<span class="badge badge-primary">Sí</span>' : '<span class="badge badge-light">No</span>';
+                    return (data == 1) ? '<span class="badge badge-warning">Sí</span>' : '<span class="badge badge-secondary">No</span>';
                 }
             },
             {
                 "data": "Estado_Producto",
                 "title": "Estado",
-                "width": "90px",
-                "className": "text-center",
                 "render": function(data, type, row) {
-                    if (data == 'Activo' || data == 1) {
+                    if (data == 'Activo') {
                         return '<span class="badge badge-success">Activo</span>';
-                    } else if (data == 'Descontinuado' || data == 3) {
-                        return '<span class="badge badge-warning">Descontinuado</span>';
                     } else {
                         return '<span class="badge badge-danger">Inactivo</span>';
                     }
                 }
             },
             {
-                "data": null,
+                "data": "options",
                 "title": "Acciones",
                 "orderable": false,
                 "width": "140px",
@@ -230,10 +185,21 @@ function initBasicDataTable() {
                 "targets": [1, 14], // Imagen y Acciones no se pueden ordenar
                 "orderable": false
             }
-        ]
+        ],
+        "rowCallback": function(row, data) {
+            // Agregar clase especial para productos destacados
+            if (data.Destacado == 1) {
+                $(row).addClass('producto-destacado');
+            }
+        }
     });
     
     console.log('DataTable initialized successfully');
+}
+
+function initializeProductHandlers() {
+    // Inicializar handlers de formulario e imágenes
+    initProductForm();
 }
 
 function initProductForm() {
@@ -381,6 +347,9 @@ function openModal() {
     $('#listCategoriaPrincipal').val('');
     $('#listCategoria').html('<option value="">Seleccionar Subcategoría</option>').prop('disabled', true);
     
+    // Cargar categorías principales
+    loadMainCategories();
+    
     // Limpiar campos de precios y checkboxes
     $('#txtSKU').val('');
     $('#txtCodigoBarras').val('');
@@ -453,7 +422,7 @@ function editProduct(id) {
                 
                 // Configurar checkboxes
                 $('#chkEnOferta').prop('checked', producto.En_Oferta == 1);
-                $('#chkDestacado').prop('checked', producto.Es_Destacado == 1);
+                $('#chkDestacado').prop('checked', (producto.Es_Destacado == 1) || (producto.Destacado == 1));
                 
                 // Mostrar/ocultar precio de oferta según checkbox
                 if (producto.En_Oferta == 1) {
