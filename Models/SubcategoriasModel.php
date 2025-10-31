@@ -49,7 +49,12 @@
 
 		public function selectSubCategorias()
 		{
-			$sql = "SELECT s.*, c.nombre as categoria_nombre 
+			$sql = "SELECT s.IdSubCategoria, 
+					       s.Nombre_SubCategoria, 
+					       s.Descripcion_SubCategoria, 
+					       s.Estado_SubCategoria,
+					       s.categoria_idcategoria,
+					       c.nombre as categoria_nombre 
 					FROM subcategoria s 
 					INNER JOIN categoria c ON s.categoria_idcategoria = c.idcategoria 
 					WHERE s.Estado_SubCategoria != 0 

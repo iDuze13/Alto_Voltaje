@@ -13,11 +13,25 @@ function media(){
     }
 
     function headerAdmin($data=""){
+        // Evitar duplicación del header
+        static $headerRendered = false;
+        if ($headerRendered) {
+            return;
+        }
+        $headerRendered = true;
+        
         $view_header = __DIR__ . "/../Views/Template/headerAdmin.php";
         require_once($view_header);
     }
 
     function footerAdmin($data=""){
+        // Evitar duplicación del footer
+        static $footerRendered = false;
+        if ($footerRendered) {
+            return;
+        }
+        $footerRendered = true;
+        
         $view_footer = __DIR__ . "/../Views/Template/footerAdmin.php";
         require_once($view_footer);
     }
@@ -25,12 +39,26 @@ function media(){
 
     function headerTienda($data="")
     {
+        // Evitar duplicación del header
+        static $headerRendered = false;
+        if ($headerRendered) {
+            return;
+        }
+        $headerRendered = true;
+        
         $view_header = __DIR__ . "/../Views/Template/headerTienda.php";
         require_once($view_header);
     }
 
     function footerTienda($data="")
     {
+        // Evitar duplicación del footer
+        static $footerRendered = false;
+        if ($footerRendered) {
+            return;
+        }
+        $footerRendered = true;
+        
         $view_footer = __DIR__ . "/../Views/Template/footerTienda.php";
         require_once($view_footer);
     }

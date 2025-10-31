@@ -3,7 +3,7 @@
 	getModal('modalCarrito', $data);
 ?>
 
-<section class="bg-img1 txt-center p-lr-15 p-tb-92" style="background-image: url('<?= media() ?>/tiendaOnline/images/bg-01.jpg');">
+<section class="bg-img1 txt-center p-lr-15 p-tb-92" style="background-image: url('<?= media() ?>/images/heroTienda.png');">
     <h2 class="ltext-105 cl0 txt-center">
         Contacto
     </h2>

@@ -52,10 +52,27 @@
 
 		public function selectCategorias()
 		{
-			$sql = "SELECT * FROM categoria 
-					WHERE status != 0 ";
-			$request = $this->select_all($sql);
-			return $request ? $request : [];
+			try {
+				$sql = "SELECT * FROM categoria 
+						WHERE status != 0 ";
+				$request = $this->select_all($sql);
+				
+				// Verificación estricta del tipo de retorno
+				if (is_array($request)) {
+					return $request;
+				}
+				
+				// Si no es array, intentar procesar como statement
+				if (is_object($request) && method_exists($request, 'fetchAll')) {
+					$data = $request->fetchAll(PDO::FETCH_ASSOC);
+					return is_array($data) ? $data : [];
+				}
+				
+				return [];
+			} catch (Exception $e) {
+				error_log('Error en selectCategorias: ' . $e->getMessage());
+				return [];
+			}
 		}
 
 		public function selectCategoria(int $idcategoria){

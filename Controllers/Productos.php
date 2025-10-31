@@ -459,6 +459,46 @@ class Productos extends Controllers {
         die();
     }
 
+    /**
+     * Muestra los detalles de un producto específico
+     * GET /productos/detalle/{id}
+     */
+    public function detalle($id = null) {
+        if (empty($id) || !ctype_digit((string)$id)) {
+            header('Location: ' . BASE_URL . '/tienda');
+            exit();
+        }
+
+        $productId = (int)$id;
+        
+        // Obtener el producto
+        $producto = $this->model->obtener($productId);
+        if (!$producto) {
+            header('Location: ' . BASE_URL . '/tienda');
+            exit();
+        }
+
+        // Obtener productos relacionados (misma categoría, excluyendo el actual)
+        $productosRelacionados = [];
+        if (!empty($producto['SubCategoria_idSubCategoria'])) {
+            $productosRelacionados = $this->model->obtenerPorSubcategoria(
+                $producto['SubCategoria_idSubCategoria'], 
+                $productId, 
+                4 // Límite de 4 productos relacionados
+            );
+        }
+
+        $data = [
+            'page_tag' => htmlspecialchars($producto['Nombre_Producto']),
+            'page_title' => htmlspecialchars($producto['Nombre_Producto']) . ' - Alto Voltaje',
+            'page_name' => 'producto_detalle',
+            'producto' => $producto,
+            'productos_relacionados' => $productosRelacionados
+        ];
+
+        $this->views->getView($this, 'detalle', $data);
+    }
+
     private function flash(string $msg, string $type = 'info') { $_SESSION['flash'] = ['msg' => $msg, 'type' => $type]; }
     private function consumeFlash() { $f = $_SESSION['flash'] ?? null; unset($_SESSION['flash']); return $f; }
     private function flashFormErrors(array $errors) { $_SESSION['form_errors'] = $errors; }
