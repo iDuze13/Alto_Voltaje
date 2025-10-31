@@ -12,6 +12,12 @@
     <link rel="stylesheet" href="<?= base_url(); ?>/Views/Ventas/ventas.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap" rel="stylesheet">
+<<<<<<< Updated upstream
+=======
+    
+    <!-- CSS de Ventas -->
+    <link rel="stylesheet" href="<?= media() ?>/css/ventav2.css">
+>>>>>>> Stashed changes
 </head>
 <body>
     <div class="container">
@@ -123,6 +129,7 @@
                 <h3>Método de Pago</h3>
                 <div class="payment-methods">
                     <label class="payment-option">
+<<<<<<< Updated upstream
                         <input type="radio" name="payment" value="Efectivo" checked> Efectivo
                     </label>
                     <label class="payment-option">
@@ -133,6 +140,28 @@
                     </label>
                     <label class="payment-option">
                         <input type="radio" name="payment" value="Transferencia"> Transfer
+=======
+                        <input type="radio" name="payment" value="Efectivo" checked onchange="cambiarBotonProcesar()">
+                        💵 Efectivo
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="Tarjeta_Debito" onchange="cambiarBotonProcesar()">
+                        💳 Débito
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="Tarjeta_Credito" onchange="cambiarBotonProcesar()">
+                        💳 Crédito
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="Transferencia" onchange="cambiarBotonProcesar()">
+                        🏦 Transfer
+>>>>>>> Stashed changes
+                    </label>
+                    <label class="payment-option" style="background: linear-gradient(135deg, #00a650 0%, #009ee3 100%); border: 2px solid #00a650;">
+                        <input type="radio" name="payment" value="MercadoPago" onchange="cambiarBotonProcesar()">
+                        <img src="https://http2.mlstatic.com/storage/logos-api-admin/a5f047d0-9be0-11ec-aad4-c3381f368aaf-m.svg" 
+                             alt="Mercado Pago" style="height: 20px; vertical-align: middle; filter: brightness(0) invert(1);">
+                        Mercado Pago
                     </label>
                 </div>
                 <button class="process-btn" id="processBtn" onclick="processSale()">Procesar Venta</button>
@@ -140,7 +169,85 @@
         </div>
     </div>
 
+<<<<<<< Updated upstream
     <!-- Modal de Recibo -->
+=======
+    <!-- MODAL DE MERCADO PAGO -->
+    <div id="mercadoPagoModal" class="modal" style="display: none;">
+        <div class="receipt" style="max-width: 500px; background: linear-gradient(180deg, #00a650 0%, #009ee3 100%);">
+            <div class="receipt-header" style="background: rgba(0,0,0,0.2); border: none;">
+                <div style="text-align: center;">
+                    <img src="https://http2.mlstatic.com/storage/logos-api-admin/a5f047d0-9be0-11ec-aad4-c3381f368aaf-xl.svg" 
+                         alt="Mercado Pago" style="height: 50px; filter: brightness(0) invert(1); margin-bottom: 10px;">
+                    <h2 style="color: white; margin: 0;">Esperando Pago</h2>
+                </div>
+            </div>
+            
+            <div style="padding: 30px; background: white; border-radius: 0 0 12px 12px;">
+                <p style="text-align: center; font-size: 16px; color: #666; margin-bottom: 25px;">
+                    El cliente debe transferir a:
+                </p>
+                
+                <!-- CVU -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #00a650;">
+                    <label style="font-size: 12px; color: #666; font-weight: 600; display: block; margin-bottom: 8px;">
+                        📋 CVU / CBU
+                    </label>
+                    <div id="mpModalCVU" style="font-size: 20px; font-weight: bold; font-family: 'Courier New', monospace; color: #00a650; letter-spacing: 1px; word-break: break-all; margin-bottom: 10px;">
+                    </div>
+                    <button type="button" id="btnCopiarCVU" onclick="copiarDatoMP('cvu')" 
+                            style="width: 100%; padding: 10px; background: #00a650; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        📋 Copiar CVU
+                    </button>
+                </div>
+                
+                <!-- ALIAS -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #009ee3;">
+                    <label style="font-size: 12px; color: #666; font-weight: 600; display: block; margin-bottom: 8px;">
+                        🏷️ Alias
+                    </label>
+                    <div id="mpModalAlias" style="font-size: 26px; font-weight: bold; color: #009ee3; margin-bottom: 10px;">
+                    </div>
+                    <button type="button" id="btnCopiarAlias" onclick="copiarDatoMP('alias')" 
+                            style="width: 100%; padding: 10px; background: #009ee3; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        📋 Copiar Alias
+                    </button>
+                </div>
+                
+                <!-- Monto -->
+                <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #00a650 0%, #009ee3 100%); border-radius: 10px; margin-bottom: 20px;">
+                    <label style="font-size: 14px; color: white; display: block; margin-bottom: 5px; font-weight: 600;">
+                        💵 Monto a Pagar
+                    </label>
+                    <div id="mpModalMonto" style="font-size: 36px; font-weight: bold; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                    </div>
+                </div>
+                
+                <!-- Instrucciones -->
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffc107; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 13px; text-align: center; color: #856404;">
+                        <strong>⏳ Espera a que el cliente transfiera</strong><br>
+                        Verifica que llegó el pago antes de continuar
+                    </p>
+                </div>
+                
+                <!-- Botones -->
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="cerrarModalMercadoPago()" 
+                            style="flex: 1; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
+                        ✕ Cancelar
+                    </button>
+                    <button onclick="confirmarPagoMercadoPago()" 
+                            style="flex: 2; padding: 15px; background: linear-gradient(135deg, #00a650 0%, #009ee3 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; box-shadow: 0 4px 8px rgba(0,166,80,0.3);">
+                        ✓ Confirmar Pago y Generar Recibo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE RECIBO -->
+>>>>>>> Stashed changes
     <div id="receiptModal" class="modal">
         <div class="receipt">
             <div class="receipt-header">
@@ -174,6 +281,7 @@
     </div>
 
     <script>
+<<<<<<< Updated upstream
         // Variables globales
         let cart = [];
         const BASE_URL = '<?= base_url(); ?>';
@@ -415,5 +523,20 @@
             });
         });
     </script>
+=======
+        // Variables globales definidas desde PHP
+        const empleadoNombre = '<?= htmlspecialchars($data['nombre_usuario']) ?>';
+        const BASE_URL = '<?= base_url() ?>'; // ⭐ URL base del proyecto
+        
+        // Datos de Mercado Pago (disponibles globalmente)
+        window.DATOS_MP = {
+            cvu: '<?= $data['datos_bancarios']['cvu'] ?? 'No configurado' ?>',
+            alias: '<?= $data['datos_bancarios']['alias'] ?? 'No configurado' ?>',
+            titular: '<?= $data['datos_bancarios']['titular'] ?? 'ALTO VOLTAJE S.R.L.' ?>',
+            banco: '<?= $data['datos_bancarios']['banco'] ?? 'Mercado Pago' ?>'
+        };
+    </script>
+    <script src="<?= media() ?>/js/functions_ventasV3.js"></script>
+>>>>>>> Stashed changes
 </body>
 </html>
