@@ -12,6 +12,7 @@
     --text-light: #999999;
     --bg-white: #ffffff;
     --bg-gray: #f8f9fa;
+    --bg-dark: #1a1a1a;
     --border-light: #e9ecef;
     --border-medium: #dee2e6;
     --shadow-light: 0 2px 4px rgba(0,0,0,0.08);
@@ -907,6 +908,131 @@ input:focus,
 select:focus {
     outline: 2px solid var(--primary-yellow);
     outline-offset: 2px;
+}
+
+/* ========== FOOTER STYLES ========== */
+footer.bg3 {
+    background: var(--bg-dark) !important;
+    color: #ffffff;
+}
+
+footer.bg3 h4,
+footer.bg3 .stext-301 {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+footer.bg3 .stext-107,
+footer.bg3 .cl7,
+footer.bg3 p {
+    color: #cccccc !important;
+}
+
+footer.bg3 a {
+    color: #cccccc !important;
+    text-decoration: none;
+}
+
+/* Eliminar TODOS los efectos hover del footer */
+footer.bg3 a:hover,
+footer.bg3 .hov-cl1:hover,
+footer.bg3 .trans-04:hover,
+footer.bg3 a:focus,
+footer.bg3 a:active {
+    color: #cccccc !important;
+    text-decoration: none !important;
+    transform: none !important;
+    transition: none !important;
+    background: transparent !important;
+}
+
+/* Estilos del formulario de suscripción */
+footer.bg3 .input1 {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border-radius: var(--border-radius);
+    padding: 8px 15px !important;
+    font-size: 14px !important;
+    height: 40px !important;
+}
+
+footer.bg3 .input1::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+footer.bg3 .input1:focus {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    outline: none !important;
+}
+
+/* Arreglar el contenedor del input */
+footer.bg3 .wrap-input1 {
+    position: relative;
+}
+
+footer.bg3 .wrap-input1 .input1 {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+footer.bg3 button,
+footer.bg3 .bg1 {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+    border: 1px solid #404040 !important;
+    border-radius: var(--border-radius);
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+footer.bg3 button:hover,
+footer.bg3 .hov-btn2:hover {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Iconos sociales sin hover */
+footer.bg3 .fa {
+    color: #cccccc !important;
+}
+
+footer.bg3 .fa:hover {
+    color: #cccccc !important;
+    transform: none !important;
+}
+
+/* Espaciado adicional para el footer */
+footer.bg3 .p-t-75 {
+    padding-top: 75px !important;
+}
+
+footer.bg3 .p-b-32 {
+    padding-bottom: 32px !important;
+}
+
+footer.bg3 .p-b-50 {
+    padding-bottom: 50px !important;
+}
+
+footer.bg3 .p-b-30 {
+    padding-bottom: 30px !important;
+}
+
+/* Mejoras en el formulario */
+footer.bg3 .w-full {
+    width: 100% !important;
+}
+
+footer.bg3 .p-b-4 {
+    padding-bottom: 4px !important;
+}
+
+footer.bg3 .p-t-18 {
+    padding-top: 18px !important;
 }
 
 /* ========== PRINT STYLES ========== */
