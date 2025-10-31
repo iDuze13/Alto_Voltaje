@@ -1,0 +1,26 @@
+=== EMPLEADO LOGIN 2025-10-31 20:40:11 ===
+POST: Array
+(
+    [id_Empleado] => 1010
+    [cuil] => 27-32460182-5
+)
+
+ID Empleado: '1010'
+CUIL: '27-32460182-5'
+ID numérico: SÍ
+CUIL normalizado: '27-32460182-5'
+CUIL formato válido: SÍ
+Búsqueda BD: ENCONTRADO
+Datos: Array
+(
+    [id_Usuario] => 1010
+    [Nombre_Usuario] => Paquita
+    [Apellido_Usuario] => Barrio
+    [Correo_Usuario] => paqui@gmail.com
+    [CUIL_Usuario] => 27-32460182-5
+    [Telefono_Usuario] => 3704000000
+    [Estado_Usuario] => Activo
+    [Rol_Usuario] => Empleado
+)
+
+LOGIN EXITOSO: 2025-10-31 20:40:11
