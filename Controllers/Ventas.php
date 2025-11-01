@@ -1,11 +1,4 @@
 <?php
-<<<<<<< Updated upstream
-class Ventas extends Controllers {
-    public function __construct() {
-        parent::__construct();
-        
-        // Asegurar que la sesión esté iniciada
-=======
 /**
  * Controlador de Ventas con integración de Mercado Pago
  */
@@ -14,12 +7,11 @@ class Ventas extends Controllers {
     public function __construct() {
         parent::__construct();
         
->>>>>>> Stashed changes
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
         
-        // Verificar autenticación - compatible con ambas estructuras de sesión
+        // Verificar autenticación
         $isAuthenticated = false;
         
         if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['rol'])) {
@@ -34,11 +26,7 @@ class Ventas extends Controllers {
             exit();
         }
         
-<<<<<<< Updated upstream
-        // Load the VentasModel
-=======
         // Cargar modelo y configuración de Mercado Pago
->>>>>>> Stashed changes
         require_once __DIR__ . '/../Models/VentasModel.php';
         
         // Cargar config de Mercado Pago solo si existe
@@ -82,10 +70,6 @@ class Ventas extends Controllers {
         // Obtener productos activos
         $data['productos_activos'] = $this->model->getProductosActivos();
         
-<<<<<<< Updated upstream
-        $this->views->getView($this, "ventas", $data);
-    }
-=======
         // Datos bancarios para transferencias (si está configurado)
         if (function_exists('obtenerDatosBancarios')) {
             $data['datos_bancarios'] = obtenerDatosBancarios();
@@ -104,7 +88,6 @@ class Ventas extends Controllers {
     /**
      * Procesar venta con soporte para Mercado Pago
      */
->>>>>>> Stashed changes
     public function procesarVenta() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->jsonResponse(['success' => false, 'error' => 'Método no permitido'], 405);
@@ -127,15 +110,6 @@ class Ventas extends Controllers {
 
             $metodo_pago = $input['metodo_pago'] ?? 'Efectivo';
             
-<<<<<<< Updated upstream
-            $datos_venta = array(
-                'total' => floatval($input['total']),
-                'metodo_pago' => $input['metodo_pago'],
-                'empleado_id' => $empleado_id,
-                'productos' => $input['productos']
-            );
-            
-=======
             $datos_venta = [
                 'empleado_id' => $empleado_id,
                 'metodo_pago' => $metodo_pago,
@@ -147,7 +121,6 @@ class Ventas extends Controllers {
             ];
 
             // Registrar venta en BD
->>>>>>> Stashed changes
             $venta_id = $this->model->registrarVenta($datos_venta);
 
             if (!$venta_id) {
@@ -211,14 +184,10 @@ class Ventas extends Controllers {
             $this->jsonResponse(['success' => false, 'error' => 'Error del servidor'], 500);
         }
     }
-<<<<<<< Updated upstream
-    
-=======
 
     /**
      * Buscar productos
      */
->>>>>>> Stashed changes
     public function buscarProductos() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->jsonResponse(['success' => false, 'error' => 'Método no permitido'], 405);
