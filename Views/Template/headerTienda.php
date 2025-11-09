@@ -310,6 +310,64 @@
 		color: #333;
 		text-decoration: none;
 	}
+	
+	/* User Dropdown Menu */
+	.dropdown {
+		position: relative;
+	}
+	
+	.dropdown-toggle::after {
+		margin-left: 8px;
+	}
+	
+	.dropdown-menu {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		z-index: 1000;
+		display: none;
+		margin-top: 8px;
+		border-radius: 10px;
+		box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+		border: 1px solid #e0e0e0;
+		padding: 8px 0;
+		min-width: 200px;
+		background-color: white;
+		list-style: none;
+	}
+	
+	.dropdown-menu.show {
+		display: block;
+	}
+	
+	.dropdown-item {
+		display: block;
+		width: 100%;
+		padding: 10px 20px;
+		font-size: 14px;
+		color: #333;
+		text-decoration: none;
+		transition: all 0.2s ease;
+		border: none;
+		background: none;
+		text-align: left;
+	}
+	
+	.dropdown-item:hover {
+		background-color: #f8f9fa;
+		padding-left: 25px;
+		color: #333;
+	}
+	
+	.dropdown-item i {
+		width: 20px;
+		text-align: center;
+	}
+	
+	.dropdown-divider {
+		margin: 8px 0;
+		border-top: 1px solid #e0e0e0;
+	}
 
 	/* Mobile Menu Button */
 	.mobile-menu-btn {
@@ -328,22 +386,7 @@
 		background: rgba(0,0,0,0.1);
 	}
 
-	/* Mobile Menu Styles */
-	.mobile-menu {
-		display: none;
-		background: white;
-		border-top: 1px solid #eee;
-		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-		position: absolute;
-		top: 100%;
-		left: 0;
-		right: 0;
-		z-index: 1000;
-	}
-	
-	.mobile-menu.active {
-		display: block;
-	}
+	/* Mobile Menu Styles - Initial state is hidden */
 	
 	.mobile-nav-menu {
 		list-style: none;
@@ -412,10 +455,6 @@
 	}
 
 	@media (max-width: 992px) {
-		.mobile-menu-btn {
-			display: flex !important;
-		}
-		
 		.header-actions .nav-menu {
 			display: none !important;
 		}
@@ -757,32 +796,58 @@
 	
 	/* Mobile Menu */
 	.mobile-menu-btn {
-		display: none;
 		background: none;
 		border: 2px solid #ddd;
 		border-radius: 8px;
-		font-size: 20px;
+		font-size: 18px;
 		color: #2c3e50;
 		cursor: pointer;
-		padding: 8px 10px;
-		transition: all 0.2s ease;
-		width: 44px;
-		height: 44px;
+		padding: 0;
+		transition: all 0.3s ease;
+		width: 42px;
+		height: 42px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		position: relative;
+		overflow: hidden;
 	}
 	
-	.mobile-menu-btn:hover {
-		background: #f8f9fa;
-		border-color: #ccc;
-		color: #000;
+	.mobile-menu-btn::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: #FFD700;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		z-index: -1;
+	}
+	
+	.mobile-menu-btn:hover::before {
+		opacity: 0.1;
+	}
+	
+	.mobile-menu-btn:active {
+		transform: scale(0.95);
+	}
+	
+	.mobile-menu-btn[aria-expanded="true"] {
+		border-color: #FFD700;
+		background: #fff8e1;
+	}
+	
+	.mobile-menu-btn i {
+		transition: transform 0.3s ease;
+	}
+	
+	.mobile-menu-btn[aria-expanded="true"] i {
+		transform: rotate(90deg);
 	}
 	
 	.mobile-menu-btn:focus {
 		outline: none;
 		border-color: #FFD700;
-		box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+		box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
 	}
 	
 	/* Mobile Menu Styles */
@@ -797,95 +862,145 @@
 		right: 0;
 		z-index: 1000;
 		opacity: 0;
+		visibility: hidden;
 		transform: translateY(-10px);
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		max-height: 0;
-		overflow: hidden;
+		overflow-y: auto;
+		overflow-x: hidden;
 	}
 	
 	.mobile-menu.active {
 		opacity: 1;
+		visibility: visible;
 		transform: translateY(0);
-		max-height: 600px;
-		padding: 20px 0;
+		max-height: calc(100vh - 150px);
+		padding: 15px 0;
+	}
+	
+	/* Scrollbar personalizado para mobile menu */
+	.mobile-menu::-webkit-scrollbar {
+		width: 6px;
+	}
+	
+	.mobile-menu::-webkit-scrollbar-track {
+		background: #f1f1f1;
+	}
+	
+	.mobile-menu::-webkit-scrollbar-thumb {
+		background: #FFD700;
+		border-radius: 3px;
+	}
+	
+	.mobile-menu::-webkit-scrollbar-thumb:hover {
+		background: #E6B800;
 	}
 	
 	.mobile-nav-menu {
 		list-style: none;
-		padding: 0;
+		padding: 0 10px;
 		margin: 0;
 	}
 	
 	.mobile-nav-menu li {
-		border-bottom: 1px solid #f0f0f0;
+		margin-bottom: 2px;
 	}
 	
-	.mobile-nav-menu li:last-child {
-		border-bottom: none;
+	/* Animación de entrada solo cuando el menú está activo */
+	.mobile-menu.active .mobile-nav-menu li {
+		animation: slideInMenu 0.3s ease forwards;
+	}
+	
+	.mobile-menu.active .mobile-nav-menu li:nth-child(1) {
+		animation-delay: 0.05s;
+	}
+	
+	.mobile-menu.active .mobile-nav-menu li:nth-child(2) {
+		animation-delay: 0.1s;
+	}
+	
+	.mobile-menu.active .mobile-nav-menu li:nth-child(3) {
+		animation-delay: 0.15s;
+	}
+	
+	.mobile-menu.active .mobile-nav-menu li:nth-child(4) {
+		animation-delay: 0.2s;
+	}
+	
+	@keyframes slideInMenu {
+		from {
+			opacity: 0;
+			transform: translateX(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
 	}
 	
 	.mobile-nav-menu li a {
 		display: flex;
 		align-items: center;
-		padding: 18px 20px;
+		padding: 14px 15px;
 		color: #2c3e50;
 		text-decoration: none;
 		font-weight: 500;
-		font-size: 16px;
-		transition: all 0.3s ease;
+		font-size: 15px;
+		transition: all 0.2s ease;
 		border-radius: 8px;
-		margin: 5px 0;
 		position: relative;
 	}
 	
-	.mobile-nav-menu li a::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 4px;
-		background: #FFD700;
-		transform: scaleY(0);
-		transition: transform 0.3s ease;
-		border-radius: 0 2px 2px 0;
-	}
-	
-	.mobile-nav-menu li a:hover, .mobile-nav-menu li a:focus {
+	.mobile-nav-menu li a:hover, 
+	.mobile-nav-menu li a:active,
+	.mobile-nav-menu li a:focus {
 		color: #000;
 		background: #fff8e1;
-		transform: translateX(8px);
-	}
-	
-	.mobile-nav-menu li a:hover::before, .mobile-nav-menu li a:focus::before {
-		transform: scaleY(1);
+		padding-left: 20px;
 	}
 	
 	.mobile-nav-menu li a i {
 		margin-right: 12px;
-		width: 20px;
+		width: 24px;
+		text-align: center;
 		color: #FFD700;
-		font-size: 18px;
-		transform: translateX(5px);
-	}
-	
-	.mobile-nav-menu li a i {
-		color: #6c757d;
 		font-size: 16px;
-		width: 20px;
+		flex-shrink: 0;
 	}
 	
+	/* Mobile Search */
 	.mobile-search {
-		position: relative;
+		padding: 0 10px 10px;
+		border-bottom: 1px solid #f0f0f0;
 	}
 	
-	.mobile-search form {
-		display: flex;
-		gap: 10px;
+	/* Mobile User Actions */
+	.mobile-user-actions {
+		padding: 0 10px;
 	}
 	
-	.mobile-search {
-		padding: 0 15px;
+	.mobile-user-actions .btn {
+		font-size: 14px;
+		padding: 10px 15px;
+		border-radius: 8px;
+		transition: all 0.2s ease;
+	}
+	
+	.mobile-user-actions .btn:active {
+		transform: scale(0.98);
+	}
+	
+	.mobile-cart-summary {
+		cursor: pointer;
+		transition: all 0.2s ease;
+		border: 1px solid #e0e0e0;
+	}
+	
+	.mobile-cart-summary:hover,
+	.mobile-cart-summary:active {
+		background: #f8f9fa !important;
+		transform: translateY(-2px);
+		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 	}
 	
 	.mobile-search .input-group {
@@ -1453,6 +1568,169 @@
 		}
 	}
 	
+	/* Responsive Mobile Menu Styles */
+	
+	/* Extra Small Devices (max 375px) */
+	@media (max-width: 375px) {
+		.mobile-menu.active {
+			max-height: calc(100vh - 120px);
+			padding: 10px 0;
+		}
+		
+		.mobile-nav-menu {
+			padding: 0 5px;
+		}
+		
+		.mobile-nav-menu li a {
+			padding: 12px 10px;
+			font-size: 14px;
+		}
+		
+		.mobile-nav-menu li a i {
+			font-size: 14px;
+			margin-right: 8px;
+			width: 20px;
+		}
+		
+		.mobile-user-actions {
+			padding: 0 5px;
+		}
+		
+		.mobile-user-actions .btn {
+			font-size: 13px;
+			padding: 8px 12px;
+		}
+		
+		.mobile-cart-summary {
+			padding: 10px !important;
+			font-size: 13px;
+		}
+		
+		.mobile-search {
+			padding: 0 5px 10px;
+		}
+	}
+	
+	/* Small Mobile Devices (376px to 575px) */
+	@media (min-width: 376px) and (max-width: 575px) {
+		.mobile-menu.active {
+			max-height: calc(100vh - 130px);
+			padding: 12px 0;
+		}
+		
+		.mobile-nav-menu li a {
+			padding: 13px 12px;
+			font-size: 15px;
+		}
+		
+		.mobile-user-actions .btn {
+			font-size: 14px;
+		}
+	}
+	
+	/* Tablets and Medium Devices (576px to 991px) */
+	@media (min-width: 576px) and (max-width: 991px) {
+		.mobile-menu.active {
+			max-height: calc(100vh - 140px);
+			padding: 15px 0;
+		}
+		
+		.mobile-nav-menu {
+			padding: 0 15px;
+		}
+		
+		.mobile-nav-menu li a {
+			padding: 15px 15px;
+			font-size: 16px;
+		}
+		
+		.mobile-nav-menu li a i {
+			font-size: 18px;
+			margin-right: 15px;
+		}
+		
+		.mobile-user-actions {
+			padding: 0 15px;
+		}
+		
+		.mobile-user-actions .btn {
+			font-size: 15px;
+			padding: 12px 18px;
+		}
+		
+		.mobile-cart-summary {
+			padding: 15px !important;
+		}
+		
+		.mobile-search {
+			padding: 0 15px 15px;
+		}
+		
+		/* Mostrar búsqueda en el header, ocultar en menú móvil */
+		.mobile-menu .mobile-search {
+			display: none;
+		}
+	}
+	
+	/* Landscape Mobile Devices */
+	@media (max-height: 500px) and (orientation: landscape) {
+		.mobile-menu.active {
+			max-height: calc(100vh - 80px);
+			padding: 8px 0;
+		}
+		
+		.mobile-nav-menu li a {
+			padding: 10px 12px;
+			font-size: 14px;
+		}
+		
+		.mobile-user-actions .btn {
+			padding: 8px 12px;
+			font-size: 13px;
+		}
+		
+		.mobile-cart-summary {
+			padding: 10px !important;
+		}
+		
+		/* Ocultar elementos menos importantes en landscape */
+		.mobile-search {
+			display: none !important;
+		}
+		
+		.mobile-user-actions .row {
+			margin-bottom: 5px !important;
+		}
+	}
+	
+	/* Touch Device Optimization */
+	@media (hover: none) and (pointer: coarse) {
+		.mobile-nav-menu li a {
+			padding: 16px 15px;
+			min-height: 48px; /* Tamaño mínimo táctil recomendado */
+		}
+		
+		.mobile-menu-btn {
+			min-width: 48px;
+			min-height: 48px;
+		}
+		
+		.mobile-user-actions .btn {
+			min-height: 44px;
+		}
+		
+		/* Mejorar feedback táctil */
+		.mobile-nav-menu li a:active {
+			background: #ffe082;
+			transform: scale(0.98);
+		}
+		
+		.mobile-menu-btn:active {
+			transform: scale(0.95);
+			background: #f0f0f0;
+		}
+	}
+	
 	/* High DPI Displays */
 	@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
 		.logo-section img {
@@ -1474,6 +1752,151 @@
 		
 		.logo-section img {
 			height: 40px !important;
+		}
+	}
+	
+	/* Custom Notification Styles */
+	.notification-toast {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		z-index: 9999;
+		max-width: 400px;
+		min-width: 300px;
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+		padding: 16px 20px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		animation: slideInRight 0.4s ease-out;
+		border-left: 4px solid #28a745;
+	}
+	
+	.notification-toast.success {
+		border-left-color: #28a745;
+	}
+	
+	.notification-toast.error {
+		border-left-color: #dc3545;
+	}
+	
+	.notification-toast.info {
+		border-left-color: #17a2b8;
+	}
+	
+	.notification-toast.warning {
+		border-left-color: #ffc107;
+	}
+	
+	.notification-toast .notification-icon {
+		font-size: 24px;
+		flex-shrink: 0;
+	}
+	
+	.notification-toast.success .notification-icon {
+		color: #28a745;
+	}
+	
+	.notification-toast.error .notification-icon {
+		color: #dc3545;
+	}
+	
+	.notification-toast .notification-content {
+		flex: 1;
+	}
+	
+	.notification-toast .notification-title {
+		font-weight: 600;
+		font-size: 15px;
+		margin-bottom: 2px;
+		color: #333;
+	}
+	
+	.notification-toast .notification-message {
+		font-size: 14px;
+		color: #666;
+	}
+	
+	.notification-toast .notification-close {
+		background: none;
+		border: none;
+		color: #999;
+		font-size: 20px;
+		cursor: pointer;
+		padding: 0;
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		transition: all 0.2s ease;
+		flex-shrink: 0;
+	}
+	
+	.notification-toast .notification-close:hover {
+		background: #f0f0f0;
+		color: #333;
+	}
+	
+	@keyframes slideInRight {
+		from {
+			transform: translateX(400px);
+			opacity: 0;
+		}
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
+	
+	@keyframes slideOutRight {
+		from {
+			transform: translateX(0);
+			opacity: 1;
+		}
+		to {
+			transform: translateX(400px);
+			opacity: 0;
+		}
+	}
+	
+	.notification-toast.removing {
+		animation: slideOutRight 0.3s ease-out forwards;
+	}
+	
+	/* Responsive notifications */
+	@media (max-width: 576px) {
+		.notification-toast {
+			top: 10px;
+			right: 10px;
+			left: 10px;
+			max-width: none;
+			min-width: auto;
+		}
+		
+		@keyframes slideInRight {
+			from {
+				transform: translateY(-100px);
+				opacity: 0;
+			}
+			to {
+				transform: translateY(0);
+				opacity: 1;
+			}
+		}
+		
+		@keyframes slideOutRight {
+			from {
+				transform: translateY(0);
+				opacity: 1;
+			}
+			to {
+				transform: translateY(-100px);
+				opacity: 0;
+			}
 		}
 	}
 	</style>
@@ -1538,108 +1961,150 @@
 							</ul>
 						</nav>
 
-						<!-- Compare Icon -->
-						<div class="action-icon" onclick="toggleCompare()" title="Comparar productos">
-							<i class="fa fa-exchange"></i>
-						</div>
-						
-						<!-- Wishlist Icon -->
-						<div class="action-icon" onclick="toggleWishlist()" title="Lista de deseos">
-							<i class="fa fa-heart-o"></i>
-						</div>
-						
-						<!-- Cart Button with Price -->
-						<button class="cart-button" onclick="toggleCart()" title="Carrito de compras">
-							<i class="fa fa-shopping-cart"></i>
-							<span class="cart-price">$0,00</span>
-							<span class="cart-count-main" style="display: none;">0</span>
-						</button>
+					<!-- Compare Icon -->
+					<div class="action-icon d-none d-lg-flex" onclick="toggleCompare()" title="Comparar productos">
+						<i class="fa fa-exchange"></i>
+					</div>
+					
+					<!-- Wishlist Icon -->
+					<div class="action-icon d-none d-lg-flex" onclick="toggleWishlist()" title="Lista de deseos">
+						<i class="fa fa-heart-o"></i>
+					</div>
+					
+					<!-- Cart Button with Price -->
+					<button class="cart-button d-none d-lg-flex" onclick="toggleCart()" title="Carrito de compras">
+						<i class="fa fa-shopping-cart"></i>
+						<span class="cart-price">$0,00</span>
+						<span class="cart-count-main" style="display: none;">0</span>
+					</button>
 
-						<!-- Login Button -->
-						<?php if (!empty($_SESSION['admin']) || !empty($_SESSION['empleado']) || !empty($_SESSION['usuario'])): ?>
-							<a href="<?= BASE_URL ?>/auth/logout" class="login-button">
+					<!-- Login Button / User Menu -->
+					<?php if (!empty($_SESSION['admin']) || !empty($_SESSION['empleado']) || !empty($_SESSION['usuario'])): ?>
+						<div class="dropdown d-none d-lg-block">
+							<button class="login-button dropdown-toggle" type="button" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
 								<i class="fa fa-user"></i>
-								Salir
-							</a>
-						<?php else: ?>
-							<a href="<?= BASE_URL ?>/auth/login" class="login-button">
-								<i class="fa fa-sign-in"></i>
-								Iniciar Sesión
-							</a>
-						<?php endif; ?>
-
-						<!-- Mobile Menu Button -->
+								<?php 
+									if (!empty($_SESSION['admin'])) echo $_SESSION['admin']['nombre'];
+									elseif (!empty($_SESSION['empleado'])) echo $_SESSION['empleado']['nombre'];
+									else echo $_SESSION['usuario']['nombre'];
+								?>
+							</button>
+							<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuDropdown">
+								<?php if (!empty($_SESSION['usuario'])): ?>
+									<li><a class="dropdown-item" href="<?= BASE_URL ?>/perfil"><i class="fa fa-user-circle me-2"></i>Mi Perfil</a></li>
+									<li><a class="dropdown-item" href="<?= BASE_URL ?>/pedidos"><i class="fa fa-shopping-bag me-2"></i>Mis Pedidos</a></li>
+									<li><hr class="dropdown-divider"></li>
+								<?php endif; ?>
+								<?php if (!empty($_SESSION['admin']) || !empty($_SESSION['empleado'])): ?>
+									<li><a class="dropdown-item" href="<?= BASE_URL ?>/dashboard"><i class="fa fa-tachometer me-2"></i>Dashboard</a></li>
+									<li><hr class="dropdown-divider"></li>
+								<?php endif; ?>
+								<li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>/auth/logout"><i class="fa fa-sign-out me-2"></i>Cerrar Sesión</a></li>
+							</ul>
+						</div>
+					<?php else: ?>
+						<a href="<?= BASE_URL ?>/auth/login" class="login-button d-none d-lg-flex">
+							<i class="fa fa-sign-in"></i>
+							Iniciar Sesión
+						</a>
+					<?php endif; ?>						<!-- Mobile Menu Button -->
 						<button class="mobile-menu-btn d-lg-none" onclick="toggleMobileMenu()">
 							<i class="fa fa-bars"></i>
 						</button>
 					</div>
 				</div>
 			</div>
-		</div>
+			
+			<!-- Mobile Menu -->
+			<div id="mobile-menu" class="mobile-menu" role="navigation" aria-label="Menú móvil">
+				<div class="container-fluid">
+					<!-- Mobile Search (visible en pantallas muy pequeñas) -->
+					<div class="mobile-search d-block d-sm-none mb-3">
+						<form method="GET" action="<?= BASE_URL ?>/tienda">
+							<div class="input-group">
+								<input type="text" name="q" class="form-control" placeholder="Buscar productos..." value="<?= $_GET['q'] ?? '' ?>">
+								<button type="submit" class="btn btn-warning">
+									<i class="fa fa-search"></i>
+								</button>
+							</div>
+						</form>
+					</div>
 
-		<!-- Mobile Menu -->
-		<div id="mobile-menu" class="mobile-menu" style="display: none;" role="navigation" aria-label="Menú móvil">
-			<div class="container-fluid">
-				<!-- Mobile Search (visible en pantallas muy pequeñas) -->
-				<div class="mobile-search d-block d-sm-none mb-3">
-					<form method="GET" action="<?= BASE_URL ?>/tienda">
-						<div class="input-group">
-							<input type="text" name="q" class="form-control" placeholder="Buscar productos..." value="<?= $_GET['q'] ?? '' ?>">
-							<button type="submit" class="btn btn-warning">
-								<i class="fa fa-search"></i>
-							</button>
-						</div>
-					</form>
-				</div>
-
-				<!-- Mobile Navigation -->
-				<ul class="mobile-nav-menu list-unstyled">
-					<li><a href="<?= BASE_URL ?>/" class="d-flex align-items-center"><i class="fa fa-home me-2"></i>Inicio</a></li>
-					<li><a href="<?= BASE_URL ?>/tienda" class="d-flex align-items-center"><i class="fa fa-shopping-bag me-2"></i>Tienda</a></li>
-					<li><a href="<?= BASE_URL ?>/nosotros" class="d-flex align-items-center"><i class="fa fa-user me-2"></i>Nosotros</a></li>
-					<li><a href="<?= BASE_URL ?>/contacto" class="d-flex align-items-center"><i class="fa fa-envelope me-2"></i>Contacto</a></li>
-				</ul>
+					<!-- Mobile Navigation -->
+					<ul class="mobile-nav-menu list-unstyled">
+						<li><a href="<?= BASE_URL ?>/" class="d-flex align-items-center"><i class="fa fa-home me-2"></i>Inicio</a></li>
+						<li><a href="<?= BASE_URL ?>/tienda" class="d-flex align-items-center"><i class="fa fa-shopping-bag me-2"></i>Tienda</a></li>
+						<li><a href="<?= BASE_URL ?>/nosotros" class="d-flex align-items-center"><i class="fa fa-user me-2"></i>Nosotros</a></li>
+						<li><a href="<?= BASE_URL ?>/contacto" class="d-flex align-items-center"><i class="fa fa-envelope me-2"></i>Contacto</a></li>
+					</ul>
 
 				<!-- Mobile User Actions -->
 				<div class="mobile-user-actions mt-3 pt-3 border-top">
-					<!-- Login/Logout Button -->
-					<div class="mb-2">
-						<?php if (!empty($_SESSION['admin']) || !empty($_SESSION['empleado']) || !empty($_SESSION['usuario'])): ?>
+					<?php if (!empty($_SESSION['admin']) || !empty($_SESSION['empleado']) || !empty($_SESSION['usuario'])): ?>
+						<!-- User Profile Links (only for logged in users) -->
+						<?php if (!empty($_SESSION['usuario'])): ?>
+							<div class="mb-2">
+								<a href="<?= BASE_URL ?>/perfil" class="btn btn-outline-primary w-100">
+									<i class="fa fa-user-circle me-1"></i>
+									Mi Perfil
+								</a>
+							</div>
+							<div class="mb-2">
+								<a href="<?= BASE_URL ?>/pedidos" class="btn btn-outline-primary w-100">
+									<i class="fa fa-shopping-bag me-1"></i>
+									Mis Pedidos
+								</a>
+							</div>
+						<?php endif; ?>
+						
+						<?php if (!empty($_SESSION['admin']) || !empty($_SESSION['empleado'])): ?>
+							<div class="mb-2">
+								<a href="<?= BASE_URL ?>/dashboard" class="btn btn-outline-info w-100">
+									<i class="fa fa-tachometer me-1"></i>
+									Dashboard
+								</a>
+							</div>
+						<?php endif; ?>
+						
+						<!-- Logout Button -->
+						<div class="mb-2">
 							<a href="<?= BASE_URL ?>/auth/logout" class="btn btn-outline-danger w-100">
 								<i class="fa fa-sign-out me-1"></i>
 								Cerrar Sesión
 							</a>
-						<?php else: ?>
+						</div>
+					<?php else: ?>
+						<!-- Login Button -->
+						<div class="mb-2">
 							<a href="<?= BASE_URL ?>/auth/login" class="btn btn-warning w-100">
 								<i class="fa fa-sign-in me-1"></i>
 								Iniciar Sesión
 							</a>
-						<?php endif; ?>
-					</div>
-					
-					<!-- Quick Actions -->
-					<div class="row g-2 mb-2">
-						<div class="col-6">
-							<button class="btn btn-outline-secondary w-100" onclick="toggleWishlist()">
-								<i class="fa fa-heart-o me-1"></i>
-								<span class="d-none d-sm-inline">Favoritos</span>
-							</button>
 						</div>
-						<div class="col-6">
-							<button class="btn btn-outline-secondary w-100" onclick="toggleCompare()">
-								<i class="fa fa-exchange me-1"></i>
-								<span class="d-none d-sm-inline">Comparar</span>
-							</button>
+					<?php endif; ?>						<!-- Quick Actions -->
+						<div class="row g-2 mb-2">
+							<div class="col-6">
+								<button class="btn btn-outline-secondary w-100" onclick="toggleWishlist()">
+									<i class="fa fa-heart-o me-1"></i>
+									<span class="d-none d-sm-inline">Favoritos</span>
+								</button>
+							</div>
+							<div class="col-6">
+								<button class="btn btn-outline-secondary w-100" onclick="toggleCompare()">
+									<i class="fa fa-exchange me-1"></i>
+									<span class="d-none d-sm-inline">Comparar</span>
+								</button>
+							</div>
 						</div>
-					</div>
-					
-					<!-- Cart Summary in Mobile -->
-					<div class="mobile-cart-summary p-3 bg-light rounded" onclick="toggleCart()">
-						<div class="d-flex justify-content-between align-items-center">
-							<span><i class="fa fa-shopping-cart me-2"></i>Carrito de Compras</span>
-							<span class="fw-bold" id="mobile-cart-total">$0.00</span>
+						
+						<!-- Cart Summary in Mobile -->
+						<div class="mobile-cart-summary p-3 bg-light rounded" onclick="toggleCart()">
+							<div class="d-flex justify-content-between align-items-center">
+								<span><i class="fa fa-shopping-cart me-2"></i>Carrito de Compras</span>
+								<span class="fw-bold" id="mobile-cart-total">$0.00</span>
+							</div>
+							<small class="text-muted">0 productos</small>
 						</div>
-						<small class="text-muted">0 productos</small>
 					</div>
 				</div>
 			</div>
@@ -1654,8 +2119,12 @@
 
 		// Mobile Menu Toggle
 		function toggleMobileMenu() {
+			console.log('toggleMobileMenu called');
 			const mobileMenu = document.getElementById('mobile-menu');
 			const menuBtn = document.querySelector('.mobile-menu-btn');
+			
+			console.log('mobileMenu:', mobileMenu);
+			console.log('menuBtn:', menuBtn);
 			
 			if (!mobileMenu || !menuBtn) {
 				console.error('Mobile menu elements not found');
@@ -1663,13 +2132,20 @@
 			}
 			
 			isMobileMenuOpen = !isMobileMenuOpen;
+			console.log('isMobileMenuOpen:', isMobileMenuOpen);
 			
 			if (isMobileMenuOpen) {
-				// Mostrar menú
-				mobileMenu.style.display = 'block';
-				// Forzar reflow
-				mobileMenu.offsetHeight;
-				mobileMenu.classList.add('active');
+				// Remover la clase primero para resetear animaciones
+				mobileMenu.classList.remove('active');
+				
+				// Forzar reflow para reiniciar las animaciones
+				void mobileMenu.offsetHeight;
+				
+				// Mostrar menú con un pequeño delay
+				requestAnimationFrame(() => {
+					mobileMenu.classList.add('active');
+					console.log('Menu opened, classes:', mobileMenu.className);
+				});
 				
 				// Actualizar botón
 				menuBtn.setAttribute('aria-expanded', 'true');
@@ -1680,6 +2156,7 @@
 			} else {
 				// Ocultar menú
 				mobileMenu.classList.remove('active');
+				console.log('Menu closed, classes:', mobileMenu.className);
 				
 				// Actualizar botón
 				menuBtn.setAttribute('aria-expanded', 'false');
@@ -1687,15 +2164,33 @@
 				
 				// Restaurar scroll del body
 				document.body.style.overflow = '';
-				
-				// Ocultar después de la animación
-				setTimeout(() => {
-					if (!isMobileMenuOpen) {
-						mobileMenu.style.display = 'none';
-					}
-				}, 300);
 			}
 		}
+
+		// Close mobile menu when clicking a navigation link
+		document.addEventListener('DOMContentLoaded', function() {
+			const mobileNavLinks = document.querySelectorAll('.mobile-nav-menu a');
+			mobileNavLinks.forEach(link => {
+				link.addEventListener('click', function() {
+					if (isMobileMenuOpen) {
+						toggleMobileMenu();
+					}
+				});
+			});
+			
+			// Close mobile menu when clicking outside
+			document.addEventListener('click', function(event) {
+				const mobileMenu = document.getElementById('mobile-menu');
+				const menuBtn = document.querySelector('.mobile-menu-btn');
+				
+				if (isMobileMenuOpen && mobileMenu && menuBtn) {
+					// Check if click is outside menu and button
+					if (!mobileMenu.contains(event.target) && !menuBtn.contains(event.target)) {
+						toggleMobileMenu();
+					}
+				}
+			});
+		});
 
 		// Compare Toggle
 		function toggleCompare() {
@@ -1750,25 +2245,49 @@
 			}
 		}
 
-		// Show notification
-		function showNotification(message, type = 'info') {
+		// Show notification with custom styling
+		function showNotification(message, type = 'success') {
 			const notification = document.createElement('div');
-			notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-			notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+			notification.className = `notification-toast ${type}`;
+			
+			const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'i';
+			
 			notification.innerHTML = `
-				<strong>${message}</strong>
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				<div class="notification-icon">${icon}</div>
+				<div class="notification-content">
+					<div class="notification-title">${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Información'}</div>
+					<div class="notification-message">${message}</div>
+				</div>
+				<button class="notification-close" onclick="this.parentElement.remove()">×</button>
 			`;
 			
 			document.body.appendChild(notification);
 			
-			// Auto remove after 3 seconds
+			// Auto remove after 5 seconds with animation
 			setTimeout(() => {
 				if (notification.parentNode) {
-					notification.remove();
+					notification.classList.add('removing');
+					setTimeout(() => {
+						if (notification.parentNode) {
+							notification.remove();
+						}
+					}, 300);
 				}
-			}, 3000);
+			}, 5000);
 		}
+
+		// Check for login/register success messages
+		document.addEventListener('DOMContentLoaded', function() {
+			<?php if (isset($_SESSION['login_success'])): ?>
+				showNotification('<?= addslashes($_SESSION['login_success']) ?>', 'success');
+				<?php unset($_SESSION['login_success']); ?>
+			<?php endif; ?>
+			
+			<?php if (isset($_SESSION['register_success'])): ?>
+				showNotification('<?= addslashes($_SESSION['register_success']) ?>', 'success');
+				<?php unset($_SESSION['register_success']); ?>
+			<?php endif; ?>
+		});
 
 		// Close mobile menu when clicking outside
 		document.addEventListener('click', function(event) {
@@ -1869,21 +2388,51 @@
 				});
 			});
 
-			// Initialize cart display
-			updateCartDisplay(0, 0);
-			
-			// Add smooth scroll behavior for mobile menu links
-			const mobileLinks = document.querySelectorAll('.mobile-nav-menu a');
-			mobileLinks.forEach(link => {
-				link.addEventListener('click', function() {
-					if (isMobileMenuOpen) {
-						toggleMobileMenu();
-					}
-				});
+		// Initialize cart display
+		updateCartDisplay(0, 0);
+		
+		// Add smooth scroll behavior for mobile menu links
+		const mobileLinks = document.querySelectorAll('.mobile-nav-menu a');
+		mobileLinks.forEach(link => {
+			link.addEventListener('click', function() {
+				if (isMobileMenuOpen) {
+					toggleMobileMenu();
+				}
 			});
 		});
-
-		// Touch gestures for mobile menu (optional enhancement)
+		
+		// Initialize user dropdown menu
+		const userDropdownBtn = document.getElementById('userMenuDropdown');
+		if (userDropdownBtn) {
+			userDropdownBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				const dropdownMenu = this.nextElementSibling;
+				const isExpanded = this.getAttribute('aria-expanded') === 'true';
+				
+				// Toggle dropdown
+				if (isExpanded) {
+					dropdownMenu.classList.remove('show');
+					this.setAttribute('aria-expanded', 'false');
+				} else {
+					dropdownMenu.classList.add('show');
+					this.setAttribute('aria-expanded', 'true');
+				}
+			});
+			
+			// Close dropdown when clicking outside
+			document.addEventListener('click', function(event) {
+				const dropdown = document.querySelector('.dropdown');
+				if (dropdown && !dropdown.contains(event.target)) {
+					const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+					const dropdownBtn = dropdown.querySelector('.dropdown-toggle');
+					if (dropdownMenu && dropdownBtn) {
+						dropdownMenu.classList.remove('show');
+						dropdownBtn.setAttribute('aria-expanded', 'false');
+					}
+				}
+			});
+		}
+	});		// Touch gestures for mobile menu (optional enhancement)
 		let touchStartX = 0;
 		let touchEndX = 0;
 

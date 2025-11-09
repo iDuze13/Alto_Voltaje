@@ -9,12 +9,16 @@ class Auth extends Controllers {
 
     // Render login/register page
     public function login() {
+        require_once __DIR__ . '/../Config/Google.php';
+        $googleConfigured = function_exists('isGoogleOAuthConfigured') ? isGoogleOAuthConfigured() : false;
+        
         $data = [
             'page_tag' => 'Login',
             'page_title' => 'Iniciar sesión',
             'page_name' => 'login',
             'flash' => $this->consumeFlash(),
-            'googleUrl' => $this->getGoogleUrl(),
+            'googleUrl' => $googleConfigured ? $this->getGoogleUrl() : null,
+            'googleConfigured' => $googleConfigured,
         ];
         $this->views->getView($this, 'login', $data);
     }
@@ -37,6 +41,7 @@ class Auth extends Controllers {
                 'apellido' => $user['Apellido_Usuario'],
                 'rol' => $user['Rol_Usuario'],
             ];
+            $_SESSION['login_success'] = 'Bienvenido ' . $user['Nombre_Usuario'] . '!';
             return $this->redirect('dashboard/dashboard');
         }
         $this->flash('Email o contraseña incorrectos.', 'error');
@@ -62,6 +67,7 @@ class Auth extends Controllers {
         $hash = $this->hashPassword($password);
     $ok = $this->model->createClienteBasico($nombre, $email, $hash);
         if ($ok) {
+            $_SESSION['register_success'] = '¡Registro exitoso! Tu cuenta ha sido creada.';
             $this->flash('Registro exitoso! Ya puedes iniciar sesión.', 'success');
         } else {
             $this->flash('Error al registrar. Intenta más tarde.', 'error');
@@ -208,19 +214,28 @@ class Auth extends Controllers {
             return $this->redirect('auth/login');
         }
         $userInfo = GoogleOAuth::fetchUserInfo($tokenData['access_token']);
-        if (!$userInfo || empty($userInfo['id'])) {
+        
+        // Log para debugging
+        error_log("Google User Info: " . print_r($userInfo, true));
+        
+        // Google puede retornar 'id' o 'sub' dependiendo de la versión de la API
+        $googleId = $userInfo['sub'] ?? $userInfo['id'] ?? null;
+        
+        if (!$userInfo || empty($googleId)) {
             $this->flash('No se pudo obtener la información del usuario de Google.', 'error');
             return $this->redirect('auth/login');
         }
-        $googleId = $userInfo['id'];
+        
         $email = $userInfo['email'] ?? null;
         $name = $userInfo['name'] ?? '';
 
         // Try to find existing active user by email, else create a Cliente
         $user = $email ? $this->model->findActiveUserByEmail($email) : null;
+        $isNewUser = false;
         if (!$user) {
             $this->model->createClienteBasico($name ?: 'Usuario Google', $email ?: ("user-".$googleId."@gmail.placeholder"), '');
             $user = $this->model->findActiveUserByEmail($email);
+            $isNewUser = true;
         }
         if ($user) {
             $_SESSION['usuario'] = [
@@ -231,6 +246,11 @@ class Auth extends Controllers {
                 'rol' => $user['Rol_Usuario'],
                 'google_id' => $googleId,
             ];
+            if ($isNewUser) {
+                $_SESSION['register_success'] = '¡Bienvenido! Tu cuenta se creó exitosamente con Google.';
+            } else {
+                $_SESSION['login_success'] = 'Bienvenido de nuevo ' . $user['Nombre_Usuario'] . '!';
+            }
             return $this->redirect('dashboard/dashboard');
         }
         $this->flash('No se pudo crear o recuperar el usuario de Google.', 'error');

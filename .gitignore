@@ -1,0 +1,24 @@
+# Archivos de credenciales (NO subir a Git)
+Config/Google_credentials.php
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+empleado_debug.log
+
+# Vendor
+vendor/
+
+# Node modules
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Archivos temporales
+*.tmp
+*.bak

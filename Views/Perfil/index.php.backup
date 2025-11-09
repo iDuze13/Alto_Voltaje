@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - AltoVoltaje</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url(); ?>Assets/css/main.css">
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        
+        .account-settings-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .settings-header {
+            margin-bottom: 30px;
+        }
+        
+        .settings-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 0;
+        }
+        
+        .settings-layout {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        /* Sidebar Menu */
+        .settings-sidebar {
+            flex: 0 0 250px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: fit-content;
+        }
+        
+        .settings-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-size: 15px;
+        }
+        
+        .settings-menu-item i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+        
+        .settings-menu-item:hover {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .settings-menu-item.active {
+            background-color: #eef2ff;
+            color: #0046ff;
+            border-left-color: #0046ff;
+            font-weight: 500;
+        }
+        
+        /* Main Content */
+        .settings-content {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .content-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        /* Profile Photo Section */
+        .profile-photo-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .profile-photo-wrapper {
+            position: relative;
+        }
+        
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .photo-upload-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 36px;
+            height: 36px;
+            background: #0046ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            border: 3px solid white;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-upload-icon:hover {
+            background: #0039cc;
+            transform: scale(1.05);
+        }
+        
+        .photo-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn-upload {
+            background: #0046ff;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-upload:hover {
+            background: #0039cc;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-delete:hover {
+            background: #f5f5f5;
+            border-color: #999;
+            color: #333;
+        }
+        
+        /* Form Styles */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group label .required {
+            color: #ff4444;
+            margin-left: 2px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #0046ff;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(0, 70, 255, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: #999;
+        }
+        
+        /* Save Button */
+        .btn-save {
+            background: #0046ff;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .btn-save:hover {
+            background: #0039cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 70, 255, 0.3);
+        }
+        
+        /* Alert Messages */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            border: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Password Section */
+        .password-section {
+            margin-top: 50px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .settings-layout {
+                flex-direction: column;
+            }
+            
+            .settings-sidebar {
+                flex: 1;
+                display: flex;
+                overflow-x: auto;
+                padding: 10px;
+            }
+            
+            .settings-menu-item {
+                flex: 0 0 auto;
+                padding: 12px 20px;
+                white-space: nowrap;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+            
+            .settings-menu-item.active {
+                border-left-color: transparent;
+                border-bottom-color: #0046ff;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .profile-photo-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .settings-content {
+                padding: 25px 20px;
+            }
+            
+            .account-settings-container {
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <?php require_once 'Views/Template/headerTienda.php'; ?>
+
+    <!-- Hero Section -->
+    <section class="bg-img1 txt-center p-lr-15 p-tb-92" style="background-image: url('<?= media() ?>/images/heroTienda.png');">
+        <h2 class="ltext-105 cl0 txt-center">
+            Mi Perfil
+        </h2>
+    </section>
+
+    <div class="account-settings-container">
+        <div class="settings-header">
+            <h1>Configuración de Cuenta</h1>
+        </div>
+
+        <div class="settings-layout">
+            <!-- Sidebar Menu -->
+            <aside class="settings-sidebar">
+                <a href="#profile" class="settings-menu-item active" data-section="profile">
+                    <i class="fa fa-user"></i>
+                    <span>Datos del Perfil</span>
+                </a>
+                <a href="#password" class="settings-menu-item" data-section="password">
+                    <i class="fa fa-lock"></i>
+                    <span>Contraseña</span>
+                </a>
+                <a href="#notifications" class="settings-menu-item" data-section="notifications">
+                    <i class="fa fa-bell"></i>
+                    <span>Notificaciones</span>
+                </a>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="settings-content">
+                <!-- Alert Messages -->
+                <div id="alertMessage"></div>
+
+                <!-- Profile Settings Section -->
+                <div id="profile-section" class="content-section">
+                    <!-- Profile Photo -->
+                    <div class="profile-photo-section">
+                        <div class="profile-photo-wrapper">
+                            <div class="profile-photo" id="profilePhotoDisplay">
+                                <?= strtoupper(substr($data['usuario']['nombre'], 0, 1)) ?>
+                            </div>
+                            <div class="photo-upload-icon">
+                                <i class="fa fa-camera"></i>
+                            </div>
+                        </div>
+                        <div class="photo-actions">
+                            <button type="button" class="btn-upload">
+                                <i class="fa fa-upload me-2"></i>Upload New
+                            </button>
+                            <button type="button" class="btn-delete">
+                                <i class="fa fa-trash me-2"></i>Delete avatar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Profile Form -->
+                    <form id="formActualizarPerfil">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre">
+                                    Nombre <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       value="<?= htmlspecialchars($data['usuario']['nombre']) ?>" 
+                                       placeholder="First name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="apellido">
+                                    Apellido <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="apellido" name="apellido" 
+                                       value="<?= htmlspecialchars($data['usuario']['apellido']) ?>" 
+                                       placeholder="Last name" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">
+                                    Correo Electrónico <span class="required">*</span>
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="<?= htmlspecialchars($data['usuario']['email']) ?>" 
+                                       placeholder="example@gmail.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="telefono">
+                                    Número de Teléfono
+                                </label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                       placeholder="0805 123 7890">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-save">
+                            <i class="fa fa-save me-2"></i>Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Password Section -->
+                <div id="password-section" class="content-section password-section" style="display: none;">
+                    <h2 class="section-title">Cambiar Contraseña</h2>
+                    
+                    <form id="formCambiarPassword">
+                        <div class="form-group">
+                            <label for="passwordActual">
+                                Contraseña Actual <span class="required">*</span>
+                            </label>
+                            <input type="password" class="form-control" id="passwordActual" 
+                                   name="passwordActual" placeholder="••••••••" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="passwordNueva">
+                                    Nueva Contraseña <span class="required">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="passwordNueva" 
+                                       name="passwordNueva" placeholder="••••••••" required minlength="6">
+                                <small class="text-muted">Mínimo 6 caracteres</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="passwordConfirmar">
+                                    Confirmar Nueva Contraseña <span class="required">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="passwordConfirmar" 
+                                       name="passwordConfirmar" placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-save">
+                            <i class="fa fa-lock me-2"></i>Actualizar Contraseña
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Notifications Section -->
+                <div id="notifications-section" class="content-section" style="display: none;">
+                    <h2 class="section-title">Preferencias de Notificaciones</h2>
+                    <p class="text-muted">Próximamente: Configura cómo quieres recibir notificaciones sobre tus pedidos y promociones.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <?php require_once 'Views/Template/footerTienda.php'; ?>
+
+    <script>
+        const base_url = '<?= base_url(); ?>';
+
+        // Sidebar Navigation
+        document.querySelectorAll('.settings-menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Update active state
+                document.querySelectorAll('.settings-menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding section
+                const section = this.getAttribute('data-section');
+                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+                document.getElementById(section + '-section').style.display = 'block';
+                
+                // Update URL hash
+                window.location.hash = section;
+            });
+        });
+
+        // Load section from URL hash
+        window.addEventListener('load', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const menuItem = document.querySelector(`[data-section="${hash}"]`);
+                if (menuItem) {
+                    menuItem.click();
+                }
+            }
+        });
+
+        // Show alert messages
+        function mostrarAlerta(mensaje, tipo) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Update profile form
+        document.getElementById('formActualizarPerfil').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(base_url + 'Perfil/actualizar', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    mostrarAlerta(result.message, 'success');
+                    // Update display name
+                    const inicial = formData.get('nombre').charAt(0).toUpperCase();
+                    document.getElementById('profilePhotoDisplay').textContent = inicial;
+                } else {
+                    mostrarAlerta(result.message || 'Error al actualizar el perfil', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión', 'danger');
+                console.error('Error:', error);
+            }
+        });
+
+        // Change password form
+        document.getElementById('formCambiarPassword').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const passwordNueva = document.getElementById('passwordNueva').value;
+            const passwordConfirmar = document.getElementById('passwordConfirmar').value;
+            
+            if (passwordNueva !== passwordConfirmar) {
+                mostrarAlerta('Las contraseñas no coinciden', 'danger');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(base_url + 'Perfil/cambiarPassword', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    mostrarAlerta(result.message, 'success');
+                    this.reset();
+                } else {
+                    mostrarAlerta(result.message || 'Error al cambiar la contraseña', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión', 'danger');
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+
+    <div class="perfil-container">
+        <div class="perfil-card">
+            <div class="perfil-header">
+                <div class="perfil-avatar">
+                    <?= strtoupper(substr($data['usuario']['nombre'], 0, 1)) ?>
+                </div>
+                <div class="perfil-info">
+                    <h2><?= htmlspecialchars($data['usuario']['nombre']) ?> <?= htmlspecialchars($data['usuario']['apellido']) ?></h2>
+                    <p><?= htmlspecialchars($data['usuario']['email']) ?></p>
+                </div>
+            </div>
+
+            <!-- Mensajes -->
+            <div id="alertMessage"></div>
+
+            <!-- Formulario de actualización de datos -->
+            <div class="form-section">
+                <h4>Datos Personales</h4>
+                <form id="formActualizarPerfil">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" 
+                                   value="<?= htmlspecialchars($data['usuario']['nombre']) ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" 
+                                   value="<?= htmlspecialchars($data['usuario']['apellido']) ?>" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="<?= htmlspecialchars($data['usuario']['email']) ?>" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Actualizar Datos</button>
+                </form>
+            </div>
+
+            <!-- Formulario de cambio de contraseña -->
+            <div class="form-section">
+                <h4>Cambiar Contraseña</h4>
+                <form id="formCambiarPassword">
+                    <div class="mb-3">
+                        <label for="passwordActual" class="form-label">Contraseña Actual</label>
+                        <input type="password" class="form-control" id="passwordActual" 
+                               name="passwordActual" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordNueva" class="form-label">Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="passwordNueva" 
+                               name="passwordNueva" required minlength="6">
+                        <small class="text-muted">Mínimo 6 caracteres</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordConfirmar" class="form-label">Confirmar Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="passwordConfirmar" 
+                               name="passwordConfirmar" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <?php require_once 'Views/Template/footer.php'; ?>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const base_url = '<?= base_url(); ?>';
+
+        // Mostrar mensajes
+        function mostrarAlerta(mensaje, tipo) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Actualizar perfil
+        document.getElementById('formActualizarPerfil').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(base_url + 'Perfil/actualizar', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    mostrarAlerta(result.message, 'success');
+                    // Actualizar la vista con los nuevos datos
+                    document.querySelector('.perfil-info h2').textContent = 
+                        formData.get('nombre') + ' ' + formData.get('apellido');
+                    document.querySelector('.perfil-info p').textContent = formData.get('email');
+                    document.querySelector('.perfil-avatar').textContent = 
+                        formData.get('nombre').charAt(0).toUpperCase();
+                } else {
+                    mostrarAlerta(result.message || 'Error al actualizar el perfil', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión', 'danger');
+                console.error('Error:', error);
+            }
+        });
+
+        // Cambiar contraseña
+        document.getElementById('formCambiarPassword').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const passwordNueva = document.getElementById('passwordNueva').value;
+            const passwordConfirmar = document.getElementById('passwordConfirmar').value;
+            
+            if (passwordNueva !== passwordConfirmar) {
+                mostrarAlerta('Las contraseñas no coinciden', 'danger');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(base_url + 'Perfil/cambiarPassword', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    mostrarAlerta(result.message, 'success');
+                    this.reset();
+                } else {
+                    mostrarAlerta(result.message || 'Error al cambiar la contraseña', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión', 'danger');
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

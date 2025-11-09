@@ -169,4 +169,36 @@ class UsuariosModel extends Conexion
         }
         return $request;
     }
+
+    // Buscar usuario por email
+    public function selectUsuarioByEmail(string $email)
+    {
+        $sql = "SELECT * FROM usuario WHERE Correo_Usuario = ?";
+        $arrData = array($email);
+        $request = $this->db->select($sql, $arrData);
+        return $request;
+    }
+
+    // Actualizar perfil de usuario
+    public function updateUsuarioPerfil(int $idUsuario, string $nombre, string $apellido, string $email, string $telefono = '')
+    {
+        $sql = "UPDATE usuario SET 
+                Nombre_Usuario = ?, 
+                Apellido_Usuario = ?, 
+                Correo_Usuario = ?, 
+                Telefono_Usuario = ? 
+                WHERE id_Usuario = ?";
+        $arrData = array($nombre, $apellido, $email, $telefono, $idUsuario);
+        $request = $this->db->update($sql, $arrData);
+        return $request;
+    }
+
+    // Actualizar contraseña de usuario
+    public function updateUsuarioPassword(int $idUsuario, string $hashedPassword)
+    {
+        $sql = "UPDATE usuario SET Contrasena_Usuario = ? WHERE id_Usuario = ?";
+        $arrData = array($hashedPassword, $idUsuario);
+        $request = $this->db->update($sql, $arrData);
+        return $request;
+    }
 }

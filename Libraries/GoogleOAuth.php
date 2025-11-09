@@ -24,16 +24,40 @@ class GoogleOAuth {
             'grant_type' => 'authorization_code',
             'code' => $code,
         ];
+        
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, GOOGLE_TOKEN_URL);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo local
+        
         $response = curl_exec($ch);
-        if ($response === false) { curl_close($ch); return null; }
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        // Log para debugging
+        error_log("Google Token Exchange - HTTP Code: $httpCode");
+        error_log("Google Token Exchange - Response: " . $response);
+        
+        if ($response === false) {
+            error_log("Google Token Exchange - cURL Error: " . curl_error($ch));
+            curl_close($ch);
+            return null;
+        }
+        
         curl_close($ch);
-        return json_decode($response, true);
+        $result = json_decode($response, true);
+        
+        // Verificar si hay error en la respuesta de Google
+        if (isset($result['error'])) {
+            error_log("Google Token Exchange - Error: " . $result['error']);
+            if (isset($result['error_description'])) {
+                error_log("Google Token Exchange - Error Description: " . $result['error_description']);
+            }
+        }
+        
+        return $result;
     }
 
     public static function fetchUserInfo(string $accessToken): ?array {
@@ -41,10 +65,30 @@ class GoogleOAuth {
         curl_setopt($ch, CURLOPT_URL, GOOGLE_USER_INFO_URL);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $accessToken]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Para desarrollo local
+        
         $response = curl_exec($ch);
-        if ($response === false) { curl_close($ch); return null; }
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        // Log para debugging
+        error_log("Google User Info - HTTP Code: $httpCode");
+        error_log("Google User Info - Response: " . $response);
+        
+        if ($response === false) {
+            error_log("Google User Info - cURL Error: " . curl_error($ch));
+            curl_close($ch);
+            return null;
+        }
+        
         curl_close($ch);
-        return json_decode($response, true);
+        $result = json_decode($response, true);
+        
+        // Verificar si hay error en la respuesta
+        if (isset($result['error'])) {
+            error_log("Google User Info - Error: " . print_r($result['error'], true));
+        }
+        
+        return $result;
     }
 }
 ?>

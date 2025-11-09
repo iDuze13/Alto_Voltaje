@@ -87,8 +87,11 @@ class MercadoPagoModel
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($preferenceData));
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             
-            // Configuración SSL - deshabilitada en desarrollo
-            if ($this->environment === 'sandbox') {
+            // Configuración SSL - deshabilitada en desarrollo local
+            $isLocalhost = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || 
+                           strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+            
+            if ($this->environment === 'sandbox' || $isLocalhost) {
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             } else {
@@ -208,8 +211,11 @@ class MercadoPagoModel
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             
-            // Configuración SSL
-            if ($this->environment === 'sandbox') {
+            // Configuración SSL - deshabilitada en desarrollo local
+            $isLocalhost = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || 
+                           strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+            
+            if ($this->environment === 'sandbox' || $isLocalhost) {
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             }

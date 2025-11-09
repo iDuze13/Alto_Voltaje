@@ -17,7 +17,7 @@ define('MP_ACCESS_TOKEN_TEST', 'TEST-xxxxxxxxxxxxxxxxxxxxxxxxxxxx');
 // ⚠️ IMPORTANTE: Cambiar a false SOLO cuando esté todo probado
 // true = Usa credenciales de PRUEBA (no cobra dinero real)
 // false = Usa credenciales de PRODUCCIÓN (cobra dinero real)
-define('MP_MODO_PRUEBA', true);
+define('MP_MODO_PRUEBA', false);
 
 // ====== TUS DATOS BANCARIOS ======
 // Estos datos se mostrarán al cliente para que pueda transferirte
@@ -97,6 +97,12 @@ function crearLinkPagoMercadoPago($datos_venta) {
         'Authorization: Bearer ' . $access_token
     ]);
     
+    // Desactivar verificación SSL en localhost/desarrollo
+    if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    }
+    
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
@@ -138,6 +144,12 @@ function obtenerPagoMercadoPago($payment_id) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $access_token
     ]);
+    
+    // Desactivar verificación SSL en localhost/desarrollo
+    if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    }
     
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
