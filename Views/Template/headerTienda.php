@@ -2215,11 +2215,10 @@
 			// o un dropdown con los productos
 		}
 
-		// Wishlist Toggle
+		// Wishlist Toggle - Redirigir a página de favoritos
 		function toggleWishlist() {
-			console.log('Toggle wishlist');
-			// Aquí puedes implementar la lógica de favoritos
-			showNotification('Lista de deseos abierta', 'info');
+			console.log('Ir a favoritos');
+			window.location.href = '<?= BASE_URL ?>/favoritos';
 		}
 
 		// User Menu Toggle

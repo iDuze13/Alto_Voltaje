@@ -132,7 +132,7 @@ if (!$producto) {
                             </button>
                             
                             <div class="secondary-actions">
-                                <button class="btn-wishlist" onclick="addToWishlist(<?= $producto['idProducto'] ?>)">
+                                <button class="btn-wishlist btn-fav" data-id="<?= $producto['idProducto'] ?>">
                                     <i class="fa fa-heart-o"></i> Favoritos
                                 </button>
                                 <button class="btn-compare" onclick="toggleCompare(<?= $producto['idProducto'] ?>)">
@@ -300,11 +300,20 @@ if (!$producto) {
     </div>
 </div>
 
-<?php footerTienda($data); ?>
+<?php 
+    // Incluir modal de autenticación para favoritos
+    require_once(__DIR__ . '/../Components/auth_modal.php');
+    footerTienda($data); 
+?>
+
+<!-- CSS para modal de autenticación -->
+<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/auth-modal-favoritos.css">
 
 <!-- JavaScript para la página de detalles -->
 <script>
     window.BASE_URL = '<?= BASE_URL ?>';
+    const BASE_URL_JS = '<?= BASE_URL ?>';
     window.PRODUCT_ID = <?= $producto['idProducto'] ?>;
 </script>
 <script src="<?= media() ?>/js/product-detail.js?v=1.0"></script>
+<script src="<?= media() ?>/js/functions_favoritos.js"></script>

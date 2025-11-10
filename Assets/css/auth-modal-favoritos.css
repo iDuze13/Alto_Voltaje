@@ -1,0 +1,256 @@
+/* Modal de Autenticación para Favoritos */
+.auth-modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.auth-modal-content .modal-header {
+    background: linear-gradient(135deg, #f9ca24 0%, #f0932b 100%);
+    color: #333;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+    padding: 20px 25px;
+}
+
+.auth-modal-content .modal-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.auth-modal-content .modal-title i {
+    margin-right: 10px;
+    animation: heartbeat 1.5s infinite;
+}
+
+.auth-icon-container {
+    margin: 20px 0;
+}
+
+.auth-icon-container i {
+    opacity: 0.9;
+    color: #f0932b;
+}
+
+.auth-options .btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+}
+
+.auth-options .btn-primary {
+    background: linear-gradient(135deg, #f9ca24 0%, #f0932b 100%);
+    border: none;
+    color: #333;
+    font-weight: 600;
+}
+
+.auth-options .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 202, 36, 0.5);
+    background: linear-gradient(135deg, #ffd93d 0%, #ff9f43 100%);
+}
+
+.auth-options .btn-outline-primary {
+    border: 2px solid #f9ca24;
+    color: #f0932b;
+    background: white;
+}
+
+.auth-options .btn-outline-primary:hover {
+    background: linear-gradient(135deg, #f9ca24 0%, #f0932b 100%);
+    color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 202, 36, 0.4);
+    border-color: #f9ca24;
+}
+
+.auth-modal-content .modal-body ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.auth-modal-content .modal-body ul li {
+    padding: 5px 0;
+    position: relative;
+    padding-left: 25px;
+}
+
+.auth-modal-content .modal-body ul li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #28a745;
+    font-weight: bold;
+}
+
+/* Animación heartbeat para el corazón */
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    10% { transform: scale(1.1); }
+    20% { transform: scale(1); }
+    30% { transform: scale(1.1); }
+    40% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+
+/* Contenedor de acciones del producto */
+.product-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+/* Estilos para el botón de favoritos en productos */
+.product-favorite {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 10;
+}
+
+.product-favorite:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    background: #fff;
+}
+
+.product-favorite i {
+    font-size: 18px;
+    color: #666;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.product-favorite:hover i {
+    color: #e74c3c;
+    transform: scale(1.1);
+}
+
+.product-favorite.is-fav {
+    background: #ffe5e5;
+}
+
+.product-favorite.is-fav i {
+    color: #e74c3c;
+}
+
+.product-favorite.is-fav i.fa-heart-o:before {
+    content: "\f004"; /* fa-heart */
+}
+
+/* Botón de comparar */
+.product-compare {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 10;
+}
+
+.product-compare:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    background: #fff;
+}
+
+.product-compare i {
+    font-size: 16px;
+    color: #666;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.product-compare:hover i {
+    color: #f0932b;
+    transform: rotate(180deg);
+}
+
+.product-compare.is-comparing {
+    background: #fff9e6;
+}
+
+.product-compare.is-comparing i {
+    color: #f0932b;
+}
+
+/* Toast Notifications */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.toast-notification {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .auth-modal-content .modal-body {
+        padding: 20px 15px;
+    }
+    
+    .auth-options .btn {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    
+    .product-actions {
+        top: 8px;
+        right: 8px;
+        gap: 6px;
+    }
+    
+    .product-favorite,
+    .product-compare {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .product-favorite i {
+        font-size: 16px;
+    }
+    
+    .product-compare i {
+        font-size: 14px;
+    }
+}

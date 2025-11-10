@@ -150,7 +150,7 @@
 								 data-brand="<?= htmlspecialchars($producto['Marca'] ?? '') ?>"
 								 data-price="<?= $producto['Precio_Venta'] ?>"
 								 data-name="<?= htmlspecialchars($producto['Nombre_Producto']) ?>"
-								 onclick="viewProduct(<?= $producto['idProducto'] ?>)"
+								 data-product-id="<?= $producto['idProducto'] ?>"
 								 style="cursor: pointer;"
 								 title="Click para ver detalles">
 								
@@ -166,10 +166,10 @@
 									<?php endif; ?>
 									
 									<div class="product-actions">
-										<div class="product-favorite" onclick="event.stopPropagation(); addToWishlist(<?= $producto['idProducto'] ?>)">
+										<div class="product-favorite" data-product-id="<?= $producto['idProducto'] ?>">
 											<i class="fa fa-heart-o"></i>
 										</div>
-										<div class="product-compare" onclick="event.stopPropagation(); toggleCompare(<?= $producto['idProducto'] ?>)">
+										<div class="product-compare" data-product-id="<?= $producto['idProducto'] ?>">
 											<i class="fa fa-exchange"></i>
 										</div>
 									</div>
@@ -262,12 +262,19 @@
 	</div>
 
 <?php
+	// Incluir modal de autenticación para favoritos
+	require_once(__DIR__ . '/../Components/auth_modal.php');
 	footerTienda($data);
 ?>
+
+<!-- CSS para modal de autenticación -->
+<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/auth-modal-favoritos.css">
 
 <!-- JavaScript simplificado para la tienda -->
 <script>
 	// Pasar BASE_URL a JavaScript
 	window.BASE_URL = '<?= BASE_URL ?>';
+	const BASE_URL_JS = '<?= BASE_URL ?>';
 </script>
 <script src="<?= media() ?>/js/tienda-simple.js?v=1.0"></script>
+<script src="<?= media() ?>/js/functions_favoritos.js"></script>

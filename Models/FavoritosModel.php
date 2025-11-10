@@ -10,38 +10,47 @@ class FavoritosModel {
         ]);
     }
 
-    // Obtener todos los favoritos de un usuario (con datos del producto/destino)
+    // Obtener todos los favoritos de un usuario (con datos del producto)
     public function getFavoritos(int $userId): array {
-        $sql = "SELECT f.idFAVORITO, dt.* 
+        $sql = "SELECT f.idFavorito, p.* 
                 FROM favorito f
-                JOIN destino_turistico dt ON f.DESTINO_TURISTICO_nombre_destino = dt.Id_destino
-                WHERE f.USUARIO_idUSUARIO = ?";
+                INNER JOIN producto p ON f.Producto_idProducto = p.idProducto
+                WHERE f.Cliente_id_Cliente = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$userId]);
         return $stmt->fetchAll();
     }
 
     // Verificar existencia por usuario + producto
-    public function existeFavorito(int $userId, int $destinoId): bool {
-        $sql = "SELECT 1 FROM favorito WHERE USUARIO_idUSUARIO = ? AND DESTINO_TURISTICO_nombre_destino = ? LIMIT 1";
+    public function existeFavorito(int $userId, int $productoId): bool {
+        $sql = "SELECT 1 FROM favorito WHERE Cliente_id_Cliente = ? AND Producto_idProducto = ? LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$userId, $destinoId]);
+        $stmt->execute([$userId, $productoId]);
         return (bool)$stmt->fetchColumn();
     }
 
     // Agregar favorito (si no existe)
-    public function agregarFavorito(int $userId, int $destinoId): bool {
-        if ($this->existeFavorito($userId, $destinoId)) return false;
-        $sql = "INSERT INTO favorito (USUARIO_idUSUARIO, DESTINO_TURISTICO_nombre_destino) VALUES (?, ?)";
+    public function agregarFavorito(int $userId, int $productoId): bool {
+        if ($this->existeFavorito($userId, $productoId)) return false;
+        $sql = "INSERT INTO favorito (Cliente_id_Cliente, Producto_idProducto) VALUES (?, ?)";
         $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$userId, $destinoId]);
+        return $stmt->execute([$userId, $productoId]);
     }
 
     // Eliminar favorito por usuario + producto
-    public function eliminarFavoritoPorUsuarioProducto(int $userId, int $destinoId): bool {
-        $sql = "DELETE FROM favorito WHERE USUARIO_idUSUARIO = ? AND DESTINO_TURISTICO_nombre_destino = ?";
+    public function eliminarFavoritoPorUsuarioProducto(int $userId, int $productoId): bool {
+        $sql = "DELETE FROM favorito WHERE Cliente_id_Cliente = ? AND Producto_idProducto = ?";
         $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$userId, $destinoId]);
+        return $stmt->execute([$userId, $productoId]);
+    }
+
+    // Obtener solo los IDs de favoritos de un usuario (para marcar en frontend)
+    public function getFavoritosIds(int $userId): array {
+        $sql = "SELECT Producto_idProducto FROM favorito WHERE Cliente_id_Cliente = ?";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$userId]);
+        $result = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return $result ?: [];
     }
 }
 ?>
