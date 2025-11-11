@@ -16,12 +16,12 @@
 	<section class="section-slide">
 		<div class="wrap-slick1">
 			<div class="slick1">
-				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-03.png);">
+				<div class="item-slick1" style="background-image: url(<?= media() ?>/tiendaOnline/images/slide-01.png);">
 					<div class="container h-full">
 						<div class="flex-col-l-m h-full p-t-290 p-b-30 respon5">
-							
+								
 							<div>
-								<a href="<?= base_url().'/tienda'; ?>" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
+								<a href="product.html" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04">
 									Ver Productos
 								</a>
 							</div>

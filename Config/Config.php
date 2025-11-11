@@ -28,7 +28,7 @@ const NOMBRE_EMPESA = "Alto Voltaje";
 const WEB_EMPRESA = "www.altovoltaje.site";
 
 //Categorias para home
-const CAT_SLIDER = "1,2,3,4,5";
+const CAT_SLIDER = "1,2,3,4,5,6,7,8";
 const CAT_BANNER = "1,2,3,4,5,6";
 
 //Configuración MercadoPago - MODO PRODUCCIÓN
