@@ -4,6 +4,10 @@ let tableProductos;
 var selectedImages = [];
 var imageCounter = 0;
 
+// Variable para evitar peticiones AJAX duplicadas
+var isProcessingRequest = false;
+var lastClickTime = 0;
+
 // Inicialización directa
 $(document).ready(function() {
     // Verificar que estamos en la página de productos
@@ -23,6 +27,23 @@ $(document).ready(function() {
     
     // Cargar categorías para los modales
     loadProductCategories();
+    
+    // Agregar handler para limpiar cuando se cierra el modal
+    $('#modalFormProductos').on('hidden.bs.modal', function() {
+        console.log('🚪 Modal cerrado, limpiando datos...');
+        clearImageGallery();
+        $('#formProductos')[0].reset();
+    });
+    
+    // Agregar handler para cuando se abre el modal (por si acaso)
+    $('#modalFormProductos').on('show.bs.modal', function() {
+        console.log('🚪 Modal abriéndose...');
+        // Si no hay ID de producto, es un nuevo producto, limpiar todo
+        if (!$('#idProducto').val()) {
+            console.log('🚪 Modal para nuevo producto detectado, limpiando...');
+            setTimeout(() => clearImageGallery(), 50);
+        }
+    });
 });
 
 function initProductsPage() {
@@ -100,7 +121,14 @@ function initBasicDataTable() {
                 "orderable": false,
                 "render": function(data, type, row) {
                     if (data && data !== '' && data !== null) {
-                        return '<img src="' + base_url + '/Assets/images/uploads/' + data + '" style="width: 50px; height: 50px; object-fit: cover;">';
+                        // Si la imagen viene de BLOB (nueva implementación) o del sistema de archivos (legacy)
+                        if (row.ruta === 'blob' || data.includes('/productos/obtenerImagen/')) {
+                            // Nueva URL para imágenes BLOB
+                            return '<img src="' + data + '" style="width: 50px; height: 50px; object-fit: cover;">';
+                        } else {
+                            // Mantener compatibilidad con imágenes del sistema de archivos legacy
+                            return '<img src="' + base_url + '/Assets/images/uploads/' + data + '" style="width: 50px; height: 50px; object-fit: cover;">';
+                        }
                     } else {
                         return '<span class="text-muted">Sin imagen</span>';
                     }
@@ -153,8 +181,13 @@ function initBasicDataTable() {
                 "render": function(data, type, row) {
                     if (data == 'Activo') {
                         return '<span class="badge badge-success">Activo</span>';
-                    } else {
+                    } else if (data == 'Inactivo') {
                         return '<span class="badge badge-danger">Inactivo</span>';
+                    } else if (data == 'Descontinuado') {
+                        return '<span class="badge badge-warning">Descontinuado</span>';
+                    } else {
+                        // Fallback para cualquier estado no reconocido
+                        return '<span class="badge badge-light">' + data + '</span>';
                     }
                 }
             },
@@ -242,6 +275,14 @@ function initProductForm() {
 }
 
 function saveProduct() {
+    // Evitar envíos duplicados
+    if (isProcessingRequest) {
+        console.log('⚠️ Guardado ya en proceso, ignorando...');
+        return;
+    }
+    
+    isProcessingRequest = true;
+    
     // Crear FormData para manejar archivos
     let formData = new FormData();
     
@@ -273,12 +314,14 @@ function saveProduct() {
     
     // Validación básica
     if (!$('#txtNombre').val() || !$('#txtSKU').val() || !$('#txtPrecioCosto').val() || !$('#txtPrecio').val() || !$('#txtStock').val()) {
+        isProcessingRequest = false; // Liberar flag
         swal("Campos requeridos", "Todos los campos marcados con * son obligatorios", "warning");
         return;
     }
     
     // Validar que se haya seleccionado categoría y subcategoría
     if (!$('#listCategoriaPrincipal').val() || !$('#listCategoria').val()) {
+        isProcessingRequest = false; // Liberar flag
         swal("Categorías requeridas", "Debe seleccionar una categoría y subcategoría", "warning");
         return;
     }
@@ -297,6 +340,7 @@ function saveProduct() {
         success: function(response) {
             $('#btnActionForm').prop('disabled', false);
             $('#btnText').text($('#idProducto').val() ? 'Actualizar' : 'Guardar');
+            isProcessingRequest = false; // Liberar flag
             
             console.log('Respuesta del servidor:', response);
             
@@ -326,43 +370,90 @@ function saveProduct() {
         error: function(xhr, status, error) {
             $('#btnActionForm').prop('disabled', false);
             $('#btnText').text($('#idProducto').val() ? 'Actualizar' : 'Guardar');
+            isProcessingRequest = false; // Liberar flag
             
             console.error('Error AJAX:', {xhr, status, error});
             console.error('Respuesta:', xhr.responseText);
             
             swal("Error de conexión", "No se pudo conectar con el servidor: " + error, "error");
+        },
+        complete: function() {
+            // Asegurarse de que siempre se libere el flag
+            isProcessingRequest = false;
         }
     });
 }
 
 function openModal() {
-    $('#modalFormProductos').modal('show');
+    console.log('🆕 Abriendo modal para nuevo producto...');
+    
+    // PASO 1: Limpiar galería de imágenes PRIMERO
+    clearImageGallery();
+    
+    // PASO 2: Resetear formulario completamente
     $('#formProductos')[0].reset();
+    
+    // PASO 3: Limpiar campos específicos
     $('#idProducto').val('');
     $('#imagenesEliminadas').val('');
     $('#titleModal').text('Nuevo Producto');
     $('#btnText').text('Guardar');
     
-    // Resetear selectores de categorías
+    // PASO 4: Resetear selectores de categorías
     $('#listCategoriaPrincipal').val('');
     $('#listCategoria').html('<option value="">Seleccionar Subcategoría</option>').prop('disabled', true);
     
-    // Cargar categorías principales
+    // PASO 5: Cargar categorías principales
     loadMainCategories();
     
-    // Limpiar campos de precios y checkboxes
+    // PASO 6: Limpiar campos de precios y checkboxes explícitamente
+    $('#txtNombre').val('');
     $('#txtSKU').val('');
     $('#txtCodigoBarras').val('');
+    $('#txtDescripcion').val('');
+    $('#txtMarca').val('');
     $('#txtPrecioCosto').val('');
     $('#txtPrecio').val('');
     $('#txtPrecioOferta').val('');
     $('#txtMargenGanancia').val('');
+    $('#txtStock').val('');
     $('#chkEnOferta').prop('checked', false);
     $('#chkDestacado').prop('checked', false);
     $('#grupoPrecioOferta').hide();
     
-    // Limpiar galería de imágenes
-    clearImageGallery();
+    // PASO 7: Resetear estado a Activo por defecto
+    $('#listStatus').val('1');
+    
+    // PASO 8: Segunda limpieza de imágenes por seguridad
+    setTimeout(() => {
+        clearImageGallery();
+        console.log('🆕 Segunda limpieza ejecutada');
+    }, 100);
+    
+    // PASO 9: Limpiar cualquier preview de imagen que pueda quedar
+    $('.prevPhoto').empty();
+    $('.prevImage').empty();
+    
+    // PASO 10: Limpiar input de archivo
+    $('#fileInput').val('');
+    
+    console.log('🆕 Modal limpiado y listo para nuevo producto');
+    
+    // PASO 11: Verificación final antes de mostrar modal
+    setTimeout(() => {
+        const remainingImages = $('#containerImages').children().length;
+        if (remainingImages > 0) {
+            console.warn('⚠️ Aún hay imágenes en el contenedor, forzando limpieza...', remainingImages);
+            $('#containerImages').empty();
+            $('.prevImage').remove();
+            $('.prevPhoto').remove();
+            $('[id^="existing-image-"]').remove();
+        }
+        console.log('🆕 Verificación final: contenedor limpio =', $('#containerImages').children().length === 0);
+    }, 150);
+    
+    // PASO 12: Mostrar modal
+    $('#modalFormProductos').modal('show');
 }
 
 function viewProduct(id) {
@@ -392,13 +483,40 @@ function viewProduct(id) {
 }
 
 function editProduct(id) {
+    console.log('Editando producto ID:', id);
+    
+    // Prevenir clicks muy rápidos (debounce de 1 segundo)
+    const now = Date.now();
+    if (now - lastClickTime < 1000) {
+        console.log('⚠️ Click muy rápido, ignorando...');
+        return;
+    }
+    lastClickTime = now;
+    
+    // Evitar peticiones duplicadas
+    if (isProcessingRequest) {
+        console.log('⚠️ Petición ya en proceso, ignorando...');
+        return;
+    }
+    
+    isProcessingRequest = true;
+    
+    // Limpiar modal antes de cargar datos
+    clearImageGallery();
+    $('#titleModal').text('Editar Producto');
+    $('#btnText').text('Actualizar');
+    
     $.ajax({
         url: base_url + '/Productos/getProducto/' + id,
         type: 'GET',
         dataType: 'json',
+        timeout: 10000, // 10 segundos de timeout
         success: function(response) {
             if (response && response.status && response.data) {
                 let producto = response.data;
+                
+                // IMPORTANTE: Limpiar galería de imágenes primero antes de cargar las del producto
+                clearImageGallery();
                 
                 $('#idProducto').val(producto.idProducto);
                 $('#imagenesEliminadas').val('');
@@ -431,11 +549,12 @@ function editProduct(id) {
                     $('#grupoPrecioOferta').hide();
                 }
                 
-                // Limpiar galería de imágenes
-                clearImageGallery();
-                
-                // Mostrar imágenes existentes
-                if (producto.imagen && producto.ruta) {
+                // Mostrar imágenes existentes DESPUÉS de limpiar
+                if (producto.imagen_url) {
+                    // Nueva estructura con imagen_url desde el controlador
+                    showExistingImageFromUrl(producto.imagen_url, producto.idProducto);
+                } else if (producto.imagen && producto.ruta) {
+                    // Estructura legacy (por compatibilidad)
                     showExistingImage(producto.imagen, producto.ruta, producto.idProducto);
                 }
                 
@@ -447,28 +566,42 @@ function editProduct(id) {
                 }
                 
                 // Cargar categoría principal y subcategoría si existe
-                if (producto.idCategoria) {
-                    $('#listCategoriaPrincipal').val(producto.idCategoria);
-                    // Cargar subcategorías de esta categoría
-                    loadSubcategoriesByCategory(producto.idCategoria);
-                    // Esperar un momento y luego seleccionar la subcategoría
-                    setTimeout(function() {
-                        $('#listCategoria').val(producto.idSubCategoria || '').prop('disabled', false);
-                    }, 500);
-                } else {
-                    $('#listCategoriaPrincipal').val('');
-                    $('#listCategoria').html('<option value="">Seleccionar Subcategoría</option>').prop('disabled', true);
-                }
+                console.log('📋 Cargando categorías para producto:', {
+                    idCategoria: producto.idCategoria,
+                    idSubCategoria: producto.idSubCategoria,
+                    nombreCategoria: producto.Nombre_Categoria,
+                    nombreSubcategoria: producto.Nombre_SubCategoria
+                });
+                
+                // PASO 1: Cargar todas las categorías principales primero
+                loadMainCategoriesForEdit(producto.idCategoria, producto.idSubCategoria);
                 
                 $('#titleModal').text('Actualizar Producto');
                 $('#btnText').text('Actualizar');
                 $('#modalFormProductos').modal('show');
+                
+                // Liberar flag de procesamiento
+                isProcessingRequest = false;
             } else {
+                isProcessingRequest = false;
                 swal("Error", "Error al cargar información del producto", "error");
             }
         },
-        error: function() {
-            swal("Error de conexión", "No se pudo conectar con el servidor", "error");
+        error: function(xhr, textStatus, errorThrown) {
+            isProcessingRequest = false;
+            console.error('Error en AJAX:', textStatus, errorThrown);
+            
+            if (textStatus === 'timeout') {
+                swal("Error de tiempo", "La conexión tardó demasiado en responder", "error");
+            } else if (textStatus === 'error') {
+                swal("Error de conexión", "No se pudo conectar con el servidor. Verifique su conexión.", "error");
+            } else {
+                swal("Error", "Ocurrió un error inesperado: " + textStatus, "error");
+            }
+        },
+        complete: function() {
+            // Asegurarse de que siempre se libere el flag
+            isProcessingRequest = false;
         }
     });
 }
@@ -602,9 +735,36 @@ function removeImageFromGallery(divId) {
 }
 
 function clearImageGallery() {
-    $('#containerImages').empty();
+    console.log('🧹 Iniciando limpieza completa de galería de imágenes...');
+    
+    // Limpiar contenedor de imágenes completamente
+    const containerImages = $('#containerImages');
+    console.log('🧹 Elementos en containerImages antes de limpiar:', containerImages.children().length);
+    containerImages.empty();
+    
+    // Verificar que se limpió correctamente
+    console.log('🧹 Elementos en containerImages después de limpiar:', containerImages.children().length);
+    
+    // Limpiar cualquier preview de imagen que pueda existir
+    $('.prevImage').empty();
+    $('.prevPhoto').empty();
+    $('[id^="existing-image-"]').remove(); // Remover específicamente elementos de imágenes existentes
+    
+    // Resetear variables globales
     selectedImages = [];
     imageCounter = 0;
+    
+    // Limpiar campo de imágenes eliminadas
+    $('#imagenesEliminadas').val('');
+    
+    // Limpiar input de archivo
+    $('#fileInput').val('');
+    
+    console.log('🧹 Galería limpiada completamente:', {
+        selectedImages: selectedImages.length,
+        imageCounter: imageCounter,
+        containerEmpty: $('#containerImages').children().length === 0
+    });
 }
 
 function loadProductCategories() {
@@ -615,6 +775,75 @@ function loadProductCategories() {
     
     // Setup del event listener para categorías en cascada
     setupCategoryChangeHandler();
+}
+
+function loadMainCategoriesForEdit(selectedCategoriaId, selectedSubcategoriaId) {
+    console.log('📋 Cargando categorías para edición con valores:', {selectedCategoriaId, selectedSubcategoriaId});
+    
+    $.ajax({
+        url: base_url + '/Categorias/getCategoriasSimple',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('📋 Respuesta categorías:', response);
+            let html = '<option value="">Seleccionar Categoría</option>';
+            
+            if (response && response.status && response.data && response.data.length > 0) {
+                for (let i = 0; i < response.data.length; i++) {
+                    let categoria = response.data[i];
+                    let selected = (categoria.idCategoria == selectedCategoriaId) ? 'selected' : '';
+                    html += '<option value="' + categoria.idCategoria + '" ' + selected + '>' + 
+                           categoria.Nombre_Categoria + '</option>';
+                }
+            }
+            
+            $('#listCategoriaPrincipal').html(html);
+            
+            // PASO 2: Si hay categoría seleccionada, cargar subcategorías
+            if (selectedCategoriaId) {
+                console.log('📋 Cargando subcategorías para categoría:', selectedCategoriaId);
+                loadSubcategoriesForEdit(selectedCategoriaId, selectedSubcategoriaId);
+            } else {
+                $('#listCategoria').html('<option value="">Seleccionar Subcategoría</option>').prop('disabled', true);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error cargando categorías:', error, xhr.responseText);
+            $('#listCategoriaPrincipal').html('<option value="">Error cargando categorías</option>');
+        }
+    });
+}
+
+function loadSubcategoriesForEdit(categoriaId, selectedSubcategoriaId) {
+    console.log('📋 Cargando subcategorías para categoría:', categoriaId, 'seleccionada:', selectedSubcategoriaId);
+    
+    $.ajax({
+        url: base_url + '/Subcategorias/getSubcategoriasByCategoria/' + categoriaId,
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('📋 Respuesta subcategorías:', response);
+            let html = '<option value="">Seleccionar Subcategoría</option>';
+            
+            if (response && response.data && response.data.length > 0) {
+                for (let i = 0; i < response.data.length; i++) {
+                    let subcategoria = response.data[i];
+                    let selected = (subcategoria.idSubCategoria == selectedSubcategoriaId) ? 'selected' : '';
+                    html += '<option value="' + subcategoria.idSubCategoria + '" ' + selected + '>' + 
+                           subcategoria.Nombre_SubCategoria + '</option>';
+                }
+            } else {
+                html = '<option value="">No hay subcategorías disponibles</option>';
+            }
+            
+            $('#listCategoria').html(html).prop('disabled', false);
+            console.log('📋 Subcategorías cargadas. Seleccionada:', selectedSubcategoriaId);
+        },
+        error: function() {
+            console.error('❌ Error cargando subcategorías para categoría:', categoriaId);
+            $('#listCategoria').html('<option value="">Error cargando subcategorías</option>');
+        }
+    });
 }
 
 function loadMainCategories() {
@@ -682,16 +911,50 @@ function loadSubcategoriesByCategory(categoriaId) {
     });
 }
 
-// Función para limpiar la galería de imágenes
-function clearImageGallery() {
-    $('#containerImages').empty();
-    totalImages = 0;
+// Función para mostrar imagen existente en el modal de edición
+function showExistingImageFromUrl(imageUrl, productId) {
+    console.log('📷 Mostrando imagen desde URL:', {imageUrl, productId});
+    
+    const uniqueId = 'main_' + Date.now();
+    
+    // Verificar que el contenedor esté limpio antes de agregar
+    console.log('📷 Estado del contenedor antes de agregar imagen:', $('#containerImages').children().length, 'elementos');
+    
+    const imageHtml = `
+        <div class="col-md-4 mb-3" id="existing-image-${uniqueId}">
+            <div class="prevImage">
+                <img src="${imageUrl}" alt="Imagen del producto" style="width: 100%; height: 150px; object-fit: cover;">
+                <button type="button" class="btnDeleteImage" onclick="removeExistingImage('${uniqueId}', 'blob', ${productId})">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="mt-2 text-center">
+                    <small class="text-muted">Imagen actual</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#containerImages').append(imageHtml);
+    console.log('📷 Imagen agregada al contenedor. Total elementos:', $('#containerImages').children().length);
 }
 
-// Función para mostrar imagen existente en el modal de edición
 function showExistingImage(imageName, imagePath, productId, imageId = null) {
-    const imageUrl = base_url + '/Assets/images/uploads/' + imageName;
+    console.log('📷 Mostrando imagen existente:', {imageName, imagePath, productId, imageId});
+    
+    let imageUrl;
+    // Determinar la URL de la imagen según el tipo
+    if (imagePath === 'blob' || imageName.includes('/productos/obtenerImagen/')) {
+        // Nueva implementación con BLOB
+        imageUrl = base_url + '/productos/obtenerImagen/' + productId;
+    } else {
+        // Sistema legacy con archivos
+        imageUrl = base_url + '/Assets/images/uploads/' + imageName;
+    }
+    
     const uniqueId = imageId || 'main_' + Date.now();
+    
+    // Verificar que el contenedor esté limpio antes de agregar
+    console.log('📷 Estado del contenedor antes de agregar imagen:', $('#containerImages').children().length, 'elementos');
     
     const imageHtml = `
         <div class="col-md-4 mb-3" id="existing-image-${uniqueId}">
@@ -708,6 +971,7 @@ function showExistingImage(imageName, imagePath, productId, imageId = null) {
     `;
     
     $('#containerImages').append(imageHtml);
+    console.log('📷 Imagen agregada. Estado del contenedor:', $('#containerImages').children().length, 'elementos');
 }
 
 // Función para eliminar imagen existente
@@ -754,23 +1018,3 @@ function removeExistingImage(imageId, imageName, productId) {
 function fntViewInfo(id) { viewProduct(id); }
 function fntEditInfo(id) { editProduct(id); }
 function fntDelInfo(id) { deleteProduct(id); }
-
-// Inicialización cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, base_url:', base_url);
-    console.log('Table element exists:', document.getElementById('tableProductos') !== null);
-    
-    // Verificar si jQuery y DataTables están disponibles
-    if (typeof $ === 'undefined') {
-        console.error('jQuery is not loaded!');
-        return;
-    }
-    
-    if (typeof $.fn.DataTable === 'undefined') {
-        console.error('DataTables is not loaded!');
-        return;
-    }
-    
-    console.log('All dependencies loaded, initializing...');
-    initProductos();
-});

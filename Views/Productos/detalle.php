@@ -51,7 +51,8 @@ $promedioRedondeado = round($promedio);
                         <?php endif; ?>
                         
                         <img id="main-product-image" 
-                             src="<?= !empty($producto['imagen']) && !empty($producto['ruta']) ? BASE_URL . '/' . $producto['ruta'] . $producto['imagen'] : BASE_URL . '/Assets/images/product-not-available.svg' ?>" 
+                             src="<?= BASE_URL . '/productos/obtenerImagen/' . $producto['idProducto'] ?>" 
+                             onerror="this.src='<?= BASE_URL ?>/Assets/images/product-not-available.svg'"
                              alt="<?= htmlspecialchars($producto['Nombre_Producto']) ?>" 
                              class="img-fluid rounded">
                     </div>
@@ -59,7 +60,8 @@ $promedioRedondeado = round($promedio);
                     <!-- Thumbnail images (si hay múltiples imágenes) -->
                     <div class="thumbnail-container mt-3">
                         <div class="thumbnail-grid">
-                            <img src="<?= !empty($producto['imagen']) && !empty($producto['ruta']) ? BASE_URL . '/' . $producto['ruta'] . $producto['imagen'] : BASE_URL . '/Assets/images/product-not-available.svg' ?>" 
+                            <img src="<?= BASE_URL . '/productos/obtenerImagen/' . $producto['idProducto'] ?>" 
+                                 onerror="this.src='<?= BASE_URL ?>/Assets/images/product-not-available.svg'"
                                  alt="<?= htmlspecialchars($producto['Nombre_Producto']) ?>" 
                                  class="thumbnail-image active"
                                  onclick="changeMainImage(this.src)">
@@ -390,7 +392,8 @@ $promedioRedondeado = round($promedio);
                         <?php foreach ($data['productos_relacionados'] as $related): ?>
                             <div class="related-product-item">
                                 <div class="related-product-image">
-                                    <img src="<?= !empty($related['imagen']) && !empty($related['ruta']) ? BASE_URL . '/' . $related['ruta'] . $related['imagen'] : BASE_URL . '/Assets/images/product-not-available.svg' ?>" 
+                                    <img src="<?= BASE_URL . '/productos/obtenerImagen/' . $related['idProducto'] ?>" 
+                                         onerror="this.src='<?= BASE_URL ?>/Assets/images/product-not-available.svg'"
                                          alt="<?= htmlspecialchars($related['Nombre_Producto']) ?>">
                                 </div>
                                 <div class="related-product-info">

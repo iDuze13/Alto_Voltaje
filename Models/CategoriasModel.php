@@ -7,7 +7,6 @@
 		public $strCategoria;
 		public $strDescripcion;
 		public $intStatus;
-		public $strPortada;
 		public $strRuta;
 
 		public function __construct()
@@ -15,12 +14,11 @@
 			parent::__construct();
 		}
 
-		public function inserCategoria(string $nombre, string $descripcion, string $portada, string $ruta, int $status){
+		public function inserCategoria(string $nombre, string $descripcion, string $ruta, int $status){
 
 			$return = 0;
 			$this->strCategoria = $nombre;
 			$this->strDescripcion = $descripcion;
-			$this->strPortada = $portada;
 			$this->strRuta = $ruta;
 			$this->intStatus = $status;
 
@@ -34,12 +32,10 @@
 				$result_max = $this->select($sql_max);
 				$next_id = $result_max['next_id'];
 				
-				$query_insert  = "INSERT INTO categoria(idcategoria,nombre,descripcion,portada,ruta,datecreated,status) VALUES(?,?,?,?,?,NOW(),?)";
+				$query_insert  = "INSERT INTO categoria(idcategoria,nombre,descripcion,datecreated,status) VALUES(?,?,?,NOW(),?)";
 	        	$arrData = array($next_id,
 								 $this->strCategoria, 
 								 $this->strDescripcion, 
-								 $this->strPortada,
-								 $this->strRuta, 
 								 $this->intStatus);
 				
 	        	$request_insert = $this->insert($query_insert,$arrData);
@@ -53,7 +49,9 @@
 		public function selectCategorias()
 		{
 			try {
-				$sql = "SELECT * FROM categoria 
+				$sql = "SELECT idcategoria, nombre, descripcion, imagen_blob, imagen_tipo, imagen_nombre,
+						       datecreated, status
+						FROM categoria 
 						WHERE status != 0 ";
 				$request = $this->select_all($sql);
 				
@@ -83,11 +81,10 @@
 			return $request;
 		}
 
-		public function updateCategoria(int $idcategoria, string $categoria, string $descripcion, string $portada, string $ruta, int $status){
+		public function updateCategoria(int $idcategoria, string $categoria, string $descripcion, string $ruta, int $status){
 			$this->intIdcategoria = $idcategoria;
 			$this->strCategoria = $categoria;
 			$this->strDescripcion = $descripcion;
-			$this->strPortada = $portada;
 			$this->strRuta = $ruta;
 			$this->intStatus = $status;
 
@@ -96,11 +93,55 @@
 
 			if(empty($request))
 			{
-				$sql = "UPDATE categoria SET nombre = ?, descripcion = ?, portada = ?, ruta = ?, status = ? WHERE idcategoria = $this->intIdcategoria ";
+				$sql = "UPDATE categoria SET nombre = ?, descripcion = ?, status = ? WHERE idcategoria = $this->intIdcategoria ";
 				$arrData = array($this->strCategoria, 
 								 $this->strDescripcion, 
-								 $this->strPortada,
-								 $this->strRuta, 
+								 $this->intStatus);
+				$request = $this->update($sql,$arrData);
+			}else{
+				$request = "exist";
+			}
+		    return $request;			
+		}
+
+		public function updateCategoriaSoloTexto(int $idcategoria, string $categoria, string $descripcion, int $status){
+			$this->intIdcategoria = $idcategoria;
+			$this->strCategoria = $categoria;
+			$this->strDescripcion = $descripcion;
+			$this->intStatus = $status;
+
+			$sql = "SELECT * FROM categoria WHERE nombre = '{$this->strCategoria}' AND idcategoria != $this->intIdcategoria";
+			$request = $this->select_all($sql);
+
+			if(empty($request))
+			{
+				$sql = "UPDATE categoria SET nombre = ?, descripcion = ?, status = ? WHERE idcategoria = $this->intIdcategoria ";
+				$arrData = array($this->strCategoria, 
+								 $this->strDescripcion,
+								 $this->intStatus);
+				$request = $this->update($sql,$arrData);
+			}else{
+				$request = "exist";
+			}
+		    return $request;			
+		}
+
+		public function eliminarImagenBlob(int $idcategoria, string $categoria, string $descripcion, int $status){
+			$this->intIdcategoria = $idcategoria;
+			$this->strCategoria = $categoria;
+			$this->strDescripcion = $descripcion;
+			$this->intStatus = $status;
+
+			$sql = "SELECT * FROM categoria WHERE nombre = '{$this->strCategoria}' AND idcategoria != $this->intIdcategoria";
+			$request = $this->select_all($sql);
+
+			if(empty($request))
+			{
+				$sql = "UPDATE categoria SET nombre = ?, descripcion = ?, status = ?, 
+				       imagen_blob = NULL, imagen_tipo = NULL, imagen_nombre = NULL 
+				       WHERE idcategoria = $this->intIdcategoria";
+				$arrData = array($this->strCategoria, 
+								 $this->strDescripcion,
 								 $this->intStatus);
 				$request = $this->update($sql,$arrData);
 			}else{
@@ -143,15 +184,96 @@
 		
 		return $request;
 	}		public function getCategoriasFooter(){
-			$sql = "SELECT idcategoria, nombre, descripcion, portada, ruta
+			$sql = "SELECT idcategoria, nombre, descripcion
 					FROM categoria WHERE status = 1";
 			$request = $this->select_all($sql);
 			if(count($request) > 0){
 				for ($c=0; $c < count($request) ; $c++) { 
-					$request[$c]['portada'] = BASE_URL.'/Assets/images/uploads/'.$request[$c]['portada'];		
+					$request[$c]['portada'] = BASE_URL.'/Categorias/setCategoriaBlob/' . $request[$c]['idcategoria'];
+					$request[$c]['ruta'] = strtolower(str_replace(' ', '-', $request[$c]['nombre']));
 				}
 			}
 			return $request;
+		}
+
+		// Métodos BLOB para categorías (siguiendo patrón de productos)
+		public function insertarConImagenBlob(string $nombre, string $descripcion, string $ruta, int $status, $imagenBlob, string $imagenTipo, string $imagenNombre)
+		{
+			$return = 0;
+			$this->strCategoria = $nombre;
+			$this->strDescripcion = $descripcion;
+			$this->strRuta = $ruta;
+			$this->intStatus = $status;
+
+			$sql = "SELECT * FROM categoria WHERE nombre = '{$this->strCategoria}' ";
+			$request = $this->select_all($sql);
+
+			if(empty($request))
+			{
+				// Obtener el próximo ID manualmente
+				$sql_max = "SELECT COALESCE(MAX(idcategoria), 0) + 1 as next_id FROM categoria";
+				$result_max = $this->select($sql_max);
+				$next_id = $result_max['next_id'];
+				
+				$query_insert = "INSERT INTO categoria(idcategoria, nombre, descripcion, imagen_blob, imagen_tipo, imagen_nombre, datecreated, status) VALUES(?,?,?,?,?,?,NOW(),?)";
+				$arrData = array(
+					$next_id,
+					$this->strCategoria, 
+					$this->strDescripcion, 
+					$imagenBlob,
+					$imagenTipo,
+					$imagenNombre,
+					$this->intStatus
+				);
+				
+				$request_insert = $this->insert($query_insert, $arrData);
+				$return = $request_insert ? $next_id : 0;
+			}else{
+				$return = "exist";
+			}
+			return $return;
+		}
+
+		public function actualizarConImagenBlob(int $idcategoria, string $categoria, string $descripcion, string $ruta, int $status, $imagenBlob, string $imagenTipo, string $imagenNombre)
+		{
+			$this->intIdcategoria = $idcategoria;
+			$this->strCategoria = $categoria;
+			$this->strDescripcion = $descripcion;
+			$this->strRuta = $ruta;
+			$this->intStatus = $status;
+
+			$sql = "SELECT * FROM categoria WHERE nombre = '{$this->strCategoria}' AND idcategoria != $this->intIdcategoria";
+			$request = $this->select_all($sql);
+
+			if(empty($request))
+			{
+				$sql = "UPDATE categoria SET nombre = ?, descripcion = ?, imagen_blob = ?, imagen_tipo = ?, imagen_nombre = ?, status = ? WHERE idcategoria = ?";
+				$arrData = array(
+					$this->strCategoria, 
+					$this->strDescripcion, 
+					$imagenBlob,
+					$imagenTipo,
+					$imagenNombre,
+					$this->intStatus,
+					$this->intIdcategoria
+				);
+				$request = $this->update($sql, $arrData);
+			}else{
+				$request = "exist";
+			}
+			return $request;			
+		}
+
+		public function obtenerImagenBlob(int $idcategoria)
+		{
+			$sql = "SELECT imagen_blob, imagen_tipo, imagen_nombre FROM categoria WHERE idcategoria = ?";
+			$arrData = array($idcategoria);
+			$result = $this->select_all($sql, $arrData);
+			
+			if (!empty($result) && count($result) > 0) {
+				return $result[0];
+			}
+			return null;
 		}
 
 

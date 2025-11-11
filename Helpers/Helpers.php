@@ -113,50 +113,71 @@ function media(){
         return $format;
     }
 
-    //Elimina exceso de espacios entre palabras
+    //Elimina exceso de espacios entre palabras y previene inyecciones
     function strClean($strCadena){
-        $string = preg_replace(['/\s+/','/^\s|\s$/'],[' ',''], $strCadena);
-        $string = trim($string);//Elimina espacios en blanco al inicio y al final
-        $string = stripslashes($string);//Elimina las \ invertidas
-        $string = str_ireplace("<script>","",$string);
-        $string = str_ireplace("</script>","",$string);
-        $string = str_ireplace("<script src>","",$string);
-        $string = str_ireplace("<script type=>","",$string);
-        $string = str_ireplace("SELECT * FROM","",$string);
-        $string = str_ireplace("DELETE FROM","",$string);
-        $string = str_ireplace("INSERT INTO","",$string);
-        $string = str_ireplace("SELECT COUNT(*) FROM","",$string);
-        $string = str_ireplace("DROP TABLE","",$string);
-        $string = str_ireplace("OR '1'='1'","",$string);
-        $string = str_ireplace('OR "1"="1"',"",$string);
-        $string = str_ireplace('OR ´1´=´1´',"",$string);
-        $string = str_ireplace("is NULL; --","",$string);
-        $string = str_ireplace("is NULL; --","",$string);
-        $string = str_ireplace("LIKE '","",$string);
-        $string = str_ireplace('LIKE "',"",$string);
-        $string = str_ireplace("LIKE ´","",$string);
-        $string = str_ireplace("OR ´a´=´a´","",$string);
-        $string = str_ireplace('OR "a"="a"',"",$string);
-        $string = str_ireplace("OR 'a'='a'","",$string);
-        $string = str_ireplace("--","",$string);
-        $string = str_ireplace("^","",$string);
-        $string = str_ireplace("[","",$string);
-        $string = str_ireplace("]","",$string);
-        $string = str_ireplace("==","",$string);
+        if (empty($strCadena)) {
+            return '';
+        }
+        
+        $string = trim($strCadena); // Elimina espacios en blanco al inicio y al final
+        $string = stripslashes($string); // Elimina las \ invertidas
+        
+        // Normalizar espacios
+        $string = preg_replace('/\s+/', ' ', $string);
+        
+        // Array de patrones peligrosos más completo
+        $dangerous_patterns = [
+            '<script', '</script', '<script src', '<script type=',
+            'SELECT * FROM', 'DELETE FROM', 'INSERT INTO', 'UPDATE SET',
+            'SELECT COUNT(*) FROM', 'DROP TABLE', 'DROP DATABASE',
+            "OR '1'='1'", 'OR "1"="1"', 'OR ´1´=´1´',
+            'is NULL; --', "LIKE '", 'LIKE "', 'LIKE ´',
+            "OR ´a´=´a´", 'OR "a"="a"', "OR 'a'='a'",
+            '--', '^', '[', ']', '==',
+            'UNION SELECT', 'UNION ALL', 'CONCAT(', 'CHAR(',
+            'CONVERT(', 'CAST(', 'EXEC(', 'EXECUTE(',
+            '<iframe', '<object', '<embed', '<link', 
+            'javascript:', 'vbscript:', 'data:',
+            'onload=', 'onerror=', 'onclick=', 'onmouseover='
+        ];
+        
+        // Aplicar filtros de seguridad
+        foreach ($dangerous_patterns as $pattern) {
+            $string = str_ireplace($pattern, '', $string);
+        }
+        
         return $string;
     }
-    //Genera una contraseña de 10 caracteres
+    //Genera una contraseña segura
     function passGenerator($length = 10){
-        $pass = "";
-        $longitudPass = $length;
-        $cadena = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-        $longitudCadena = strlen($cadena);
-
-        for($i=1; $i<=$longitudPass; $i++){
-            $pos = rand(0,$longitudCadena-1);
-            $pass .= substr($cadena,$pos,1);
+        if ($length < 4) {
+            $length = 10; // Mínimo de seguridad
         }
-        return $pass;
+        
+        // Usar caracteres más seguros y balanceados
+        $uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        $lowercase = "abcdefghijklmnopqrstuvwxyz";
+        $numbers = "0123456789";
+        $special = "!@#$%&*";
+        
+        // Asegurar que la contraseña tenga al menos un carácter de cada tipo
+        $pass = '';
+        $pass .= $uppercase[random_int(0, strlen($uppercase) - 1)];
+        $pass .= $lowercase[random_int(0, strlen($lowercase) - 1)];
+        $pass .= $numbers[random_int(0, strlen($numbers) - 1)];
+        $pass .= $special[random_int(0, strlen($special) - 1)];
+        
+        // Completar el resto con caracteres aleatorios
+        $allChars = $uppercase . $lowercase . $numbers . $special;
+        for ($i = 4; $i < $length; $i++) {
+            $pass .= $allChars[random_int(0, strlen($allChars) - 1)];
+        }
+        
+        // Mezclar la contraseña
+        $passArray = str_split($pass);
+        shuffle($passArray);
+        
+        return implode('', $passArray);
     }
 
     // --- Auth helpers ---
@@ -209,4 +230,123 @@ function media(){
         $cadena
         );
         return $cadena;
+    }
+
+    /**
+     * Formatea un número como moneda
+     * @param float $amount El monto a formatear
+     * @param int $decimals Número de decimales (por defecto 2)
+     * @return string El número formateado
+     */
+    function formatMoney($amount, $decimals = 2) {
+        return number_format(floatval($amount), $decimals, '.', ',');
+    }
+
+    /**
+     * Valida y limpia una URL
+     * @param string $url URL a validar
+     * @return string|false URL limpia o false si es inválida
+     */
+    function validateUrl($url) {
+        $url = filter_var(trim($url), FILTER_SANITIZE_URL);
+        return filter_var($url, FILTER_VALIDATE_URL) ? $url : false;
+    }
+
+    /**
+     * Genera un token CSRF seguro
+     * @return string Token CSRF
+     */
+    function generateCSRFToken() {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        
+        $token = bin2hex(random_bytes(32));
+        $_SESSION['csrf_token'] = $token;
+        $_SESSION['csrf_token_time'] = time();
+        
+        return $token;
+    }
+
+    /**
+     * Valida un token CSRF
+     * @param string $token Token a validar
+     * @param int $maxAge Edad máxima del token en segundos (por defecto 3600)
+     * @return bool True si es válido
+     */
+    function validateCSRFToken($token, $maxAge = 3600) {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        
+        if (empty($_SESSION['csrf_token']) || empty($_SESSION['csrf_token_time'])) {
+            return false;
+        }
+        
+        // Verificar que el token no haya expirado
+        if ((time() - $_SESSION['csrf_token_time']) > $maxAge) {
+            unset($_SESSION['csrf_token']);
+            unset($_SESSION['csrf_token_time']);
+            return false;
+        }
+        
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
+
+    /**
+     * Cifra un valor de forma segura con IV
+     * @param string $data Datos a cifrar
+     * @return string Datos cifrados en base64
+     */
+    function encryptData($data) {
+        // Usar una clave derivada de la configuración de la aplicación
+        $key = hash('sha256', DB_NAME . DB_USER . BASE_URL, true);
+        $method = 'AES-256-CBC';
+        
+        if (!extension_loaded('openssl')) {
+            throw new Exception('OpenSSL extension is required for encryption');
+        }
+        
+        $iv = random_bytes(openssl_cipher_iv_length($method));
+        $encrypted = openssl_encrypt($data, $method, $key, 0, $iv);
+        
+        if ($encrypted === false) {
+            throw new Exception('Encryption failed');
+        }
+        
+        return base64_encode($encrypted . '::' . $iv);
+    }
+
+    /**
+     * Descifra un valor cifrado con IV
+     * @param string $data Datos cifrados en base64
+     * @return string Datos descifrados
+     */
+    function decryptData($data) {
+        // Usar la misma clave derivada
+        $key = hash('sha256', DB_NAME . DB_USER . BASE_URL, true);
+        $method = 'AES-256-CBC';
+        
+        if (!extension_loaded('openssl')) {
+            throw new Exception('OpenSSL extension is required for decryption');
+        }
+        
+        $decoded = base64_decode($data);
+        if ($decoded === false) {
+            throw new Exception('Invalid base64 data');
+        }
+        
+        $parts = explode('::', $decoded, 2);
+        if (count($parts) !== 2) {
+            throw new Exception('Invalid encrypted data format');
+        }
+        
+        list($encrypted_data, $iv) = $parts;
+        $decrypted = openssl_decrypt($encrypted_data, $method, $key, 0, $iv);
+        
+        if ($decrypted === false) {
+            throw new Exception('Decryption failed');
+        }
+        
+        return $decrypted;
     }

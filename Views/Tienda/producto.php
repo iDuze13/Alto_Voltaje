@@ -29,11 +29,24 @@ getModal('modalCarrito', $data);
             <div class="col-lg-6 col-md-6 mb-4">
                 <div class="product-image-container">
                     <?php 
-                    $imagen = !empty($data['producto']['imagen']) ? $data['producto']['imagen'] : 'default-product.jpg';
-                    $rutaImagen = media() . '/images/uploads/' . $imagen;
-                    ?>
-                    <img src="<?= $rutaImagen ?>" alt="<?= htmlspecialchars($data['producto']['Nombre_Producto']) ?>" class="product-main-image">
+                    // DEBUG: Ver todos los datos del producto
+                    echo "<!-- TODOS LOS DATOS DEL PRODUCTO: " . htmlspecialchars(print_r($data['producto'], true)) . " -->";
                     
+                    // Construir la URL de la imagen usando los campos BLOB reales de la BD
+                    if (!empty($data['imagen_blob'])) {
+                        // Imagen BLOB - usar endpoint
+                        $imageSrc = BASE_URL . '/productos/obtenerImagen/' . $data['idProducto'];
+                    } else {
+                        // Sin imagen - usar placeholder
+                        $imageSrc = BASE_URL . '/Assets/images/product-not-available.svg';
+                    }
+                    ?>
+                    <img src="<?= $imageSrc ?>" 
+                         alt="<?= htmlspecialchars($data['Nombre_Producto']) ?>"
+                         onerror="this.src='<?= BASE_URL ?>/Assets/images/product-not-available.svg'"
+                         onload="console.log('Imagen cargada desde:', this.src)"
+                         style="max-width: 100%; height: auto;">>
+
                     <!-- Badges -->
                     <div class="product-badges">
                         <?php if (!empty($data['producto']['oferta']) && $data['producto']['oferta'] > 0): ?>

@@ -27,7 +27,9 @@ class ProductosModel extends Msql
     {
         $id = (int)$id;
         $sql = "SELECT p.*, 
+                       c.idcategoria as idCategoria,
                        c.nombre as Nombre_Categoria, 
+                       sc.idSubCategoria as idSubCategoria,
                        sc.Nombre_SubCategoria, 
                        pr.Nombre_Proveedor
                 FROM producto p
@@ -136,6 +138,167 @@ class ProductosModel extends Msql
         }
         $row = $this->select($sql);
         return !empty($row) && (int)$row['c'] > 0;
+    }
+
+    // Nuevo método para insertar producto con imagen BLOB
+    public function insertarConImagenBlob(string $nombre, string $sku, string $codigoBarras, string $descripcion, float $precioCosto, float $precioVenta, float $precioOferta, float $margenGanancia, int $stock, string $estado, string $marca, int $subcategoriaId = 0, int $enOferta = 0, int $destacado = 0, $imagenBlob = null, string $imagenTipo = '', string $imagenNombre = '')
+    {
+        // Check if SKU already exists
+        if ($this->existeSKU($sku)) {
+            return 'exist';
+        }
+
+        // Use provided subcategoria or get first available
+        if ($subcategoriaId == 0) {
+            $subcat = $this->select("SELECT idSubCategoria FROM subcategoria LIMIT 1");
+            $subcategoriaId = $subcat ? $subcat['idSubCategoria'] : 1;
+        }
+        
+        // Get first available provider
+        $prov = $this->select("SELECT id_Proveedor FROM proveedor LIMIT 1");
+        $proveedorId = $prov ? $prov['id_Proveedor'] : 1;
+
+        $query = "INSERT INTO producto (
+                        Nombre_Producto,
+                        Descripcion_Producto,
+                        SKU,
+                        codigo_barras,
+                        Marca,
+                        Precio_Costo,
+                        Precio_Venta,
+                        Precio_Oferta,
+                        Stock_Actual,
+                        Estado_Producto,
+                        SubCategoria_idSubCategoria,
+                        Proveedor_id_Proveedor,
+                        Margen_Ganancia,
+                        En_Oferta,
+                        Es_Destacado,
+                        Inventario_id_Inventario,
+                        imagen_blob,
+                        imagen_tipo,
+                        imagen_nombre
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $arr = [
+            $nombre,
+            $descripcion,
+            $sku,
+            $codigoBarras ?: null,
+            $marca ?: 'Sin marca',
+            $precioCosto,
+            $precioVenta,
+            $precioOferta,
+            $stock,
+            $estado,
+            $subcategoriaId,
+            $proveedorId,
+            $margenGanancia,
+            $enOferta,
+            $destacado,
+            1,  // Default Inventario_id_Inventario
+            $imagenBlob,
+            $imagenTipo,
+            $imagenNombre
+        ];
+        return $this->insert($query, $arr);
+    }
+
+    // Nuevo método para actualizar producto con imagen BLOB
+    public function actualizarConImagenBlob(int $id, string $nombre, string $sku, string $codigoBarras, string $descripcion, float $precioCosto, float $precio, float $precioOferta, float $margenGanancia, int $stock, string $estado, string $marca, int $subcategoriaId = 0, int $enOferta = 0, int $destacado = 0, $imagenBlob = null, string $imagenTipo = '', string $imagenNombre = '')
+    {
+        // Check if SKU already exists (excluding current product)
+        if ($this->existeSKU($sku, $id)) {
+            return 'exist';
+        }
+
+        $id = (int)$id;
+        
+        // Construir query dinámicamente según si hay imagen nueva
+        if ($imagenBlob !== null) {
+            $updateFields = "Nombre_Producto = ?,
+                            Descripcion_Producto = ?,
+                            SKU = ?,
+                            codigo_barras = ?,
+                            Marca = ?,
+                            Precio_Costo = ?,
+                            Precio_Venta = ?,
+                            Precio_Oferta = ?,
+                            Margen_Ganancia = ?,
+                            Stock_Actual = ?,
+                            Estado_Producto = ?,
+                            SubCategoria_idSubCategoria = ?,
+                            En_Oferta = ?,
+                            Es_Destacado = ?,
+                            imagen_blob = ?,
+                            imagen_tipo = ?,
+                            imagen_nombre = ?";
+            
+            $arr = [
+                $nombre,
+                $descripcion,
+                $sku,
+                $codigoBarras ?: null,
+                $marca ?: 'Sin marca',
+                $precioCosto,
+                $precio,
+                $precioOferta,
+                $margenGanancia,
+                $stock,
+                $estado,
+                $subcategoriaId,
+                $enOferta,
+                $destacado,
+                $imagenBlob,
+                $imagenTipo,
+                $imagenNombre
+            ];
+        } else {
+            // Actualizar sin imagen (mantener la existente)
+            $updateFields = "Nombre_Producto = ?,
+                            Descripcion_Producto = ?,
+                            SKU = ?,
+                            codigo_barras = ?,
+                            Marca = ?,
+                            Precio_Costo = ?,
+                            Precio_Venta = ?,
+                            Precio_Oferta = ?,
+                            Margen_Ganancia = ?,
+                            Stock_Actual = ?,
+                            Estado_Producto = ?,
+                            SubCategoria_idSubCategoria = ?,
+                            En_Oferta = ?,
+                            Es_Destacado = ?";
+            
+            $arr = [
+                $nombre,
+                $descripcion,
+                $sku,
+                $codigoBarras ?: null,
+                $marca ?: 'Sin marca',
+                $precioCosto,
+                $precio,
+                $precioOferta,
+                $margenGanancia,
+                $stock,
+                $estado,
+                $subcategoriaId,
+                $enOferta,
+                $destacado
+            ];
+        }
+        
+        $query = "UPDATE producto SET {$updateFields} WHERE idProducto = {$id}";
+        $request = $this->update($query, $arr);
+        return $request ? 1 : 0;
+    }
+
+    // Método para obtener imagen como BLOB
+    public function obtenerImagenBlob(int $id)
+    {
+        $id = (int)$id;
+        $sql = "SELECT imagen_blob, imagen_tipo, imagen_nombre FROM producto WHERE idProducto = {$id}";
+        $result = $this->select($sql);
+        return $result;
     }
 
     // Simplified methods for admin interface
@@ -316,7 +479,7 @@ class ProductosModel extends Msql
                            sc.Nombre_SubCategoria, 
                            pr.Nombre_Proveedor
                     FROM producto p
-                    LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.IdSubCategoria
+                    LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
                     LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
                     LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
                     WHERE p.Estado_Producto = 'Activo' AND p.Stock_Actual > 0
@@ -548,6 +711,17 @@ class ProductosModel extends Msql
         }
         
         return $productos;
+    }
+
+    /**
+     * Eliminar imagen BLOB de un producto
+     */
+    public function eliminarImagenBlob(int $id): bool
+    {
+        $id = (int)$id;
+        $sql = "UPDATE producto SET imagen_blob = NULL, imagen_tipo = '', imagen_nombre = '' WHERE idProducto = ?";
+        $request = $this->update($sql, [$id]);
+        return $request;
     }
 }
 ?>

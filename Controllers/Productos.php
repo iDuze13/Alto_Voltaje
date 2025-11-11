@@ -122,6 +122,11 @@ class Productos extends Controllers {
         $this->Productos();
     }
 
+    // Alias para listar productos (usado en redirecciones)
+    public function listar() {
+        $this->Productos();
+    }
+
     public function getProductos() {
         // Initialize session permissions
         if (empty($_SESSION['permisosMod'])) {
@@ -131,15 +136,60 @@ class Productos extends Controllers {
         try {
             $arrData = $this->model->obtenerTodos();
             
+            // Emergency fallback - If model fails, get data directly
+            if (empty($arrData)) {
+                error_log("ProductosController::getProductos - Model returned empty, trying direct query");
+                
+                // Direct database query as fallback
+                require_once 'Libraries/Core/Conexion.php';
+                $conexion = new Conexion();
+                $pdo = $conexion->connect();
+                
+                if ($pdo) {
+                    $stmt = $pdo->query("SELECT p.*, 
+                                               c.nombre as Nombre_Categoria, 
+                                               sc.Nombre_SubCategoria, 
+                                               pr.Nombre_Proveedor
+                                        FROM producto p
+                                        LEFT JOIN subcategoria sc ON p.SubCategoria_idSubCategoria = sc.idSubCategoria
+                                        LEFT JOIN categoria c ON sc.categoria_idcategoria = c.idcategoria
+                                        LEFT JOIN proveedor pr ON p.Proveedor_id_Proveedor = pr.id_Proveedor
+                                        ORDER BY p.idProducto DESC");
+                    $arrData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    error_log("ProductosController::getProductos - Direct query returned: " . count($arrData) . " products");
+                }
+            }
+            
+            // Debug log
+            error_log("ProductosController::getProductos - Productos obtenidos: " . count($arrData));
+            if (count($arrData) > 0) {
+                error_log("ProductosController::getProductos - Primer producto: " . print_r($arrData[0], true));
+            }
+            
             // Format data for DataTables
             for($i = 0; $i < count($arrData); $i++) {
                 // Ensure all expected fields exist
                 $arrData[$i]['codigo_barras'] = $arrData[$i]['codigo_barras'] ?? '';
                 $arrData[$i]['Marca'] = $arrData[$i]['Marca'] ?? '';
-                $arrData[$i]['Stock'] = $arrData[$i]['Stock'] ?? 0;
+                $arrData[$i]['Stock'] = $arrData[$i]['Stock_Actual'] ?? 0; // Mapeo correcto desde Stock_Actual
                 $arrData[$i]['En_Oferta'] = $arrData[$i]['En_Oferta'] ?? 0;
                 $arrData[$i]['Destacado'] = $arrData[$i]['Es_Destacado'] ?? 0; // Mapeo correcto desde Es_Destacado
                 $arrData[$i]['Estado_Producto'] = $arrData[$i]['Estado_Producto'] ?? 'Activo';
+                
+                // Para compatibilidad con el DataTable, mapear imagen_blob a imagen
+                if (!empty($arrData[$i]['imagen_blob'])) {
+                    // Usar nueva URL que sirve desde BLOB
+                    $arrData[$i]['imagen'] = BASE_URL . '/productos/obtenerImagen/' . $arrData[$i]['idProducto'];
+                    $arrData[$i]['ruta'] = 'blob'; // Indicador de que viene de BLOB
+                } else {
+                    $arrData[$i]['imagen'] = null;
+                    $arrData[$i]['ruta'] = null;
+                }
+                
+                // Remove BLOB data from output (can't be JSON encoded)
+                unset($arrData[$i]['imagen_blob']);
+                unset($arrData[$i]['imagen_tipo']);
+                unset($arrData[$i]['imagen_nombre']);
                 
                 // Calculate margin percentage
                 $precioCosto = floatval($arrData[$i]['Precio_Costo'] ?? 0);
@@ -159,14 +209,20 @@ class Productos extends Controllers {
                 $arrData[$i]['precio_oferta_formateado'] = $precioOferta > 0 ? SMONEY . number_format($precioOferta, 2, '.', ',') : null;
                 
                 // Add action buttons
-                $btnView = '<button class="btn btn-info btn-sm" onclick="fntViewProducto('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
-                $btnEdit = '<button class="btn btn-primary btn-sm" onclick="fntEditProducto('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
-                $btnDelete = '<button class="btn btn-danger btn-sm" onclick="fntDelProducto('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
+                $btnView = '<button class="btn btn-info btn-sm" onclick="fntViewInfo('.$arrData[$i]['idProducto'].')" title="Ver"><i class="far fa-eye"></i></button>';
+                $btnEdit = '<button class="btn btn-primary btn-sm" onclick="fntEditInfo('.$arrData[$i]['idProducto'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
+                $btnDelete = '<button class="btn btn-danger btn-sm" onclick="fntDelInfo('.$arrData[$i]['idProducto'].')" title="Eliminar"><i class="far fa-trash-alt"></i></button>';
                 $arrData[$i]['options'] = '<div class="btn-group" role="group">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
             }
             
+            error_log("ProductosController::getProductos - About to send JSON with " . count($arrData) . " products");
+            
             header('Content-Type: application/json');
-            echo json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
+            $jsonResponse = json_encode(['data' => $arrData], JSON_UNESCAPED_UNICODE);
+            
+            error_log("ProductosController::getProductos - JSON length: " . strlen($jsonResponse));
+            
+            echo $jsonResponse;
             
         } catch (Exception $e) {
             error_log("Error in getProductos: " . $e->getMessage());
@@ -177,120 +233,117 @@ class Productos extends Controllers {
     }
 
     public function setProducto() {
+        // Limpiar cualquier output buffer previo
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        ob_start();
+        
+        // Set proper JSON content type and CORS headers
+        header('Content-Type: application/json; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: POST');
+        header('Access-Control-Allow-Headers: Content-Type');
+        
         // Initialize session permissions
         if (empty($_SESSION['permisosMod'])) {
             $_SESSION['permisosMod'] = ['r' => 1, 'w' => 1, 'u' => 1, 'd' => 1];
         }
         
-        if ($_POST) {
-            if (empty($_POST['txtNombre']) || empty($_POST['txtSKU']) || empty($_POST['txtPrecioCosto']) || empty($_POST['txtPrecio']) || empty($_POST['txtStock'])) {
-                $arrResponse = array("status" => false, "msg" => 'Required fields are missing.');
-            } else {
-                $idProducto = intval($_POST['idProducto']);
-                $strNombre = strClean($_POST['txtNombre']);
-                $strSKU = strClean($_POST['txtSKU']);
-                $strCodigoBarras = strClean($_POST['txtCodigoBarras'] ?? '');
-                $strDescripcion = strClean($_POST['txtDescripcion'] ?? '');
-                $fltPrecioCosto = floatval($_POST['txtPrecioCosto']);
-                $fltPrecio = floatval($_POST['txtPrecio']);
-                $fltPrecioOferta = floatval($_POST['txtPrecioOferta'] ?? 0);
-                $fltMargenGanancia = floatval($_POST['txtMargenGanancia'] ?? 0);
-                $intStock = intval($_POST['txtStock']);
-                $intStatus = intval($_POST['listStatus'] ?? 1);
-                $strStatus = ($intStatus == 1) ? 'Activo' : (($intStatus == 3) ? 'Descontinuado' : 'Inactivo');
-                $strMarca = strClean($_POST['txtMarca'] ?? '');
-                $intCategoria = intval($_POST['listCategoriaPrincipal'] ?? 0);
-                $intSubcategoria = intval($_POST['listCategoria'] ?? 0);
-                $intEnOferta = intval($_POST['chkEnOferta'] ?? 0);
-                $intDestacado = intval($_POST['chkDestacado'] ?? 0);
-                
-                // Manejar subida de múltiples imágenes
-                $strImagen = '';
-                $ruta = strtolower(clear_cadena($strNombre));
-				$ruta = str_replace(" ","-",$ruta);
-                $totalImages = intval($_POST['totalImages'] ?? 0);
-                
-                // Debug logging
-                error_log("DEBUG: Total images to process: " . $totalImages);
-                error_log("DEBUG: Files received: " . print_r(array_keys($_FILES), true));
-                
-                if ($totalImages > 0) {
-                    $uploadedImages = [];
-                    $uploadedPaths = [];
+        try {
+            if ($_POST) {
+                if (empty($_POST['txtNombre']) || empty($_POST['txtSKU']) || empty($_POST['txtPrecioCosto']) || empty($_POST['txtPrecio']) || empty($_POST['txtStock'])) {
+                    $arrResponse = array("status" => false, "msg" => 'Required fields are missing.');
+                } else {
+                    $idProducto = intval($_POST['idProducto']);
+                    $strNombre = strClean($_POST['txtNombre']);
+                    $strSKU = strClean($_POST['txtSKU']);
+                    $strCodigoBarras = strClean($_POST['txtCodigoBarras'] ?? '');
+                    $strDescripcion = strClean($_POST['txtDescripcion'] ?? '');
+                    $fltPrecioCosto = floatval($_POST['txtPrecioCosto']);
+                    $fltPrecio = floatval($_POST['txtPrecio']);
+                    $fltPrecioOferta = floatval($_POST['txtPrecioOferta'] ?? 0);
+                    $fltMargenGanancia = floatval($_POST['txtMargenGanancia'] ?? 0);
+                    $intStock = intval($_POST['txtStock']);
+                    $intStatus = intval($_POST['listStatus'] ?? 1);
+                    $strStatus = ($intStatus == 1) ? 'Activo' : (($intStatus == 3) ? 'Descontinuado' : 'Inactivo');
+                    $strMarca = strClean($_POST['txtMarca'] ?? '');
+                    $intCategoria = intval($_POST['listCategoriaPrincipal'] ?? 0);
+                    $intSubcategoria = intval($_POST['listCategoria'] ?? 0);
+                    $intEnOferta = intval($_POST['chkEnOferta'] ?? 0);
+                    $intDestacado = intval($_POST['chkDestacado'] ?? 0);
                     
-                    for ($i = 0; $i < $totalImages; $i++) {
-                        $fileKey = "imagen_$i";
+                    // Procesar imágenes como BLOB en lugar de guardar archivos
+                    $imagenBlob = null;
+                    $imagenTipo = '';
+                    $imagenNombre = '';
+                    $totalImages = intval($_POST['totalImages'] ?? 0);
+                    
+                    // Debug logging
+                    error_log("DEBUG: Total images to process: " . $totalImages);
+                    error_log("DEBUG: Files received: " . print_r(array_keys($_FILES), true));
+                    
+                    if ($totalImages > 0) {
+                        // Procesar solo la primera imagen por ahora
+                        $fileKey = "imagen_0";
                         error_log("DEBUG: Looking for file key: " . $fileKey);
+                        
                         if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] == 0) {
                             error_log("DEBUG: Processing file: " . $_FILES[$fileKey]['name']);
-                            $uploadResult = $this->uploadImage($_FILES[$fileKey]);
-                            if ($uploadResult['status']) {
-                                $uploadedImages[] = $uploadResult['filename'];
-                                $uploadedPaths[] = $uploadResult['path'];
-                                error_log("DEBUG: Image uploaded successfully: " . $uploadResult['filename']);
+                            $imageResult = $this->processImageToBlob($_FILES[$fileKey]);
+                            
+                            if ($imageResult['status']) {
+                                $imagenBlob = $imageResult['blob'];
+                                $imagenTipo = $imageResult['tipo'];
+                                $imagenNombre = $imageResult['nombre'];
+                                error_log("DEBUG: Imagen procesada exitosamente como BLOB. Tamaño: " . strlen($imagenBlob) . " bytes");
                             } else {
-                                $arrResponse = array('status' => false, 'msg' => $uploadResult['msg']);
+                                $arrResponse = array('status' => false, 'msg' => $imageResult['msg']);
+                                ob_clean();
                                 echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
                                 die();
                             }
                         }
                     }
                     
-                    // Usar la primera imagen como imagen principal
-                    if (!empty($uploadedImages)) {
-                        $strImagen = $uploadedImages[0];
-                        $strRuta = $uploadedPaths[0];
-                        error_log("DEBUG: Final image set: " . $strImagen . " in " . $strRuta);
-                    } else {
-                        error_log("DEBUG: No images were uploaded successfully");
-                    }
-                }
-                
-                if($idProducto == 0) {
-                    // Create new product
-                    try {
-                        $request_producto = $this->model->insertarBasico($strNombre, $strSKU, $strCodigoBarras, $strDescripcion, $fltPrecioCosto, $fltPrecio, $fltPrecioOferta, $fltMargenGanancia, $intStock, $strStatus, $strMarca, $intSubcategoria, $intEnOferta, $intDestacado, $strImagen, $strRuta);
-                        if ($request_producto > 0) {
-                            $arrResponse = array('status' => true, 'msg' => 'Product created successfully.');
-                        } else if ($request_producto == 'exist') {
-                            $arrResponse = array('status' => false, 'msg' => 'SKU already exists.');
-                        } else {
-                            $arrResponse = array("status" => false, "msg" => 'Unable to save product.');
-                        }
-                    } catch (Exception $e) {
-                        $arrResponse = array('status' => false, 'msg' => 'Database error: ' . $e->getMessage());
-                    }
-                } else {
-                    // Update existing product
-                    $imagenesEliminadas = isset($_POST['imagenesEliminadas']) && $_POST['imagenesEliminadas'] === 'true';
-                    
-                    // Solo mantener imágenes existentes si no se subieron nuevas Y no se eliminaron intencionalmente
-                    if (empty($strImagen) && !$imagenesEliminadas) {
-                        // Verificar el estado actual del producto en la base de datos
-                        $productoExistente = $this->model->obtener($idProducto);
-                        if ($productoExistente && !empty($productoExistente['imagen'])) {
-                            // Solo mantener la imagen si el archivo físicamente existe
-                            $rutaImagen = __DIR__ . '/../Assets/images/uploads/' . $productoExistente['imagen'];
-                            if (file_exists($rutaImagen)) {
-                                $strImagen = $productoExistente['imagen'];
-                                $strRuta = $productoExistente['ruta'];
+                    if($idProducto == 0) {
+                        // Create new product using BLOB method
+                        try {
+                            $request_producto = $this->model->insertarConImagenBlob($strNombre, $strSKU, $strCodigoBarras, $strDescripcion, $fltPrecioCosto, $fltPrecio, $fltPrecioOferta, $fltMargenGanancia, $intStock, $strStatus, $strMarca, $intSubcategoria, $intEnOferta, $intDestacado, $imagenBlob, $imagenTipo, $imagenNombre);
+                            if ($request_producto > 0) {
+                                $arrResponse = array('status' => true, 'msg' => 'Producto creado exitosamente.');
+                            } else if ($request_producto == 'exist') {
+                                $arrResponse = array('status' => false, 'msg' => 'El SKU ya existe.');
+                            } else {
+                                $arrResponse = array("status" => false, "msg" => 'No se pudo guardar el producto.');
                             }
-                            // Si el archivo no existe físicamente, dejar imagen vacía
+                        } catch (Exception $e) {
+                            $arrResponse = array('status' => false, 'msg' => 'Error de base de datos: ' . $e->getMessage());
+                        }
+                    } else {
+                        // Update existing product using BLOB method
+                        $request_producto = $this->model->actualizarConImagenBlob($idProducto, $strNombre, $strSKU, $strCodigoBarras, $strDescripcion, $fltPrecioCosto, $fltPrecio, $fltPrecioOferta, $fltMargenGanancia, $intStock, $strStatus, $strMarca, $intSubcategoria, $intEnOferta, $intDestacado, $imagenBlob, $imagenTipo, $imagenNombre);
+                        if ($request_producto == 1) {
+                            $arrResponse = array('status' => true, 'msg' => 'Producto actualizado correctamente.');
+                        } else if ($request_producto == 'exist') {
+                            $arrResponse = array('status' => false, 'msg' => 'SKU ya existe.');
+                        } else {
+                            $arrResponse = array("status" => false, "msg" => 'No se pudo actualizar el producto.');
                         }
                     }
-                    $request_producto = $this->model->actualizarBasico($idProducto, $strNombre, $strSKU, $strCodigoBarras, $strDescripcion, $fltPrecioCosto, $fltPrecio, $fltPrecioOferta, $fltMargenGanancia, $intStock, $strStatus, $strMarca, $intSubcategoria, $intEnOferta, $intDestacado, $strImagen, $strRuta);
-                    if ($request_producto == 1) {
-                        $arrResponse = array('status' => true, 'msg' => 'Producto actualizado correctamente.');
-                    } else if ($request_producto == 'exist') {
-                        $arrResponse = array('status' => false, 'msg' => 'SKU ya existe.');
-                    } else {
-                        $arrResponse = array("status" => false, "msg" => 'No se pudo actualizar el producto.');
-                    }
                 }
+            } else {
+                $arrResponse = array("status" => false, "msg" => 'No se recibieron datos POST.');
             }
-            header('Content-Type: application/json');
-            echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+            
+        } catch (Exception $e) {
+            error_log("Error en setProducto: " . $e->getMessage());
+            $arrResponse = array('status' => false, 'msg' => 'Error interno del servidor: ' . $e->getMessage());
         }
+        
+        // Enviar respuesta JSON limpia
+        ob_clean();
+        echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         die();
     }
 
@@ -301,16 +354,38 @@ class Productos extends Controllers {
         }
         
         $intIdProducto = intval($idProducto);
+        
         if($intIdProducto > 0) {
-            $arrData = $this->model->obtener($intIdProducto);
-            if(!empty($arrData)) {
-                $arrResponse = array('status' => true, 'data' => $arrData);
-            } else {
-                $arrResponse = array('status' => false, 'msg' => 'Product not found.');
+            try {
+                $arrData = $this->model->obtener($intIdProducto);
+                
+                if(!empty($arrData)) {
+                    // Remove BLOB data to avoid JSON encoding issues (same fix as getProductos)
+                    unset($arrData['imagen_blob']);
+                    unset($arrData['imagen_tipo']);
+                    unset($arrData['imagen_nombre']);
+                    
+                    // Add image URL if BLOB exists
+                    if (!empty($arrData['ruta']) && $arrData['ruta'] !== 'blob') {
+                        // Legacy file system image
+                        $arrData['imagen_url'] = $arrData['imagen'] ? BASE_URL . '/' . $arrData['ruta'] . $arrData['imagen'] : null;
+                    } else {
+                        // Check if it has BLOB (we removed it but can check if there was content)
+                        $arrData['imagen_url'] = BASE_URL . '/productos/obtenerImagen/' . $intIdProducto;
+                    }
+                    
+                    $arrResponse = array('status' => true, 'data' => $arrData);
+                } else {
+                    $arrResponse = array('status' => false, 'msg' => 'Product not found.');
+                }
+            } catch (Exception $e) {
+                $arrResponse = array('status' => false, 'msg' => 'Database error: ' . $e->getMessage());
             }
         } else {
             $arrResponse = array('status' => false, 'msg' => 'Invalid product ID.');
         }
+        
+        header('Content-Type: application/json');
         echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         die();
     }
@@ -402,59 +477,55 @@ class Productos extends Controllers {
     }
 
     public function eliminarImagen() {
+        // Limpiar cualquier output buffer previo
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        ob_start();
+        
+        // Set proper JSON content type and CORS headers
+        header('Content-Type: application/json; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: POST');
+        header('Access-Control-Allow-Headers: Content-Type');
+        
         // Initialize session permissions
         if (empty($_SESSION['permisosMod'])) {
             $_SESSION['permisosMod'] = ['r' => 1, 'w' => 1, 'u' => 1, 'd' => 1];
         }
         
-        if ($_POST) {
-            $idProducto = intval($_POST['idProducto']);
-            $imagen = strClean($_POST['imagen']);
-            
-            if ($idProducto > 0 && !empty($imagen)) {
-                // Obtener información del producto
-                $producto = $this->model->obtener($idProducto);
+        try {
+            if ($_POST) {
+                $idProducto = intval($_POST['idProducto']);
                 
-                if ($producto) {
-                    // Verificar si la imagen existe físicamente
-                    $rutaImagen = 'Assets/images/uploads/' . $imagen;
-                    $rutaCompleta = __DIR__ . '/../' . $rutaImagen;
+                if ($idProducto > 0) {
+                    // Obtener información del producto
+                    $producto = $this->model->obtener($idProducto);
                     
-                    $imageDeleted = false;
-                    
-                    // Eliminar archivo físico si existe
-                    if (file_exists($rutaCompleta)) {
-                        $imageDeleted = unlink($rutaCompleta);
-                    } else {
-                        $imageDeleted = true; // Si no existe físicamente, consideramos exitoso
-                    }
-                    
-                    if ($imageDeleted) {
-                        // Si es la imagen principal, limpiar los campos imagen y ruta
-                        if ($producto['imagen'] === $imagen) {
-                            $updateResult = $this->model->actualizarImagenes($idProducto, '', '');
-                            if ($updateResult) {
-                                $arrResponse = array('status' => true, 'msg' => 'Imagen eliminada correctamente');
-                            } else {
-                                $arrResponse = array('status' => false, 'msg' => 'Error al actualizar la base de datos');
-                            }
-                        } else {
+                    if ($producto) {
+                        // Para sistema BLOB, solo necesitamos limpiar los campos de imagen en la base de datos
+                        $updateResult = $this->model->eliminarImagenBlob($idProducto);
+                        
+                        if ($updateResult) {
                             $arrResponse = array('status' => true, 'msg' => 'Imagen eliminada correctamente');
+                        } else {
+                            $arrResponse = array('status' => false, 'msg' => 'Error al eliminar la imagen de la base de datos');
                         }
                     } else {
-                        $arrResponse = array('status' => false, 'msg' => 'Error al eliminar el archivo físico');
+                        $arrResponse = array('status' => false, 'msg' => 'Producto no encontrado');
                     }
                 } else {
-                    $arrResponse = array('status' => false, 'msg' => 'Producto no encontrado');
+                    $arrResponse = array('status' => false, 'msg' => 'ID de producto inválido');
                 }
             } else {
-                $arrResponse = array('status' => false, 'msg' => 'Datos incompletos');
+                $arrResponse = array('status' => false, 'msg' => 'Método no permitido');
             }
-        } else {
-            $arrResponse = array('status' => false, 'msg' => 'Método no permitido');
+        } catch (Exception $e) {
+            $arrResponse = array('status' => false, 'msg' => 'Error en el servidor: ' . $e->getMessage());
         }
         
-        header('Content-Type: application/json');
+        // Limpiar output buffer y enviar respuesta JSON limpia
+        ob_clean();
         echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         die();
     }
@@ -532,6 +603,67 @@ class Productos extends Controllers {
         ];
 
         $this->views->getView($this, 'detalle', $data);
+    }
+
+    // Método para procesar imagen y convertir a BLOB
+    private function processImageToBlob($imageFile) {
+        if (!$imageFile || $imageFile['error'] !== UPLOAD_ERR_OK) {
+            return ['status' => false, 'msg' => 'Error en el archivo de imagen'];
+        }
+
+        // Validar tipo de archivo
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        $fileType = $imageFile['type'];
+        
+        if (!in_array($fileType, $allowedTypes)) {
+            return ['status' => false, 'msg' => 'Tipo de archivo no permitido. Solo se permiten imágenes.'];
+        }
+
+        // Validar tamaño (máximo 5MB)
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if ($imageFile['size'] > $maxSize) {
+            return ['status' => false, 'msg' => 'El archivo es muy grande. Máximo 5MB permitido.'];
+        }
+
+        // Leer el archivo como binario
+        $imagenBlob = file_get_contents($imageFile['tmp_name']);
+        if ($imagenBlob === false) {
+            return ['status' => false, 'msg' => 'Error al procesar la imagen'];
+        }
+
+        return [
+            'status' => true,
+            'blob' => $imagenBlob,
+            'tipo' => $fileType,
+            'nombre' => $imageFile['name'],
+            'size' => $imageFile['size']
+        ];
+    }
+
+    // Método para servir imagen desde BLOB
+    public function obtenerImagen($id) {
+        if (empty($id) || !ctype_digit((string)$id)) {
+            http_response_code(400);
+            echo 'ID de producto inválido';
+            return;
+        }
+
+        $imagen = $this->model->obtenerImagenBlob((int)$id);
+        
+        if (!$imagen || empty($imagen['imagen_blob'])) {
+            http_response_code(404);
+            echo 'Imagen no encontrada';
+            return;
+        }
+
+        // Configurar headers apropiados
+        header('Content-Type: ' . ($imagen['imagen_tipo'] ?? 'image/jpeg'));
+        header('Content-Length: ' . strlen($imagen['imagen_blob']));
+        header('Cache-Control: max-age=3600'); // Cache por 1 hora
+        
+        // Enviar imagen
+        echo $imagen['imagen_blob'];
+        exit();
     }
 
     private function flash(string $msg, string $type = 'info') { $_SESSION['flash'] = ['msg' => $msg, 'type' => $type]; }
