@@ -174,14 +174,19 @@
 										</div>
 									</div>
 									
-									<?php if (!empty($producto['imagen']) && !empty($producto['ruta'])): ?>
-										<img src="<?= BASE_URL ?>/<?= $producto['ruta'] ?><?= $producto['imagen'] ?>" 
-											 alt="<?= htmlspecialchars($producto['Nombre_Producto']) ?>"
-											 onerror="this.src='<?= BASE_URL ?>/Assets/images/product-not-available.svg'">
-									<?php else: ?>
-										<img src="<?= BASE_URL ?>/Assets/images/product-not-available.svg" 
-											 alt="<?= htmlspecialchars($producto['Nombre_Producto']) ?>">
-									<?php endif; ?>
+									<?php 
+									// Manejar imágenes BLOB de la BD
+									if (!empty($producto['imagen_blob'])) {
+										// Imagen BLOB - usar endpoint
+										$imageSrc = base_url() . '/productos/obtenerImagen/' . $producto['idProducto'];
+									} else {
+										// Sin imagen - usar placeholder
+										$imageSrc = BASE_URL . '/Assets/images/product-not-available.svg';
+									}
+									?>
+									<img src="<?= $imageSrc ?>" 
+										 alt="<?= htmlspecialchars($producto['Nombre_Producto']) ?>"
+										 onerror="this.src='<?= BASE_URL ?>/Assets/images/product-not-available.svg'">
 								</div>
 
 								<!-- Información del producto -->
@@ -203,7 +208,7 @@
 										<?= $producto['idProducto'] ?>, 
 										'<?= htmlspecialchars($producto['Nombre_Producto'], ENT_QUOTES) ?>', 
 										<?= !empty($producto['En_Oferta']) && $producto['En_Oferta'] == 1 ? $producto['Precio_Oferta'] : $producto['Precio_Venta'] ?>, 
-										'<?= !empty($producto['imagen']) && !empty($producto['ruta']) ? BASE_URL . '/' . $producto['ruta'] . $producto['imagen'] : BASE_URL . '/Assets/images/product-not-available.svg' ?>', 
+										'<?= !empty($producto['imagen_blob']) ? base_url() . '/productos/obtenerImagen/' . $producto['idProducto'] : BASE_URL . '/Assets/images/product-not-available.svg' ?>', 
 										'<?= htmlspecialchars($producto['Marca'] ?? 'Alto Voltaje', ENT_QUOTES) ?>'
 									)">
 										Agregar al carrito

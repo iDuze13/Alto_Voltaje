@@ -1,5 +1,9 @@
-var base_url = "http://localhost/AltoVoltaje";
 var tableSubcategorias;
+
+// Verificar que base_url esté definido
+if (typeof base_url === 'undefined') {
+    console.error('base_url no está definido en subcategorías');
+}
 
 function openModal() {
     // Limpiar campos del formulario
@@ -44,6 +48,10 @@ function openModal() {
 }
 
 function loadCategorias() {
+    if (typeof base_url === 'undefined') {
+        console.error('base_url no definido para cargar categorías');
+        return;
+    }
     let request = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
     let ajaxUrl = base_url + '/Subcategorias/getCategoriasSelect';
     request.open("GET", ajaxUrl, true);
@@ -222,6 +230,14 @@ function showProductosAsociados(idsubcategoria) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que base_url esté definido
+    if (typeof base_url === 'undefined') {
+        console.error('base_url no está definido en subcategorías');
+        return;
+    }
+    
+    console.log('Inicializando subcategorías con base_url:', base_url);
+    
     // Cargar categorías al inicializar la página
     loadCategorias();
     
@@ -232,7 +248,15 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         "ajax": {
             "url": base_url + "/Subcategorias/getSubcategorias",
-            "dataSrc": ""
+            "dataSrc": "",
+            "error": function(xhr, error, thrown) {
+                console.error('Error AJAX subcategorías:', {
+                    status: xhr.status,
+                    error: error,
+                    thrown: thrown,
+                    url: base_url + "/Subcategorias/getSubcategorias"
+                });
+            }
         },
         "columns": [
             { "data": "idSubCategoria" },

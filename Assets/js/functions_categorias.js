@@ -1,16 +1,51 @@
 console.log("functions_categorias.js cargado");
-var base_url = "http://localhost/AltoVoltaje";
 var tableCategorias;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que base_url esté definido (debería venir del footer)
+    if (typeof base_url === 'undefined') {
+        console.error('base_url no está definido en categorías');
+        // Intentar definir base_url como fallback
+        base_url = window.location.origin + '/AltoVoltaje';
+        console.warn('Usando base_url como fallback:', base_url);
+    }
+    
+    console.log('Inicializando DataTable de categorías con base_url:', base_url);
+    
     // Inicializar DataTable
     tableCategorias = $('#tableCategorias').DataTable({
         "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            "decimal": "",
+            "emptyTable": "No hay información",
+            "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
+            "infoEmpty": "Mostrando 0 to 0 of 0 Entradas",
+            "infoFiltered": "(Filtrado de _MAX_ total entradas)",
+            "infoPostFix": "",
+            "thousands": ",",
+            "lengthMenu": "Mostrar _MENU_ Entradas",
+            "loadingRecords": "Cargando...",
+            "processing": "Procesando...",
+            "search": "Buscar:",
+            "zeroRecords": "Sin resultados encontrados",
+            "paginate": {
+                "first": "Primero",
+                "last": "Ultimo",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
         },
         "ajax": {
-            "url": base_url + "/categorias/getCategorias",
-            "dataSrc": ""
+            "url": base_url + "/Categorias/getCategorias",
+            "dataSrc": "",
+            "error": function(xhr, error, thrown) {
+                console.error('Error AJAX categorías:', {
+                    status: xhr.status,
+                    error: error,
+                    thrown: thrown,
+                    url: base_url + "/Categorias/getCategorias",
+                    responseText: xhr.responseText
+                });
+            }
         },
         "columns": [
             { "data": "idcategoria" },
@@ -85,22 +120,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         let request = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
-        let ajaxUrl = base_url+'/Categorias/setCategoria'; 
+        let ajaxUrl = base_url+'/Categorias/setCategoriaBlob'; 
         let formData = new FormData(formCategoria);
         request.open("POST",ajaxUrl,true);
         request.send(formData);
         request.onreadystatechange = function(){
            if(request.readyState == 4 && request.status == 200){
-                let objData = JSON.parse(request.responseText);
-                if(objData.status)
-                {
-                    tableCategorias.ajax.reload();
-                    $('#modalFormCategorias').modal("hide");
-                    formCategoria.reset();
-                    swal("Categoria", objData.msg ,"success");
-                    removePhoto();
-                }else{
-                    swal("Error", objData.msg , "error");
+                try {
+                    let objData = JSON.parse(request.responseText);
+                    if(objData.status)
+                    {
+                        tableCategorias.ajax.reload();
+                        $('#modalFormCategorias').modal("hide");
+                        formCategoria.reset();
+                        swal("Categoria", objData.msg ,"success");
+                        removePhoto();
+                    }else{
+                        swal("Error", objData.msg , "error");
+                    }
+                } catch (e) {
+                    console.error("Error al parsear JSON:", e);
+                    console.error("Respuesta del servidor:", request.responseText);
+                    swal("Error", "Error al procesar la respuesta del servidor", "error");
                 }              
             } 
             return false;
@@ -126,7 +167,13 @@ function fntViewInfo(idcategoria){
                 document.querySelector("#celNombre").innerHTML = objData.data.nombre;
                 document.querySelector("#celDescripcion").innerHTML = objData.data.descripcion;
                 document.querySelector("#celEstado").innerHTML = estado;
-                document.querySelector("#imgCategoria").innerHTML = '<img src="'+objData.data.url_portada+'"></img>';
+                
+                // Usar endpoint BLOB si existe imagen_blob, sino usar portada legacy
+                let imageUrl = objData.data.imagen_blob ? 
+                    base_url + '/categorias/obtenerImagen/' + objData.data.idcategoria :
+                    objData.data.url_portada || objData.data.imagen_url;
+                document.querySelector("#imgCategoria").innerHTML = '<img src="'+imageUrl+'"></img>';
+                
                 $('#modalViewCategoria').modal('show');
             }else{
                 swal("Error", objData.msg , "error");
@@ -166,10 +213,15 @@ function fntEditInfo(element,idcategoria){
                     $('#listStatus').selectpicker('refresh');
                 }
 
+                // Usar endpoint BLOB si existe imagen_blob, sino usar portada legacy
+                let imageUrl = objData.data.imagen_blob ? 
+                    base_url + '/categorias/obtenerImagen/' + objData.data.idcategoria :
+                    objData.data.url_portada || objData.data.imagen_url;
+
                 if(document.querySelector('#img')){
-                    document.querySelector('#img').src = objData.data.url_portada;
+                    document.querySelector('#img').src = imageUrl;
                 }else{
-                    document.querySelector('.prevPhoto div').innerHTML = "<img id='img' src="+objData.data.url_portada+">";
+                    document.querySelector('.prevPhoto div').innerHTML = "<img id='img' src='"+imageUrl+"'>";
                 }
 
                 if(objData.data.portada == 'portada_categoria.png'){

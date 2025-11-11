@@ -34,6 +34,12 @@
             $this->subcategorias();
         }
 
+        // Alias para listar subcategorías (usado en redirecciones)
+        public function listar()
+        {
+            $this->subcategorias();
+        }
+
         public function setSubcategoria(){
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
@@ -94,6 +100,9 @@
 
         public function getSubcategorias()
 		{
+			// Set proper JSON content type
+			header('Content-Type: application/json');
+			
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
 				$_SESSION['permisosMod'] = [
@@ -104,49 +113,60 @@
 				];
 			}
 
-			if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['r']){
-				$arrData = $this->model->selectSubCategorias();
-				
-				for ($i=0; $i < count($arrData); $i++) {
-					$btnView = '';
-					$btnEdit = '';
-					$btnDelete = '';
-
-					// Mapear IdSubCategoria a idSubCategoria para consistencia con DataTables
-					if (isset($arrData[$i]['IdSubCategoria'])) {
-						$arrData[$i]['idSubCategoria'] = $arrData[$i]['IdSubCategoria'];
-					}
-
-					// Verificar el nombre correcto del campo de estado
-					$estadoField = isset($arrData[$i]['Estado_SubCategoria']) ? 'Estado_SubCategoria' : 'estado_subcategoria';
+			try {
+				if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['r']){
+					$arrData = $this->model->selectSubCategorias();
 					
-					// El estado puede ser string "ACTIVO" o número 1
-					if($arrData[$i][$estadoField] == 1 || $arrData[$i][$estadoField] == 'ACTIVO')
-					{
-						$arrData[$i][$estadoField] = '<span class="badge badge-success">Activo</span>';
-					}else{
-						$arrData[$i][$estadoField] = '<span class="badge badge-danger">Inactivo</span>';
-					}
+					// Debug log
+					error_log("SubcategoriasController::getSubcategorias - Subcategorías obtenidas: " . count($arrData));
+					
+					for ($i=0; $i < count($arrData); $i++) {
+						$btnView = '';
+						$btnEdit = '';
+						$btnDelete = '';
 
-					// Reemplazar el ID de categoría con el nombre
-					$arrData[$i]['categoria_nombre_display'] = isset($arrData[$i]['categoria_nombre']) ? $arrData[$i]['categoria_nombre'] : 'Sin categoría';
+						// Mapear IdSubCategoria a idSubCategoria para consistencia con DataTables
+						if (isset($arrData[$i]['IdSubCategoria'])) {
+							$arrData[$i]['idSubCategoria'] = $arrData[$i]['IdSubCategoria'];
+						}
 
-					// Usar el nombre de campo correcto - verificar si es IdSubCategoria o idSubCategoria
-					$idField = isset($arrData[$i]['IdSubCategoria']) ? 'IdSubCategoria' : 'idSubCategoria';
-					$subcategoriaId = $arrData[$i][$idField];
+						// Verificar el nombre correcto del campo de estado
+						$estadoField = isset($arrData[$i]['Estado_SubCategoria']) ? 'Estado_SubCategoria' : 'estado_subcategoria';
+						
+						// El estado puede ser string "ACTIVO" o número 1
+						if($arrData[$i][$estadoField] == 1 || $arrData[$i][$estadoField] == 'ACTIVO')
+						{
+							$arrData[$i][$estadoField] = '<span class="badge badge-success">Activo</span>';
+						}else{
+							$arrData[$i][$estadoField] = '<span class="badge badge-danger">Inactivo</span>';
+						}
 
-					if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['r']){
-						$btnView = '<button class="btn btn-info btn-sm" onClick="fntViewInfo('.$subcategoriaId.')" title="Ver subcategoría"><i class="far fa-eye"></i></button>';
+						// Reemplazar el ID de categoría con el nombre
+						$arrData[$i]['categoria_nombre_display'] = isset($arrData[$i]['categoria_nombre']) ? $arrData[$i]['categoria_nombre'] : 'Sin categoría';
+
+						// Usar el nombre de campo correcto - verificar si es IdSubCategoria o idSubCategoria
+						$idField = isset($arrData[$i]['IdSubCategoria']) ? 'IdSubCategoria' : 'idSubCategoria';
+						$subcategoriaId = $arrData[$i][$idField];
+
+						if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['r']){
+							$btnView = '<button class="btn btn-info btn-sm" onClick="fntViewInfo('.$subcategoriaId.')" title="Ver subcategoría"><i class="far fa-eye"></i></button>';
+						}
+						if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['u']){
+							$btnEdit = '<button class="btn btn-primary  btn-sm" onClick="fntEditInfo(this,'.$subcategoriaId.')" title="Editar subcategoría"><i class="fas fa-pencil-alt"></i></button>';
+						}
+						if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['d']){	
+							$btnDelete = '<button class="btn btn-danger btn-sm" onClick="fntDelInfo('.$subcategoriaId.')" title="Eliminar subcategoría"><i class="far fa-trash-alt"></i></button>';
+						}
+						$arrData[$i]['options'] = '<div class="text-center">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
 					}
-					if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['u']){
-						$btnEdit = '<button class="btn btn-primary  btn-sm" onClick="fntEditInfo(this,'.$subcategoriaId.')" title="Editar subcategoría"><i class="fas fa-pencil-alt"></i></button>';
-					}
-					if(isset($_SESSION['permisosMod']) && $_SESSION['permisosMod']['d']){	
-						$btnDelete = '<button class="btn btn-danger btn-sm" onClick="fntDelInfo('.$subcategoriaId.')" title="Eliminar subcategoría"><i class="far fa-trash-alt"></i></button>';
-					}
-					$arrData[$i]['options'] = '<div class="text-center">'.$btnView.' '.$btnEdit.' '.$btnDelete.'</div>';
+					echo json_encode($arrData,JSON_UNESCAPED_UNICODE);
+				} else {
+					// Return empty array for DataTables when no permissions
+					echo json_encode([], JSON_UNESCAPED_UNICODE);
 				}
-				echo json_encode($arrData,JSON_UNESCAPED_UNICODE);
+			} catch (Exception $e) {
+				error_log("Error in getSubcategorias: " . $e->getMessage());
+				echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
 			}
 			die();
 		}
