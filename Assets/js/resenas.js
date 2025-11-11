@@ -1,448 +1,375 @@
 /**
- * Gestor de Reseñas para productos
+ * JavaScript para el sistema de reseñas
+ * Alto Voltaje
  */
-class ResenasManager {
-    constructor(productoId) {
-        this.productoId = productoId;
-        this.currentPage = 1;
-        this.loading = false;
-        this.init();
-    }
 
-    init() {
-        this.setupEventListeners();
-        this.loadResenas();
-    }
+$(document).ready(function() {
+    initializeReviews();
+});
 
-    setupEventListeners() {
-        // Botón para mostrar formulario de nueva reseña
-        const btnNuevaResena = document.querySelector('.btn-nueva-resena');
-        if (btnNuevaResena) {
-            btnNuevaResena.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleFormulario();
-            });
-        }
+/**
+ * Inicializar funcionalidad de reseñas
+ */
+function initializeReviews() {
+    // Rating interactivo para formulario
+    initializeRatingInput();
+    
+    // Envío de formulario de reseña
+    $('#review-form').on('submit', function(e) {
+        e.preventDefault();
+        submitReview(this);
+    });
+}
 
-        // Selector de calificación con estrellas
-        this.setupCalificacionSelector();
-
-        // Formulario de envío
-        const formulario = document.getElementById('formulario-resena');
-        if (formulario) {
-            formulario.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.enviarResena();
-            });
-        }
-
-        // Botón cancelar
-        const btnCancelar = document.querySelector('.btn-cancelar');
-        if (btnCancelar) {
-            btnCancelar.addEventListener('click', () => {
-                this.ocultarFormulario();
-            });
-        }
-
-        // Botones de utilidad en reseñas existentes
-        this.setupUtilidadBotones();
-    }
-
-    setupCalificacionSelector() {
-        const selector = document.querySelector('.calificacion-selector');
-        if (!selector) return;
-
-        const estrellas = selector.querySelectorAll('.estrella');
-        const inputCalificacion = document.getElementById('calificacion');
-
-        estrellas.forEach((estrella, index) => {
-            estrella.addEventListener('mouseenter', () => {
-                this.highlightEstrellas(estrellas, index + 1);
-            });
-
-            estrella.addEventListener('mouseleave', () => {
-                const calificacion = inputCalificacion.value || 0;
-                this.highlightEstrellas(estrellas, calificacion);
-            });
-
-            estrella.addEventListener('click', () => {
-                const calificacion = index + 1;
-                inputCalificacion.value = calificacion;
-                this.highlightEstrellas(estrellas, calificacion);
-            });
-        });
-    }
-
-    highlightEstrellas(estrellas, cantidad) {
-        estrellas.forEach((estrella, index) => {
-            if (index < cantidad) {
-                estrella.classList.add('activa');
+/**
+ * Inicializar input de calificación con estrellas
+ */
+function initializeRatingInput() {
+    const starsInput = $('.stars-input i');
+    let selectedRating = 0;
+    
+    starsInput.on('mouseenter', function() {
+        const rating = $(this).data('rating');
+        highlightStars(rating);
+    });
+    
+    $('.stars-input').on('mouseleave', function() {
+        highlightStars(selectedRating);
+    });
+    
+    starsInput.on('click', function() {
+        selectedRating = $(this).data('rating');
+        $('#rating-value').val(selectedRating);
+        highlightStars(selectedRating);
+    });
+    
+    function highlightStars(rating) {
+        starsInput.each(function() {
+            const starRating = $(this).data('rating');
+            if (starRating <= rating) {
+                $(this).removeClass('fa-star-o').addClass('fa-star active');
             } else {
-                estrella.classList.remove('activa');
+                $(this).removeClass('fa-star active').addClass('fa-star-o');
             }
         });
-    }
-
-    setupUtilidadBotones() {
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('btn-util')) {
-                e.preventDefault();
-                const resenaId = e.target.dataset.resenaId;
-                const tipo = e.target.dataset.tipo;
-                this.marcarUtil(resenaId, tipo, e.target);
-            }
-        });
-    }
-
-    toggleFormulario() {
-        const formulario = document.querySelector('.formulario-resena');
-        if (!formulario) return;
-
-        if (formulario.classList.contains('activo')) {
-            this.ocultarFormulario();
-        } else {
-            this.mostrarFormulario();
-        }
-    }
-
-    mostrarFormulario() {
-        const formulario = document.querySelector('.formulario-resena');
-        const btn = document.querySelector('.btn-nueva-resena');
-        
-        if (formulario && btn) {
-            formulario.classList.add('activo');
-            btn.textContent = 'Cancelar';
-            formulario.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    ocultarFormulario() {
-        const formulario = document.querySelector('.formulario-resena');
-        const btn = document.querySelector('.btn-nueva-resena');
-        
-        if (formulario && btn) {
-            formulario.classList.remove('activo');
-            btn.textContent = 'Escribir reseña';
-            this.resetFormulario();
-        }
-    }
-
-    resetFormulario() {
-        const form = document.getElementById('formulario-resena');
-        if (form) {
-            form.reset();
-            document.getElementById('calificacion').value = '';
-            const estrellas = document.querySelectorAll('.calificacion-selector .estrella');
-            estrellas.forEach(e => e.classList.remove('activa'));
-        }
-    }
-
-    async loadResenas() {
-        if (this.loading) return;
-        
-        this.loading = true;
-        this.showLoading();
-
-        try {
-            const response = await fetch(`${window.BASE_URL}/resenas/obtener/${this.productoId}?page=${this.currentPage}`);
-            const data = await response.json();
-
-            if (data.success) {
-                this.renderEstadisticas(data.estadisticas);
-                this.renderResenas(data.resenas);
-            } else {
-                this.showError('Error al cargar las reseñas');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.showError('Error de conexión');
-        } finally {
-            this.loading = false;
-            this.hideLoading();
-        }
-    }
-
-    renderEstadisticas(stats) {
-        if (!stats) return;
-
-        const totalResenas = stats.total_resenas || 0;
-        const promedio = parseFloat(stats.promedio_calificacion || 0);
-
-        // Actualizar promedio
-        const promedioNumero = document.querySelector('.promedio-numero');
-        if (promedioNumero) {
-            promedioNumero.textContent = totalResenas > 0 ? promedio.toFixed(1) : '0.0';
-        }
-
-        // Actualizar estrellas del promedio
-        const promedioEstrellas = document.querySelector('.promedio-estrellas');
-        if (promedioEstrellas) {
-            promedioEstrellas.innerHTML = this.generateEstrellas(promedio);
-        }
-
-        // Actualizar total
-        const totalElement = document.querySelector('.total-resenas');
-        if (totalElement) {
-            totalElement.textContent = `${totalResenas} reseña${totalResenas !== 1 ? 's' : ''}`;
-        }
-
-        // Actualizar barras de progreso
-        this.updateBarrasProgreso(stats, totalResenas);
-    }
-
-    updateBarrasProgreso(stats, total) {
-        for (let i = 1; i <= 5; i++) {
-            const cantidad = parseInt(stats[`estrella_${i}`] || 0);
-            const porcentaje = total > 0 ? (cantidad / total) * 100 : 0;
-
-            const barra = document.querySelector(`.barra-calificacion[data-estrella="${i}"]`);
-            if (barra) {
-                const relleno = barra.querySelector('.barra-relleno');
-                const cantidadElement = barra.querySelector('.barra-cantidad');
-                
-                if (relleno) relleno.style.width = `${porcentaje}%`;
-                if (cantidadElement) cantidadElement.textContent = cantidad;
-            }
-        }
-    }
-
-    renderResenas(resenas) {
-        const lista = document.querySelector('.resenas-lista');
-        if (!lista) return;
-
-        if (!resenas || resenas.length === 0) {
-            lista.innerHTML = '<div class="no-resenas">No hay reseñas aún. ¡Sé el primero en escribir una!</div>';
-            return;
-        }
-
-        const html = resenas.map(resena => this.generateResenaHTML(resena)).join('');
-        
-        if (this.currentPage === 1) {
-            lista.innerHTML = html;
-        } else {
-            lista.insertAdjacentHTML('beforeend', html);
-        }
-    }
-
-    generateResenaHTML(resena) {
-        const fecha = new Date(resena.fecha_creacion).toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
-        const estrellas = this.generateEstrellas(resena.calificacion);
-        const verificado = resena.verificado ? '<span class="resena-verificada">Verificada</span>' : '';
-
-        return `
-            <div class="resena-item">
-                <div class="resena-header">
-                    <div class="resena-autor">
-                        <div class="autor-nombre">${this.escapeHtml(resena.usuario_nombre)}</div>
-                        <div class="resena-fecha">${fecha}</div>
-                    </div>
-                    <div class="resena-calificacion">
-                        ${estrellas}
-                        ${verificado}
-                    </div>
-                </div>
-                
-                <h4 class="resena-titulo">${this.escapeHtml(resena.titulo)}</h4>
-                <p class="resena-comentario">${this.escapeHtml(resena.comentario)}</p>
-                
-                <div class="resena-acciones">
-                    <button class="btn-util" data-resena-id="${resena.id}" data-tipo="positivo">
-                        👍 Útil (${resena.util_positivo || 0})
-                    </button>
-                    <button class="btn-util" data-resena-id="${resena.id}" data-tipo="negativo">
-                        👎 No útil (${resena.util_negativo || 0})
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    generateEstrellas(calificacion) {
-        const estrellasCompletas = Math.floor(calificacion);
-        const tieneMedia = calificacion % 1 >= 0.5;
-        let html = '';
-
-        for (let i = 1; i <= 5; i++) {
-            if (i <= estrellasCompletas) {
-                html += '<span class="estrella activa">★</span>';
-            } else if (i === estrellasCompletas + 1 && tieneMedia) {
-                html += '<span class="estrella activa">★</span>';
-            } else {
-                html += '<span class="estrella">★</span>';
-            }
-        }
-
-        return `<div class="estrellas">${html}</div>`;
-    }
-
-    async enviarResena() {
-        const form = document.getElementById('formulario-resena');
-        const formData = new FormData(form);
-        formData.append('producto_id', this.productoId);
-
-        // Validación básica
-        if (!this.validarFormulario(formData)) {
-            return;
-        }
-
-        try {
-            this.showEnviando();
-
-            const response = await fetch(`${window.BASE_URL}/resenas/crear`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.showSuccess(data.message);
-                this.ocultarFormulario();
-                // Recargar reseñas para mostrar la nueva (si está aprobada)
-                this.currentPage = 1;
-                setTimeout(() => this.loadResenas(), 1000);
-            } else {
-                this.showError(data.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.showError('Error al enviar la reseña');
-        } finally {
-            this.hideEnviando();
-        }
-    }
-
-    validarFormulario(formData) {
-        const nombre = formData.get('usuario_nombre');
-        const email = formData.get('usuario_email');
-        const calificacion = formData.get('calificacion');
-        const titulo = formData.get('titulo');
-        const comentario = formData.get('comentario');
-
-        if (!nombre || !email || !calificacion || !titulo || !comentario) {
-            this.showError('Todos los campos son obligatorios');
-            return false;
-        }
-
-        if (calificacion < 1 || calificacion > 5) {
-            this.showError('Selecciona una calificación de 1 a 5 estrellas');
-            return false;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            this.showError('Ingresa un email válido');
-            return false;
-        }
-
-        return true;
-    }
-
-    async marcarUtil(resenaId, tipo, button) {
-        if (button.classList.contains('activo')) return;
-
-        try {
-            const formData = new FormData();
-            formData.append('resena_id', resenaId);
-            formData.append('tipo', tipo);
-
-            const response = await fetch(`${window.BASE_URL}/resenas/marcar_util`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                button.classList.add('activo');
-                // Actualizar contador
-                const match = button.textContent.match(/\((\d+)\)/);
-                if (match) {
-                    const newCount = parseInt(match[1]) + 1;
-                    button.textContent = button.textContent.replace(/\(\d+\)/, `(${newCount})`);
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
-    // Métodos de UI
-    showLoading() {
-        const lista = document.querySelector('.resenas-lista');
-        if (lista) {
-            lista.innerHTML = '<div class="loading">Cargando reseñas</div>';
-        }
-    }
-
-    hideLoading() {
-        // El loading se reemplaza con el contenido
-    }
-
-    showEnviando() {
-        const btn = document.querySelector('.btn-enviar');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Enviando...';
-        }
-    }
-
-    hideEnviando() {
-        const btn = document.querySelector('.btn-enviar');
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Enviar reseña';
-        }
-    }
-
-    showSuccess(message) {
-        this.showAlert(message, 'success');
-    }
-
-    showError(message) {
-        this.showAlert(message, 'error');
-    }
-
-    showAlert(message, type) {
-        // Remover alertas existentes
-        const existingAlerts = document.querySelectorAll('.alert');
-        existingAlerts.forEach(alert => alert.remove());
-
-        // Crear nueva alerta
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type}`;
-        alert.textContent = message;
-
-        // Insertar después del header de reseñas
-        const header = document.querySelector('.resenas-header');
-        if (header) {
-            header.insertAdjacentElement('afterend', alert);
-        }
-
-        // Auto-remover después de 5 segundos
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
-            }
-        }, 5000);
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 }
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    const productoId = window.PRODUCTO_ID;
-    if (productoId) {
-        window.resenasManager = new ResenasManager(productoId);
+/**
+ * Enviar nueva reseña
+ */
+function submitReview(form) {
+    const formData = new FormData(form);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+    
+    // Validar calificación
+    if (!data.calificacion || data.calificacion === '0') {
+        showReviewNotification('Por favor selecciona una calificación', 'error');
+        return;
     }
-});
+    
+    // Deshabilitar botón de envío
+    const submitBtn = $(form).find('button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Enviando...');
+    
+    $.ajax({
+        url: window.BASE_URL + '/resenas/crear',
+        method: 'POST',
+        data: data,
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                showReviewNotification(response.message, 'success');
+                
+                // Limpiar formulario
+                form.reset();
+                $('#rating-value').val('0');
+                $('.stars-input i').removeClass('fa-star active').addClass('fa-star-o');
+                
+                // Recargar página después de 2 segundos
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            } else {
+                showReviewNotification(response.message || 'Error al enviar la reseña', 'error');
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al enviar reseña:', error);
+            showReviewNotification('Error de conexión al enviar la reseña', 'error');
+            submitBtn.prop('disabled', false).html(originalText);
+        }
+    });
+}
+
+/**
+ * Marcar reseña como útil o no útil
+ */
+function marcarUtil(resenaId, tipo) {
+    // Verificar si ya votó (usar localStorage)
+    const voteKey = `review_vote_${resenaId}`;
+    if (localStorage.getItem(voteKey)) {
+        showReviewNotification('Ya has votado esta reseña', 'info');
+        return;
+    }
+    
+    $.ajax({
+        url: window.BASE_URL + '/resenas/marcar_util',
+        method: 'POST',
+        data: {
+            resena_id: resenaId,
+            tipo: tipo
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                // Guardar voto en localStorage
+                localStorage.setItem(voteKey, tipo);
+                
+                showReviewNotification('¡Gracias por tu opinión!', 'success');
+                
+                // Recargar para actualizar contadores
+                setTimeout(function() {
+                    location.reload();
+                }, 1000);
+            } else {
+                showReviewNotification(response.message || 'Error al procesar tu voto', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al marcar reseña:', error);
+            showReviewNotification('Error de conexión', 'error');
+        }
+    });
+}
+
+/**
+ * Mostrar notificación
+ */
+function showReviewNotification(message, type) {
+    // Remover notificaciones anteriores
+    $('.review-notification').remove();
+    
+    let bgColor = '#28a745'; // success
+    let icon = 'check-circle';
+    
+    if (type === 'error') {
+        bgColor = '#dc3545';
+        icon = 'exclamation-circle';
+    } else if (type === 'info') {
+        bgColor = '#17a2b8';
+        icon = 'info-circle';
+    } else if (type === 'warning') {
+        bgColor = '#ffc107';
+        icon = 'exclamation-triangle';
+    }
+    
+    const notification = $('<div class="review-notification"></div>')
+        .css({
+            'position': 'fixed',
+            'top': '20px',
+            'right': '20px',
+            'background': bgColor,
+            'color': 'white',
+            'padding': '15px 25px',
+            'border-radius': '8px',
+            'font-size': '14px',
+            'font-weight': '500',
+            'z-index': '9999',
+            'box-shadow': '0 4px 12px rgba(0,0,0,0.2)',
+            'opacity': '0',
+            'transform': 'translateY(-20px)',
+            'transition': 'all 0.3s ease',
+            'display': 'flex',
+            'align-items': 'center',
+            'gap': '10px'
+        })
+        .html(`<i class="fa fa-${icon}"></i> ${message}`);
+    
+    $('body').append(notification);
+    
+    // Animación de entrada
+    setTimeout(function() {
+        notification.css({
+            'opacity': '1',
+            'transform': 'translateY(0)'
+        });
+    }, 10);
+    
+    // Auto remover después de 4 segundos
+    setTimeout(function() {
+        notification.css({
+            'opacity': '0',
+            'transform': 'translateY(-20px)'
+        });
+        setTimeout(function() {
+            notification.remove();
+        }, 300);
+    }, 4000);
+}
+
+/**
+ * Cargar más reseñas (paginación)
+ */
+function loadMoreReviews(productoId, page) {
+    $.ajax({
+        url: window.BASE_URL + '/resenas/obtener/' + productoId,
+        method: 'GET',
+        data: { page: page },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.resenas.length > 0) {
+                // Agregar reseñas al contenedor
+                response.resenas.forEach(function(resena) {
+                    const reviewHtml = createReviewHtml(resena);
+                    $('#reviews-container').append(reviewHtml);
+                });
+            } else {
+                showReviewNotification('No hay más reseñas para cargar', 'info');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al cargar reseñas:', error);
+            showReviewNotification('Error al cargar reseñas', 'error');
+        }
+    });
+}
+
+/**
+ * Crear HTML de una reseña
+ */
+function createReviewHtml(resena) {
+    const verificado = resena.verificado == 1 
+        ? '<span class="badge bg-success ms-2"><i class="fa fa-check-circle"></i> Compra Verificada</span>' 
+        : '';
+    
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<i class="fa fa-star${i > resena.calificacion ? ' text-muted' : ''}"></i>`;
+    }
+    
+    const titulo = resena.titulo ? `<h6 class="review-title">${escapeHtml(resena.titulo)}</h6>` : '';
+    
+    const fecha = new Date(resena.fecha_creacion).toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+    
+    return `
+        <div class="review-item">
+            <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                    <i class="fa fa-user-circle"></i>
+                </div>
+                <div class="reviewer-details">
+                    <h6>${escapeHtml(resena.usuario_nombre)} ${verificado}</h6>
+                    <div class="review-rating">${stars}</div>
+                    <span class="review-date">${fecha}</span>
+                </div>
+            </div>
+            ${titulo}
+            <p class="review-text">${escapeHtml(resena.comentario).replace(/\n/g, '<br>')}</p>
+            <div class="review-helpful mt-2">
+                <small class="text-muted">¿Te resultó útil?</small>
+                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="marcarUtil(${resena.id}, 'positivo')">
+                    <i class="fa fa-thumbs-up"></i> Sí (${resena.util_positivo})
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ms-1" onclick="marcarUtil(${resena.id}, 'negativo')">
+                    <i class="fa fa-thumbs-down"></i> No (${resena.util_negativo})
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Escapar HTML para prevenir XSS
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
+ * Eliminar una reseña propia
+ */
+function eliminarResena(resenaId) {
+    // Confirmar eliminación
+    if (typeof swal !== 'undefined') {
+        // Usar SweetAlert si está disponible
+        swal({
+            title: "¿Eliminar reseña?",
+            text: "Esta acción no se puede deshacer",
+            icon: "warning",
+            buttons: {
+                cancel: {
+                    text: "Cancelar",
+                    value: null,
+                    visible: true,
+                    className: "",
+                    closeModal: true,
+                },
+                confirm: {
+                    text: "Sí, eliminar",
+                    value: true,
+                    visible: true,
+                    className: "btn-danger",
+                    closeModal: true
+                }
+            },
+            dangerMode: true,
+        }).then((willDelete) => {
+            if (willDelete) {
+                ejecutarEliminacionResena(resenaId);
+            }
+        });
+    } else {
+        // Fallback a confirm nativo
+        if (confirm('¿Estás seguro de que deseas eliminar tu reseña? Esta acción no se puede deshacer.')) {
+            ejecutarEliminacionResena(resenaId);
+        }
+    }
+}
+
+/**
+ * Ejecutar la eliminación de reseña
+ */
+function ejecutarEliminacionResena(resenaId) {
+    $.ajax({
+        url: window.BASE_URL + '/resenas/eliminar',
+        method: 'POST',
+        data: {
+            resena_id: resenaId
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                showReviewNotification('Reseña eliminada correctamente', 'success');
+                
+                // Recargar página después de 1.5 segundos
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                showReviewNotification(response.message || 'Error al eliminar la reseña', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al eliminar reseña:', error);
+            showReviewNotification('Error de conexión al eliminar la reseña', 'error');
+        }
+    });
+}

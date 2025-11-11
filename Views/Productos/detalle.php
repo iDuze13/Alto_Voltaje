@@ -8,10 +8,17 @@ if (!$producto) {
     header('Location: ' . BASE_URL . '/tienda');
     exit;
 }
+
+// Variables de reseñas (disponibles globalmente en esta vista)
+$estadisticas = $data['estadisticas_resenas'] ?? [];
+$promedio = isset($estadisticas['promedio_calificacion']) ? floatval($estadisticas['promedio_calificacion']) : 0;
+$totalResenas = isset($estadisticas['total_resenas']) ? intval($estadisticas['total_resenas']) : 0;
+$promedioRedondeado = round($promedio);
 ?>
 
 <!-- Estilos para la página de detalles -->
 <link rel="stylesheet" type="text/css" href="<?= media() ?>/css/product-detail.css?v=1.0">
+<link rel="stylesheet" type="text/css" href="<?= media() ?>/css/resenas.css?v=1.0">
 
 <!-- Breadcrumb -->
 <div class="breadcrumb-section">
@@ -77,13 +84,11 @@ if (!$producto) {
                     <!-- Rating -->
                     <div class="product-rating">
                         <div class="stars">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star text-muted"></i>
+                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <i class="fa fa-star<?= $i > $promedioRedondeado ? ' text-muted' : '' ?>"></i>
+                            <?php endfor; ?>
                         </div>
-                        <span class="rating-text">(4.0) | 25 reseñas</span>
+                        <span class="rating-text">(<?= number_format($promedio, 1) ?>) | <?= $totalResenas ?> reseña<?= $totalResenas != 1 ? 's' : '' ?></span>
                     </div>
                     
                     <!-- Price -->
@@ -151,14 +156,14 @@ if (!$producto) {
                 <div class="product-tabs">
                     <nav>
                         <div class="nav nav-tabs mb-3">
-                            <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button">
+                            <button class="nav-link active" id="description-tab" data-toggle="tab" data-target="#description" type="button">
                                 Descripción
                             </button>
-                            <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button">
+                            <button class="nav-link" id="specifications-tab" data-toggle="tab" data-target="#specifications" type="button">
                                 Especificaciones
                             </button>
-                            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button">
-                                Reseñas (25)
+                            <button class="nav-link" id="reviews-tab" data-toggle="tab" data-target="#reviews" type="button">
+                                Reseñas (<?= $totalResenas ?>)
                             </button>
                         </div>
                     </nav>
@@ -212,52 +217,162 @@ if (!$producto) {
                             <div class="reviews-content">
                                 <h4>Reseñas de Clientes</h4>
                                 
-                                <!-- Review Item -->
-                                <div class="review-item">
-                                    <div class="reviewer-info">
-                                        <div class="reviewer-avatar">
-                                            <i class="fa fa-user-circle"></i>
-                                        </div>
-                                        <div class="reviewer-details">
-                                            <h6>María González</h6>
-                                            <div class="review-rating">
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
-                                                <i class="fa fa-star"></i>
+                                <!-- Estadísticas de Reseñas -->
+                                <?php if ($totalResenas > 0): ?>
+                                    <div class="reviews-summary mb-4">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3 text-center">
+                                                <div class="average-rating">
+                                                    <h2><?= number_format($promedio, 1) ?></h2>
+                                                    <div class="stars">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <i class="fa fa-star<?= $i > $promedioRedondeado ? ' text-muted' : '' ?>"></i>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                    <p class="text-muted"><?= $totalResenas ?> reseña<?= $totalResenas != 1 ? 's' : '' ?></p>
+                                                </div>
                                             </div>
-                                            <span class="review-date">15 de octubre, 2024</span>
+                                            <div class="col-md-9">
+                                                <?php for ($star = 5; $star >= 1; $star--): 
+                                                    $key = 'estrella_' . $star;
+                                                    $count = $data['estadisticas_resenas'][$key] ?? 0;
+                                                    $percentage = $totalResenas > 0 ? ($count / $totalResenas) * 100 : 0;
+                                                ?>
+                                                    <div class="rating-bar mb-2">
+                                                        <span class="rating-label"><?= $star ?> <i class="fa fa-star"></i></span>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar bg-warning" role="progressbar" 
+                                                                 style="width: <?= $percentage ?>%" 
+                                                                 aria-valuenow="<?= $percentage ?>" 
+                                                                 aria-valuemin="0" aria-valuemax="100">
+                                                                <?= $count ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endfor; ?>
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="review-text">Excelente producto, justo lo que esperaba. La calidad es muy buena y el envío fue rápido.</p>
+                                <?php endif; ?>
+                                
+                                <!-- Lista de Reseñas -->
+                                <div id="reviews-container">
+                                    <?php if (!empty($data['resenas'])): ?>
+                                        <?php foreach ($data['resenas'] as $resena): ?>
+                                            <div class="review-item">
+                                                <div class="reviewer-info">
+                                                    <div class="reviewer-avatar">
+                                                        <i class="fa fa-user-circle"></i>
+                                                    </div>
+                                                    <div class="reviewer-details">
+                                                        <h6>
+                                                            <?= htmlspecialchars($resena['usuario_nombre']) ?>
+                                                            <?php if ($resena['verificado'] == 1): ?>
+                                                                <span class="badge bg-success ms-2">
+                                                                    <i class="fa fa-check-circle"></i> Compra Verificada
+                                                                </span>
+                                                            <?php endif; ?>
+                                                        </h6>
+                                                        <div class="review-rating">
+                                                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                <i class="fa fa-star<?= $i > $resena['calificacion'] ? ' text-muted' : '' ?>"></i>
+                                                            <?php endfor; ?>
+                                                        </div>
+                                                        <span class="review-date">
+                                                            <?= date('d \d\e F, Y', strtotime($resena['fecha_creacion'])) ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <?php if (!empty($resena['titulo'])): ?>
+                                                    <h6 class="review-title"><?= htmlspecialchars($resena['titulo']) ?></h6>
+                                                <?php endif; ?>
+                                                <p class="review-text"><?= nl2br(htmlspecialchars($resena['comentario'])) ?></p>
+                                                
+                                                <!-- Botones de acción -->
+                                                <div class="review-actions mt-3 d-flex justify-content-between align-items-center">
+                                                    <div class="review-helpful">
+                                                        <small class="text-muted">¿Te resultó útil?</small>
+                                                        <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                                                onclick="marcarUtil(<?= $resena['id'] ?>, 'positivo')">
+                                                            <i class="fa fa-thumbs-up"></i> Sí (<?= $resena['util_positivo'] ?>)
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-secondary ms-1" 
+                                                                onclick="marcarUtil(<?= $resena['id'] ?>, 'negativo')">
+                                                            <i class="fa fa-thumbs-down"></i> No (<?= $resena['util_negativo'] ?>)
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <?php if ($data['usuario_logueado'] && isset($_SESSION['usuario']['id']) && $_SESSION['usuario']['id'] == $resena['usuario_id']): ?>
+                                                        <!-- Botones para el dueño de la reseña -->
+                                                        <div>
+                                                            <button class="btn btn-sm btn-warning me-2" 
+                                                                    onclick="editarResena(<?= $resena['id'] ?>, '<?= htmlspecialchars(addslashes($resena['titulo']), ENT_QUOTES) ?>', '<?= htmlspecialchars(addslashes($resena['comentario']), ENT_QUOTES) ?>', <?= $resena['calificacion'] ?>)"
+                                                                    title="Editar mi reseña">
+                                                                <i class="fa fa-edit"></i> Editar
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger" 
+                                                                    onclick="eliminarResena(<?= $resena['id'] ?>)"
+                                                                    title="Eliminar mi reseña">
+                                                                <i class="fa fa-trash"></i> Eliminar
+                                                            </button>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div class="alert alert-info">
+                                            <i class="fa fa-info-circle"></i> 
+                                            Este producto aún no tiene reseñas. ¡Sé el primero en opinar!
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                                 
                                 <!-- Add Review Form -->
                                 <div class="add-review-section mt-4">
                                     <h5>Agregar una Reseña</h5>
-                                    <form class="review-form">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" placeholder="Tu nombre" required>
+                                    
+                                    <?php if ($data['puede_resenar']): ?>
+                                        <!-- Formulario para usuarios que pueden reseñar -->
+                                        <form class="review-form" id="review-form">
+                                            <input type="hidden" name="producto_id" value="<?= $producto['idProducto'] ?>">
+                                            
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <input type="text" name="titulo" class="form-control" placeholder="Título de tu reseña" required>
+                                                </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <input type="email" class="form-control" placeholder="Tu email" required>
+                                            <div class="rating-input mt-3">
+                                                <label>Tu calificación: <span class="text-danger">*</span></label>
+                                                <input type="hidden" name="calificacion" id="rating-value" value="0">
+                                                <div class="stars-input">
+                                                    <i class="fa fa-star-o" data-rating="1"></i>
+                                                    <i class="fa fa-star-o" data-rating="2"></i>
+                                                    <i class="fa fa-star-o" data-rating="3"></i>
+                                                    <i class="fa fa-star-o" data-rating="4"></i>
+                                                    <i class="fa fa-star-o" data-rating="5"></i>
+                                                </div>
                                             </div>
+                                            <textarea name="comentario" class="form-control mt-3" rows="4" 
+                                                      placeholder="Escribe tu reseña..." required></textarea>
+                                            <button type="submit" class="btn-submit-review mt-3">
+                                                <i class="fa fa-paper-plane"></i> Enviar Reseña
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <!-- Mensaje informativo -->
+                                        <div class="alert alert-info">
+                                            <i class="fa fa-info-circle"></i> 
+                                            <?= htmlspecialchars($data['mensaje_resenar']) ?>
+                                            
+                                            <?php if (!$data['usuario_logueado']): ?>
+                                                <br><br>
+                                                <a href="<?= BASE_URL ?>/auth/login" class="btn btn-warning">
+                                                    <i class="fa fa-sign-in"></i> Iniciar Sesión
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
-                                        <div class="rating-input mt-3">
-                                            <label>Tu calificación:</label>
-                                            <div class="stars-input">
-                                                <i class="fa fa-star" data-rating="1"></i>
-                                                <i class="fa fa-star" data-rating="2"></i>
-                                                <i class="fa fa-star" data-rating="3"></i>
-                                                <i class="fa fa-star" data-rating="4"></i>
-                                                <i class="fa fa-star" data-rating="5"></i>
-                                            </div>
-                                        </div>
-                                        <textarea class="form-control mt-3" rows="4" placeholder="Escribe tu reseña..." required></textarea>
-                                        <button type="submit" class="btn-submit-review mt-3">Enviar Reseña</button>
-                                    </form>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -314,6 +429,276 @@ if (!$producto) {
     window.BASE_URL = '<?= BASE_URL ?>';
     const BASE_URL_JS = '<?= BASE_URL ?>';
     window.PRODUCT_ID = <?= $producto['idProducto'] ?>;
+    
+    // Función de eliminación de reseña (inline para evitar problemas de caché)
+    function eliminarResena(resenaId) {
+        // Confirmar eliminación
+        if (typeof swal !== 'undefined') {
+            swal({
+                title: "¿Eliminar reseña?",
+                text: "Esta acción no se puede deshacer",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "Cancelar",
+                        value: null,
+                        visible: true,
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "Sí, eliminar",
+                        value: true,
+                        visible: true,
+                        className: "btn-danger",
+                        closeModal: true
+                    }
+                },
+                dangerMode: true,
+            }).then((willDelete) => {
+                if (willDelete) {
+                    ejecutarEliminacionResena(resenaId);
+                }
+            });
+        } else {
+            if (confirm('¿Estás seguro de que deseas eliminar tu reseña?')) {
+                ejecutarEliminacionResena(resenaId);
+            }
+        }
+    }
+    
+    function ejecutarEliminacionResena(resenaId) {
+        $.ajax({
+            url: window.BASE_URL + '/resenas/eliminar',
+            method: 'POST',
+            data: { resena_id: resenaId },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Recargar directamente sin mensaje
+                    location.reload();
+                } else {
+                    mostrarNotificacion(response.message || 'Error al eliminar la reseña', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                mostrarNotificacion('Error de conexión al eliminar la reseña', 'error');
+            }
+        });
+    }
+    
+    // Función para editar reseña
+    function editarResena(resenaId, titulo, comentario, calificacion) {
+        // Crear modal de edición
+        const modalHtml = `
+            <div id="modal-editar-resena" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                    <h4 style="margin-bottom: 20px;">Editar Reseña</h4>
+                    
+                    <form id="form-editar-resena">
+                        <input type="hidden" id="edit-resena-id" value="${resenaId}">
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Título:</label>
+                            <input type="text" id="edit-titulo" class="form-control" value="${titulo}" required>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Calificación:</label>
+                            <input type="hidden" id="edit-calificacion" value="${calificacion}">
+                            <div id="edit-stars" style="font-size: 24px; color: #ffc107; cursor: pointer;">
+                                ${generarEstrellas(calificacion)}
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Comentario:</label>
+                            <textarea id="edit-comentario" class="form-control" rows="4" required>${comentario}</textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" class="btn btn-secondary" onclick="cerrarModalEdicion()">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(modalHtml);
+        
+        // Inicializar estrellas editables
+        $('#edit-stars i').on('click', function() {
+            const rating = $(this).data('rating');
+            $('#edit-calificacion').val(rating);
+            $('#edit-stars').html(generarEstrellas(rating));
+        });
+        
+        // Manejar envío del formulario
+        $('#form-editar-resena').on('submit', function(e) {
+            e.preventDefault();
+            
+            const data = {
+                resena_id: $('#edit-resena-id').val(),
+                titulo: $('#edit-titulo').val(),
+                calificacion: $('#edit-calificacion').val(),
+                comentario: $('#edit-comentario').val()
+            };
+            
+            $.ajax({
+                url: window.BASE_URL + '/resenas/actualizar',
+                method: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Recargar directamente sin mensaje
+                        location.reload();
+                    } else {
+                        mostrarNotificacion(response.message || 'Error al actualizar la reseña', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    mostrarNotificacion('Error de conexión al actualizar la reseña', 'error');
+                }
+            });
+        });
+    }
+    
+    function generarEstrellas(rating) {
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            const clase = i <= rating ? 'fa-star' : 'fa-star-o';
+            html += `<i class="fa ${clase}" data-rating="${i}" style="margin: 0 2px;"></i>`;
+        }
+        return html;
+    }
+    
+    function cerrarModalEdicion() {
+        $('#modal-editar-resena').remove();
+    }
+    
+    // Función para mostrar notificaciones elegantes
+    function mostrarNotificacion(mensaje, tipo) {
+        const colores = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8'
+        };
+        
+        const iconos = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        
+        const notif = $('<div>')
+            .css({
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: colores[tipo] || colores.info,
+                color: 'white',
+                padding: '15px 25px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                zIndex: 10000,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '14px',
+                fontWeight: '500',
+                opacity: 0,
+                transition: 'opacity 0.3s'
+            })
+            .html(`<i class="fa fa-${iconos[tipo] || iconos.info}"></i> ${mensaje}`);
+        
+        $('body').append(notif);
+        
+        setTimeout(() => notif.css('opacity', 1), 10);
+        setTimeout(() => {
+            notif.css('opacity', 0);
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+</script>
+    
+    // Inicializar sistema de calificación con estrellas
+    $(document).ready(function() {
+        const starsInput = $('.stars-input i');
+        let selectedRating = 0;
+        
+        // Hover effect
+        starsInput.on('mouseenter', function() {
+            const rating = $(this).data('rating');
+            highlightStars(rating);
+        });
+        
+        // Reset on mouse leave
+        $('.stars-input').on('mouseleave', function() {
+            highlightStars(selectedRating);
+        });
+        
+        // Click to select rating
+        starsInput.on('click', function() {
+            selectedRating = $(this).data('rating');
+            $('#rating-value').val(selectedRating);
+            highlightStars(selectedRating);
+            console.log('Calificación seleccionada:', selectedRating);
+        });
+        
+        // Function to highlight stars
+        function highlightStars(rating) {
+            starsInput.each(function() {
+                const starRating = $(this).data('rating');
+                if (starRating <= rating) {
+                    $(this).removeClass('fa-star-o').addClass('fa-star active');
+                } else {
+                    $(this).removeClass('fa-star active').addClass('fa-star-o');
+                }
+            });
+        }
+        
+        // Form submission
+        $('#review-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const calificacion = $('#rating-value').val();
+            console.log('Enviando formulario con calificación:', calificacion);
+            
+            if (calificacion == '0' || calificacion == 0) {
+                mostrarNotificacion('Por favor selecciona una calificación (estrellas)', 'warning');
+                return false;
+            }
+            
+            const formData = $(this).serialize();
+            
+            $.ajax({
+                url: window.BASE_URL + '/resenas/crear',
+                method: 'POST',
+                data: formData,
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        // Recargar directamente sin mensaje
+                        location.reload();
+                    } else {
+                        mostrarNotificacion(response.message || 'Error al enviar la reseña', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    console.log('Response text:', xhr.responseText);
+                    mostrarNotificacion('Error de conexión al enviar la reseña', 'error');
+                }
+            });
+        });
+    });
 </script>
 <script src="<?= media() ?>/js/product-detail.js?v=1.0"></script>
 <script src="<?= media() ?>/js/functions_favoritos.js"></script>
+<script src="<?= media() ?>/js/resenas.js?v=2.1"></script>

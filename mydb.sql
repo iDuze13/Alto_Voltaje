@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 30-10-2025 a las 00:18:40
+-- Tiempo de generación: 11-11-2025 a las 12:00:00 (Actualizado con tabla resenas)
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -338,6 +338,39 @@ CREATE TABLE `reclamo` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `resenas`
+--
+
+CREATE TABLE `resenas` (
+  `id` int(11) NOT NULL,
+  `producto_id` int(11) NOT NULL,
+  `usuario_id` int(11) DEFAULT NULL COMMENT 'ID del usuario si está registrado',
+  `usuario_nombre` varchar(100) NOT NULL,
+  `usuario_email` varchar(150) NOT NULL,
+  `calificacion` tinyint(1) NOT NULL COMMENT 'Calificación de 1 a 5 estrellas',
+  `titulo` varchar(200) DEFAULT NULL,
+  `comentario` text NOT NULL,
+  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
+  `estado` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1=Activo, 0=Inactivo',
+  `verificado` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1=Compra verificada, 0=No verificada',
+  `util_positivo` int(11) NOT NULL DEFAULT 0 COMMENT 'Conteo de votos útiles',
+  `util_negativo` int(11) NOT NULL DEFAULT 0 COMMENT 'Conteo de votos no útiles'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `resenas`
+--
+
+INSERT INTO `resenas` (`id`, `producto_id`, `usuario_id`, `usuario_nombre`, `usuario_email`, `calificacion`, `titulo`, `comentario`, `fecha_creacion`, `estado`, `verificado`, `util_positivo`, `util_negativo`) VALUES
+(1, 65, NULL, 'María González', 'maria.gonzalez@email.com', 5, 'Excelente producto', 'Excelente producto, justo lo que esperaba. La calidad es muy buena y el envío fue rápido.', '2024-10-15 14:30:00', 1, 1, 12, 0),
+(2, 65, NULL, 'Carlos Rodríguez', 'carlos.rodriguez@email.com', 4, 'Muy buena calidad', 'El producto es de muy buena calidad, aunque tardó un poco más de lo esperado en llegar.', '2024-10-20 10:15:00', 1, 1, 8, 1),
+(3, 65, NULL, 'Ana Martínez', 'ana.martinez@email.com', 5, 'Recomendado al 100%', 'Superó mis expectativas. Lo recomiendo totalmente, excelente relación precio-calidad.', '2024-10-25 16:45:00', 1, 0, 15, 0),
+(4, 65, NULL, 'Jorge López', 'jorge.lopez@email.com', 3, 'Cumple lo esperado', 'El producto está bien, cumple con lo que promete pero esperaba algo mejor por el precio.', '2024-11-01 11:20:00', 1, 1, 3, 2),
+(5, 65, NULL, 'Laura Fernández', 'laura.fernandez@email.com', 4, 'Buena compra', 'Estoy satisfecha con la compra. El producto llegó en perfectas condiciones.', '2024-11-05 09:30:00', 1, 1, 6, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `remito`
 --
 
@@ -556,6 +589,17 @@ ALTER TABLE `reclamo`
   ADD KEY `idx_rec_pedido` (`Pedido_idPedido`);
 
 --
+-- Indices de la tabla `resenas`
+--
+ALTER TABLE `resenas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_producto_id` (`producto_id`),
+  ADD KEY `idx_usuario_id` (`usuario_id`),
+  ADD KEY `idx_calificacion` (`calificacion`),
+  ADD KEY `idx_estado` (`estado`),
+  ADD KEY `idx_producto_estado_fecha` (`producto_id`,`estado`,`fecha_creacion`);
+
+--
 -- Indices de la tabla `remito`
 --
 ALTER TABLE `remito`
@@ -670,6 +714,12 @@ ALTER TABLE `reclamo`
   MODIFY `idReclamo` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `resenas`
+--
+ALTER TABLE `resenas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT de la tabla `remito`
 --
 ALTER TABLE `remito`
@@ -759,6 +809,13 @@ ALTER TABLE `producto_carrito`
 ALTER TABLE `reclamo`
   ADD CONSTRAINT `fk_Reclamo_Pedido1` FOREIGN KEY (`Pedido_idPedido`) REFERENCES `pedido` (`idPedido`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `fk_Reclamos_Cliente1` FOREIGN KEY (`Cliente_id_Cliente`) REFERENCES `cliente` (`id_Cliente`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Filtros para la tabla `resenas`
+--
+ALTER TABLE `resenas`
+  ADD CONSTRAINT `fk_resenas_producto` FOREIGN KEY (`producto_id`) REFERENCES `producto` (`idProducto`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_resenas_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`id_Usuario`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `remito`

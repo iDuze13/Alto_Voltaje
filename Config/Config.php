@@ -31,7 +31,8 @@ const WEB_EMPRESA = "www.altovoltaje.site";
 const CAT_SLIDER = "1,2,3,4,5";
 const CAT_BANNER = "1,2,3,4,5,6";
 
-//Configuración MercadoPago - MODO PRODUCCIÓN
-const MP_ACCESS_TOKEN = "APP_USR-6979613042199572-103017-4903865f8ad1621bb9f0261f2b589562-185819159"; // Token de PRODUCCIÓN
-const MP_ENVIRONMENT = "production"; // sandbox o production
-const MP_PUBLIC_KEY = "APP_USR-aed31d69-1244-4a2f-9f2b-f1283e1bb727"; // Clave pública de PRODUCCIÓN
+//Configuración MercadoPago - Cargar desde mercadopago_config.php
+require_once __DIR__ . '/mercadopago_config.php';
+define('MP_ACCESS_TOKEN', getMercadoPagoAccessToken());
+define('MP_ENVIRONMENT', esModoTest() ? 'sandbox' : 'production');
+define('MP_PUBLIC_KEY', getMercadoPagoPublicKey());

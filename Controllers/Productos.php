@@ -488,12 +488,47 @@ class Productos extends Controllers {
             );
         }
 
+        // Cargar modelo de reseñas
+        require_once 'Models/ResenasModel.php';
+        $resenasModel = new ResenasModel();
+        
+        // Obtener reseñas del producto
+        $resenas = $resenasModel->getResenasByProducto($productId, 10, 0);
+        $estadisticas = $resenasModel->getEstadisticasResenas($productId);
+        
+        // Verificar si el usuario puede reseñar (logueado y compró el producto)
+        $puedeResenar = false;
+        $mensajeResenar = '';
+        $usuarioLogueado = isset($_SESSION['usuario']['id']);
+        
+        if ($usuarioLogueado) {
+            $usuarioId = $_SESSION['usuario']['id'];
+            
+            // Verificar si ya dejó reseña
+            if ($resenasModel->usuarioYaReseno($usuarioId, $productId)) {
+                $mensajeResenar = 'Ya has dejado una reseña para este producto';
+            }
+            // Verificar si compró el producto
+            else if ($resenasModel->usuarioComproProducto($usuarioId, $productId)) {
+                $puedeResenar = true;
+            } else {
+                $mensajeResenar = 'Solo puedes reseñar productos que hayas comprado';
+            }
+        } else {
+            $mensajeResenar = 'Debes iniciar sesión para dejar una reseña';
+        }
+
         $data = [
             'page_tag' => htmlspecialchars($producto['Nombre_Producto']),
             'page_title' => htmlspecialchars($producto['Nombre_Producto']) . ' - Alto Voltaje',
             'page_name' => 'producto_detalle',
             'producto' => $producto,
-            'productos_relacionados' => $productosRelacionados
+            'productos_relacionados' => $productosRelacionados,
+            'resenas' => $resenas,
+            'estadisticas_resenas' => $estadisticas,
+            'puede_resenar' => $puedeResenar,
+            'mensaje_resenar' => $mensajeResenar,
+            'usuario_logueado' => $usuarioLogueado
         ];
 
         $this->views->getView($this, 'detalle', $data);

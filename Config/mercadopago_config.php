@@ -4,14 +4,15 @@
  */
 
 // ====== CREDENCIALES DE PRODUCCIÓN ======
-define('MP_PUBLIC_KEY_PROD', 'APP_USR-aed31d69-1244-4a2f-9f2b-f1283e1bb727');
-define('MP_ACCESS_TOKEN_PROD', 'APP_USR-6979613042199572-103017-4903865f8ad1621bb9f0261f2b589562-185819159');
+define('MP_PUBLIC_KEY_PROD', 'APP_USR-329b4b3a-42da-4f1b-83fd-3ca716f1b896');
+define('MP_ACCESS_TOKEN_PROD', 'APP_USR-8673141200345748-111023-6ade2900052c4b5d5fa9e0bd30b159ba-1106173188');
+define('MP_CLIENT_ID_PROD', '8673141200345748');
+define('MP_CLIENT_SECRET_PROD', 'bMCccqPhSesjq4OmPdRtFyJT08RAKF43');
 
 // ====== CREDENCIALES DE PRUEBA ======
-// TODO: Agregar tus credenciales de prueba aquí (empiezan con TEST-)
-// Las encuentras en: https://www.mercadopago.com.ar/developers → Tu aplicación → Credenciales
-define('MP_PUBLIC_KEY_TEST', 'TEST-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx');
-define('MP_ACCESS_TOKEN_TEST', 'TEST-xxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+// Credenciales de prueba para testing sin cobrar dinero real
+define('MP_PUBLIC_KEY_TEST', 'APP_USR-c3d34c1a-c74c-4eaa-a182-e64a747a5ba1');
+define('MP_ACCESS_TOKEN_TEST', 'APP_USR-5468745037377195-111101-a60b24cc76cdb3846e77a4ca835541c2-2981231068');
 
 // ====== MODO DE OPERACIÓN ======
 // ⚠️ IMPORTANTE: Cambiar a false SOLO cuando esté todo probado
@@ -21,8 +22,8 @@ define('MP_MODO_PRUEBA', false);
 
 // ====== TUS DATOS BANCARIOS ======
 // Estos datos se mostrarán al cliente para que pueda transferirte
-define('MP_CVU', '0000003100007434555997'); // Tu CVU de Mercado Pago
-define('MP_ALIAS', 'socramgowyt'); // Tu Alias de Mercado Pago
+define('MP_CVU', '0000003100009344311375'); // Tu CVU real de Mercado Pago
+define('MP_ALIAS', 'snezhinka.mp'); // Tu Alias real de Mercado Pago
 
 // ====== FUNCIONES HELPER ======
 
@@ -45,6 +46,20 @@ function getMercadoPagoAccessToken() {
  */
 function esModoTest() {
     return MP_MODO_PRUEBA;
+}
+
+/**
+ * Obtiene el Client ID según el modo (prueba/producción)
+ */
+function getMercadoPagoClientId() {
+    return defined('MP_CLIENT_ID_PROD') ? MP_CLIENT_ID_PROD : '';
+}
+
+/**
+ * Obtiene el Client Secret según el modo (prueba/producción)
+ */
+function getMercadoPagoClientSecret() {
+    return defined('MP_CLIENT_SECRET_PROD') ? MP_CLIENT_SECRET_PROD : '';
 }
 
 /**
