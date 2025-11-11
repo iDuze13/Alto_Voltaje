@@ -200,7 +200,7 @@
 			die();
 		}
 
-        public function getCategoria($idcategoria)
+		public function getCategoria($idcategoria)
 		{
 			// Limpiar cualquier output buffer previo
 			if (ob_get_level()) {
@@ -208,6 +208,9 @@
 			}
 			ob_start();
 			
+			// Set proper JSON content type
+			header('Content-Type: application/json; charset=utf-8');
+			
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
 				$_SESSION['permisosMod'] = [
@@ -218,48 +221,67 @@
 				];
 			}
 			
-			if($_SESSION['permisosMod']['r']){
-				$intIdcategoria = intval($idcategoria);
-				if($intIdcategoria > 0)
-				{
-					$arrData = $this->model->selectCategoria($intIdcategoria);
-					if(empty($arrData))
+			try {
+				if($_SESSION['permisosMod']['r']){
+					$intIdcategoria = intval($idcategoria);
+					if($intIdcategoria > 0)
 					{
-						$arrResponse = array('status' => false, 'msg' => 'Datos no encontrados.');
-					}else{
-						// Store BLOB existence before removing data
-						$hasBlob = !empty($arrData['imagen_blob']);
-						
-						// Remove BLOB data to avoid JSON encoding issues
-						unset($arrData['imagen_blob']);
-						unset($arrData['imagen_tipo']);
-						unset($arrData['imagen_nombre']);
-						
-						// Add image information
-						if ($hasBlob) {
-							$arrData['imagen_blob'] = true; // Indicator that BLOB exists
-							$arrData['imagen_url'] = BASE_URL . '/categorias/obtenerImagen/' . $intIdcategoria;
-						} else if (!empty($arrData['portada']) && $arrData['portada'] !== 'portada_categoria.png') {
-							$arrData['imagen_blob'] = false; // No BLOB, use legacy
-							$arrData['imagen_url'] = BASE_URL . '/Assets/images/uploads/' . $arrData['portada'];
-							$arrData['url_portada'] = media().'/images/uploads/'.$arrData['portada']; // Mantener compatibilidad
-						} else {
-							$arrData['imagen_blob'] = false;
-							$arrData['imagen_url'] = null;
-							$arrData['url_portada'] = null;
+						$arrData = $this->model->selectCategoria($intIdcategoria);
+						if(empty($arrData))
+						{
+							$arrResponse = array('status' => false, 'msg' => 'Datos no encontrados.');
+						}else{
+							// Store BLOB existence before removing data
+							$hasBlob = !empty($arrData['imagen_blob']);
+							
+							// Remove BLOB data to avoid JSON encoding issues
+							unset($arrData['imagen_blob']);
+							unset($arrData['imagen_tipo']);
+							unset($arrData['imagen_nombre']);
+							
+							// Add image information
+							if ($hasBlob) {
+								$arrData['imagen_blob'] = true; // Indicator that BLOB exists
+								$arrData['imagen_url'] = BASE_URL . '/categorias/obtenerImagen/' . $intIdcategoria;
+							} else if (!empty($arrData['portada']) && $arrData['portada'] !== 'portada_categoria.png') {
+								$arrData['imagen_blob'] = false; // No BLOB, use legacy
+								$arrData['imagen_url'] = BASE_URL . '/Assets/images/uploads/' . $arrData['portada'];
+								$arrData['url_portada'] = media().'/images/uploads/'.$arrData['portada']; // Mantener compatibilidad
+							} else {
+								$arrData['imagen_blob'] = false;
+								$arrData['imagen_url'] = null;
+								$arrData['url_portada'] = null;
+							}
+							
+							$arrResponse = array('status' => true, 'data' => $arrData);
 						}
-						
-						$arrResponse = array('status' => true, 'data' => $arrData);
+					} else {
+						$arrResponse = array('status' => false, 'msg' => 'ID de categoría inválido.');
 					}
-					ob_clean();
-					echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
+				} else {
+					$arrResponse = array('status' => false, 'msg' => 'No tiene permisos para ver categorías.');
 				}
+			} catch (Exception $e) {
+				$arrResponse = array('status' => false, 'msg' => 'Error en el servidor: ' . $e->getMessage());
 			}
+			
+			// Limpiar buffer y enviar solo JSON
+			ob_clean();
+			echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
 			die();
 		}
 
 		public function delCategoria()
 		{
+			// Limpiar cualquier output buffer previo
+			if (ob_get_level()) {
+				ob_end_clean();
+			}
+			ob_start();
+			
+			// Set proper JSON content type
+			header('Content-Type: application/json; charset=utf-8');
+			
 			// Inicializar permisos básicos si no existen
 			if(!isset($_SESSION['permisosMod'])){
 				$_SESSION['permisosMod'] = [
@@ -270,21 +292,32 @@
 				];
 			}
 			
-			if($_POST){
-				if($_SESSION['permisosMod']['d']){
-					$intIdcategoria = intval($_POST['idCategoria']);
-					$requestDelete = $this->model->deleteCategoria($intIdcategoria);
-					if($requestDelete == 'ok')
-					{
-						$arrResponse = array('status' => true, 'msg' => 'Se ha eliminado la categoría correctamente');
-					}else if($requestDelete == 'exist'){
-						$arrResponse = array('status' => false, 'msg' => 'No es posible eliminar una categoría con subcategorías asociadas.');
-					}else{
-						$arrResponse = array('status' => false, 'msg' => 'Error al eliminar la categoría.');
+			try {
+				if($_POST){
+					if($_SESSION['permisosMod']['d']){
+						$intIdcategoria = intval($_POST['idCategoria']);
+						$requestDelete = $this->model->deleteCategoria($intIdcategoria);
+						if($requestDelete == 'ok')
+						{
+							$arrResponse = array('status' => true, 'msg' => 'Se ha eliminado la categoría correctamente');
+						}else if($requestDelete == 'exist'){
+							$arrResponse = array('status' => false, 'msg' => 'No es posible eliminar una categoría con subcategorías asociadas.');
+						}else{
+							$arrResponse = array('status' => false, 'msg' => 'Error al eliminar la categoría.');
+						}
+					} else {
+						$arrResponse = array('status' => false, 'msg' => 'No tiene permisos para eliminar categorías.');
 					}
-					echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+				} else {
+					$arrResponse = array('status' => false, 'msg' => 'Método no permitido.');
 				}
+			} catch (Exception $e) {
+				$arrResponse = array('status' => false, 'msg' => 'Error en el servidor: ' . $e->getMessage());
 			}
+			
+			// Limpiar buffer y enviar solo JSON
+			ob_clean();
+			echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
 			die();
 		}
 
