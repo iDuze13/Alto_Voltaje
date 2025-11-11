@@ -64,7 +64,7 @@ INSERT INTO `categoria` (`idcategoria`, `nombre`, `descripcion`, `portada`, `rut
 (2, 'Herramientas', 'electricas, manuales', 'img_73c96647a771f4684a796b2f22a9e143.jpg', 'herramientas', '2025-10-15 23:09:53', 1),
 (3, 'Hogar', 'pequeños electrodomesticos, estantes, etc', 'portada_categoria.png', 'hogar', '2025-10-29 18:15:50', 1);
 
--- --------------------------------------------------------
+-- ----------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `cliente`
