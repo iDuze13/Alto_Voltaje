@@ -379,30 +379,50 @@
 		// Endpoint para servir imagen BLOB de categoría
 		public function obtenerImagen($idCategoria)
 		{
+			// Evitar cualquier salida previa que rompa la imagen
+			if (ob_get_level()) {
+				ob_end_clean();
+			}
+
+			// Asegurar que sea un ID válido
 			$idCategoria = intval($idCategoria);
 			if ($idCategoria <= 0) {
 				header('HTTP/1.1 400 Bad Request');
-				echo 'ID de categoría inválido';
+				echo 'ID inválido';
 				exit;
 			}
-			
+
+			// Consultar la imagen desde el modelo
 			$imagenData = $this->model->obtenerImagenBlob($idCategoria);
-			
+
+			// Si hay imagen guardada
 			if ($imagenData && !empty($imagenData['imagen_blob'])) {
-				// Servir imagen desde BLOB
-				header('Content-Type: ' . $imagenData['imagen_tipo']);
-				header('Content-Length: ' . strlen($imagenData['imagen_blob']));
-				header('Cache-Control: max-age=3600'); // Cache por 1 hora
-				
-				echo $imagenData['imagen_blob'];
+				// Asegurar tipo MIME válido
+				$tipo = !empty($imagenData['imagen_tipo']) ? $imagenData['imagen_tipo'] : 'image/png';
+				$blob = $imagenData['imagen_blob'];
+
+				// Enviar cabeceras HTTP correctas
+				header('Content-Type: ' . $tipo);
+				header('Content-Length: ' . strlen($blob));
+				header('Cache-Control: public, max-age=86400'); // 1 día
+				echo $blob;
+				flush();
 				exit;
+			}
+
+			// Si no existe imagen, mostrar una por defecto
+			$rutaDefault = __DIR__ . '/../Assets/images/default.png';
+			if (file_exists($rutaDefault)) {
+				header('Content-Type: image/png');
+				readfile($rutaDefault);
 			} else {
-				// Imagen no encontrada o sin BLOB
 				header('HTTP/1.1 404 Not Found');
 				echo 'Imagen no encontrada';
-				exit;
 			}
+			exit;
 		}
+
+
 
 		// Nuevo método setCategoria que maneja BLOB
 		public function setCategoriaBlob(){

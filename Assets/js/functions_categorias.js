@@ -169,18 +169,23 @@ function fntViewInfo(idcategoria){
                 document.querySelector("#celEstado").innerHTML = estado;
                 
                 // Usar endpoint BLOB si existe imagen_blob, sino usar portada legacy
-                let imageUrl = objData.data.imagen_blob ? 
-                    base_url + '/categorias/obtenerImagen/' + objData.data.idcategoria :
-                    objData.data.url_portada || objData.data.imagen_url;
-                document.querySelector("#imgCategoria").innerHTML = '<img src="'+imageUrl+'"></img>';
-                
-                $('#modalViewCategoria').modal('show');
-            }else{
-                swal("Error", objData.msg , "error");
-            }
-        }
-    }
-}
+                let id = objData.data.idcategoria;
+                let imageUrl = `${base_url}/categorias/obtenerImagen/${id}?_=${Date.now()}`;
+
+                document.querySelector("#imgCategoria").innerHTML = `
+                    <img src="${imageUrl}" alt="Imagen de categoría" 
+                        style="max-width:100%; height:auto; display:block; margin:auto;">
+                `;
+
+
+                                
+                                $('#modalViewCategoria').modal('show');
+                            }else{
+                                swal("Error", objData.msg , "error");
+                            }
+                        }
+                    }
+                }
 
 function fntEditInfo(element,idcategoria){
     rowTable = element.parentNode.parentNode.parentNode;
