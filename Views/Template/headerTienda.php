@@ -125,8 +125,9 @@
 	}
 	
 	.logo-section img {
-		height: 22px;
+		height: 50px;
 		width: auto;
+		object-fit: contain;
 	}
 	
 	/* Search Center */
@@ -511,20 +512,18 @@
 		}
 		
 		.header-main-content {
-			gap: 10px;
-			padding: 0 10px;
-		}
-		
-		.logo-section img {
-			height: 35px;
-		}
-		
-		.search-center {
-			flex: 1;
-			margin: 0 8px;
-		}
-		
-		.search-input {
+		gap: 10px;
+		padding: 0 10px;
+	}
+	
+	.logo-section img {
+		height: 45px;
+	}
+	
+	.search-center {
+		flex: 1;
+		margin: 0 8px;
+	}		.search-input {
 			padding: 10px 35px 10px 12px;
 			font-size: 14px;
 		}
@@ -607,7 +606,7 @@
 		}
 		
 		.logo-section img {
-			height: 30px;
+			height: 42px;
 		}
 		
 		.search-center {
@@ -684,7 +683,7 @@
 		}
 		
 		.logo-section img {
-			height: 28px;
+			height: 40px;
 		}
 		
 		.header-actions {
@@ -1930,14 +1929,12 @@
 			<!-- Header principal: Logo, Búsqueda, Navegación, Iconos, Login - TODO EN UNA LÍNEA -->
 			<div class="header-main">
 				<div class="header-main-content">
-					<!-- Logo Section -->
-					<div class="logo-section">
-						<a href="<?= BASE_URL ?>/" class="text-decoration-none">
-							<img src="<?= media() ?>/tiendaOnline/images/icons/logo-01.png" alt="ALTO VOLTAJE">
-						</a>
-					</div>
-
-					<!-- Search Bar Center -->
+				<!-- Logo Section -->
+				<div class="logo-section">
+					<a href="<?= BASE_URL ?>/" class="text-decoration-none">
+						<img src="<?= BASE_URL ?>/Assets/images/logoAltoVoltajeHorizontal.png" alt="ALTO VOLTAJE">
+					</a>
+				</div>					<!-- Search Bar Center -->
 					<div class="search-center">
 						<div class="search-container">
 							<form method="GET" action="<?= BASE_URL ?>/tienda">

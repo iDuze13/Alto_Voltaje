@@ -12,8 +12,8 @@ $(document).ready(function() {
  * Inicializar características básicas
  */
 function initializeBasicFeatures() {
-    // Filtros por checkbox
-    $('input[data-category], input[data-subcategory], input[data-brand]').on('change', function() {
+    // Filtros por checkbox (incluye promociones)
+    $('input[data-category], input[data-subcategory], input[data-brand], #promo-discount, #promo-featured').on('change', function() {
         filterProductsByCheckbox();
     });
     
@@ -52,10 +52,16 @@ function filterProductsByCheckbox() {
         selectedBrands.push($(this).data('brand'));
     });
     
+    // Obtener filtros de promoción
+    var filterDiscount = $('#promo-discount').is(':checked');
+    var filterFeatured = $('#promo-featured').is(':checked');
+    
     $('.product-item').each(function() {
         var productCategory = $(this).data('category');
         var productSubcategory = $(this).data('subcategory');
         var productBrand = $(this).data('brand');
+        var productDiscount = parseInt($(this).data('discount')) === 1;
+        var productFeatured = parseInt($(this).data('featured')) === 1;
         var showProduct = true;
         
         // Si hay categorías seleccionadas y el producto no está en ninguna
@@ -70,6 +76,16 @@ function filterProductsByCheckbox() {
         
         // Si hay marcas seleccionadas y el producto no está en ninguna
         if (selectedBrands.length > 0 && !selectedBrands.includes(productBrand)) {
+            showProduct = false;
+        }
+        
+        // Filtros de promoción (Con descuento)
+        if (filterDiscount && !productDiscount) {
+            showProduct = false;
+        }
+        
+        // Filtros de promoción (Productos destacados)
+        if (filterFeatured && !productFeatured) {
             showProduct = false;
         }
         
@@ -337,6 +353,8 @@ function resetFilters() {
     $('input[type="checkbox"]').prop('checked', false);
     $('#cat-all').prop('checked', true);
     $('#sort-products').val('');
+    $('#promo-discount').prop('checked', false);
+    $('#promo-featured').prop('checked', false);
     
     $('.product-item').show();
     updateProductCount();

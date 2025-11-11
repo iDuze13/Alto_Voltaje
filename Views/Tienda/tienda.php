@@ -151,6 +151,8 @@
 								 data-price="<?= $producto['Precio_Venta'] ?>"
 								 data-name="<?= htmlspecialchars($producto['Nombre_Producto']) ?>"
 								 data-product-id="<?= $producto['idProducto'] ?>"
+								 data-discount="<?= $producto['En_Oferta'] ?? 0 ?>"
+								 data-featured="<?= $producto['Es_Destacado'] ?? 0 ?>"
 								 style="cursor: pointer;"
 								 title="Click para ver detalles">
 								
