@@ -1,8 +1,13 @@
 console.log("functions_proveedores.js cargado");
-var base_url = "http://localhost/AltoVoltaje";
 let tableProveedores;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que base_url esté definido (debería venir del footer)
+    if (typeof base_url === 'undefined') {
+        console.error('base_url no está definido en proveedores');
+        return;
+    }
+    
     console.log('Initializing proveedores table...');
     console.log('Base URL:', base_url);
     console.log('SweetAlert available:', typeof swal !== 'undefined');

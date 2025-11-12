@@ -39,26 +39,36 @@ class Usuarios extends Controllers {
         die();
     }
     public function setUsuario() {
-        if ($_POST) {
-            if (empty($_POST['txtCUIL']) || empty($_POST['txtNombre']) || empty($_POST['txtApellido']) || empty($_POST['txtCorreo']) || empty($_POST['txtTelefono']) || empty($_POST['listRolId']) || empty($_POST['listEstado']) || empty($_POST['txtPassword'])) {
-                $arrResponse = array("status" => false, "msg" => 'Datos incorrectos.');
-            } else {
-                $idUsuario = intval($_POST['idUsuario']);
-                $strCUIL = strClean($_POST['txtCUIL']);
-                $strNombre = ucwords(strClean($_POST['txtNombre']));
-                $strApellido = ucwords(strClean($_POST['txtApellido']));
-                $strEmail = strtolower(strClean($_POST['txtCorreo']));
-                $strTelefono = strClean($_POST['txtTelefono']);
-                $strTipoUsuario = strClean($_POST['listRolId']); // Keep as string
-                $intEstado = intval(strClean($_POST['listEstado']));
-                $strPassword = !empty($_POST['txtPassword']) ? hash("SHA256", strClean($_POST['txtPassword'])) : "";
+        // Limpiar cualquier output buffer previo
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        ob_start();
+        
+        // Set proper JSON content type
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            if ($_POST) {
+                $idUsuario = intval($_POST['idUsuario'] ?? 0);
                 
-                if($idUsuario == 0) {
-                    // Crear
-                    if(empty($strPassword)) {
-                        $arrResponse = array("status" => false, "msg" => 'La contraseña es obligatoria para nuevos usuarios.');
+                // Validación diferente para crear vs actualizar
+                if ($idUsuario == 0) {
+                    // Crear - todos los campos obligatorios incluyendo contraseña
+                    if (empty($_POST['txtCUIL']) || empty($_POST['txtNombre']) || empty($_POST['txtApellido']) || empty($_POST['txtCorreo']) || empty($_POST['txtTelefono']) || empty($_POST['listRolId']) || empty($_POST['listEstado']) || empty($_POST['txtPassword'])) {
+                        $arrResponse = array("status" => false, "msg" => 'Datos incorrectos. Todos los campos son obligatorios.');
                     } else {
+                        $strCUIL = strClean($_POST['txtCUIL']);
+                        $strNombre = ucwords(strClean($_POST['txtNombre']));
+                        $strApellido = ucwords(strClean($_POST['txtApellido']));
+                        $strEmail = strtolower(strClean($_POST['txtCorreo']));
+                        $strTelefono = strClean($_POST['txtTelefono']);
+                        $strTipoUsuario = strClean($_POST['listRolId']);
+                        $intEstado = intval(strClean($_POST['listEstado']));
+                        $strPassword = hash("SHA256", strClean($_POST['txtPassword']));
+                        
                         $request_user = $this->model->insertUsuario($idUsuario, $strCUIL, $strNombre, $strApellido, $strEmail, $strTelefono, $strTipoUsuario, $intEstado, $strPassword);
+                        
                         if ($request_user > 0) {
                             $arrResponse = array('status' => true, 'msg' => 'Datos guardados correctamente.');
                         } else if ($request_user == 'exist') {
@@ -68,48 +78,72 @@ class Usuarios extends Controllers {
                         }
                     }
                 } else {
-                    // Actualizar
-                    error_log('Updating user with ID: ' . $idUsuario);
-                    error_log('Update data: ' . print_r([
-                        'cuil' => $strCUIL,
-                        'nombre' => $strNombre,
-                        'apellido' => $strApellido,
-                        'email' => $strEmail,
-                        'telefono' => $strTelefono,
-                        'tipo' => $strTipoUsuario,
-                        'estado' => $intEstado
-                    ], true));
-                    
-                    $request_user = $this->model->updateUsuario($idUsuario, $strCUIL, $strNombre, $strApellido, $strEmail, $strTelefono, $strTipoUsuario, $intEstado, $strPassword);
-                    error_log('Update result: ' . print_r($request_user, true));
-                    
-                    if ($request_user == 1) {
-                        $arrResponse = array('status' => true, 'msg' => 'Datos actualizados correctamente.');
-                    } else if ($request_user == 'exist') {
-                        $arrResponse = array('status' => false, 'msg' => '¡Atención! El correo electrónico o el CUIL ya existe, ingrese otro.');
+                    // Actualizar - contraseña es opcional
+                    if (empty($_POST['txtCUIL']) || empty($_POST['txtNombre']) || empty($_POST['txtApellido']) || empty($_POST['txtCorreo']) || empty($_POST['txtTelefono']) || empty($_POST['listRolId']) || empty($_POST['listEstado'])) {
+                        $arrResponse = array("status" => false, "msg" => 'Datos incorrectos. Complete todos los campos obligatorios.');
                     } else {
-                        $arrResponse = array("status" => false, "msg" => 'No es posible actualizar los datos.');
+                        $strCUIL = strClean($_POST['txtCUIL']);
+                        $strNombre = ucwords(strClean($_POST['txtNombre']));
+                        $strApellido = ucwords(strClean($_POST['txtApellido']));
+                        $strEmail = strtolower(strClean($_POST['txtCorreo']));
+                        $strTelefono = strClean($_POST['txtTelefono']);
+                        $strTipoUsuario = strClean($_POST['listRolId']);
+                        $intEstado = intval(strClean($_POST['listEstado']));
+                        $strPassword = !empty($_POST['txtPassword']) ? hash("SHA256", strClean($_POST['txtPassword'])) : "";
+                        
+                        $request_user = $this->model->updateUsuario($idUsuario, $strCUIL, $strNombre, $strApellido, $strEmail, $strTelefono, $strTipoUsuario, $intEstado, $strPassword);
+                        
+                        if ($request_user == 1) {
+                            $arrResponse = array('status' => true, 'msg' => 'Datos actualizados correctamente.');
+                        } else if ($request_user == 'exist') {
+                            $arrResponse = array('status' => false, 'msg' => '¡Atención! El correo electrónico o el CUIL ya existe, ingrese otro.');
+                        } else {
+                            $arrResponse = array("status" => false, "msg" => 'No es posible actualizar los datos.');
+                        }
                     }
                 }
+            } else {
+                $arrResponse = array("status" => false, "msg" => 'Método no permitido.');
             }
-            echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            $arrResponse = array('status' => false, 'msg' => 'Error en el servidor: ' . $e->getMessage());
         }
+        
+        // Limpiar buffer y enviar solo JSON
+        ob_clean();
+        echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         die();
     }
 
     public function getUsuario($idUsuario)
     {
-        $intIdUsuario = intval($idUsuario);
-        if($intIdUsuario > 0) {
-            $arrData = $this->model->selectUsuario($intIdUsuario);
-            if(!empty($arrData)) {
-                $arrResponse = array('status' => true, 'data' => $arrData);
-            } else {
-                $arrResponse = array('status' => false, 'msg' => 'Datos no encontrados.');
-            }
-        } else {
-            $arrResponse = array('status' => false, 'msg' => 'Datos incorrectos.');
+        // Limpiar cualquier output buffer previo
+        if (ob_get_level()) {
+            ob_end_clean();
         }
+        ob_start();
+        
+        // Set proper JSON content type
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $intIdUsuario = intval($idUsuario);
+            if($intIdUsuario > 0) {
+                $arrData = $this->model->selectUsuario($intIdUsuario);
+                if(!empty($arrData)) {
+                    $arrResponse = array('status' => true, 'data' => $arrData);
+                } else {
+                    $arrResponse = array('status' => false, 'msg' => 'Datos no encontrados.');
+                }
+            } else {
+                $arrResponse = array('status' => false, 'msg' => 'ID de usuario inválido.');
+            }
+        } catch (Exception $e) {
+            $arrResponse = array('status' => false, 'msg' => 'Error en el servidor: ' . $e->getMessage());
+        }
+        
+        // Limpiar buffer y enviar solo JSON
+        ob_clean();
         echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
         die();
     }

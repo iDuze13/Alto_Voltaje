@@ -1,8 +1,13 @@
 console.log("functions_usuarios.js cargado");
-var base_url = "http://localhost/AltoVoltaje";
 var tableUsuarios;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que base_url esté definido (debería venir del footer)
+    if (typeof base_url === 'undefined') {
+        console.error('base_url no está definido en usuarios');
+        return;
+    }
+    
     console.log('Initializing usuarios table...');
     console.log('Base URL:', base_url);
     
