@@ -25,8 +25,11 @@ class AuthModel extends Conexion {
     public function createClienteBasico(string $nombre, string $email, string $passwordHash): bool {
         $nombre = trim($nombre);
         $apellido = '';
-        $cuil = 'TMP-' . uniqid();
-        $telefono = '0';
+        // Generar valores temporales únicos para evitar conflictos con constraints
+        $timestamp = microtime(true);
+        $random = mt_rand(100000, 999999);
+        $cuil = 'TMP-' . $timestamp . '-' . $random;
+        $telefono = 'TMP-' . $timestamp . '-' . $random;
         $estado = 'Activo';
         $rol = 'Cliente';
         $query = "INSERT INTO usuario (Nombre_Usuario, Apellido_Usuario, Correo_Usuario, Contrasena_Usuario, CUIL_Usuario, Telefono_Usuario, Estado_Usuario, Rol_Usuario)

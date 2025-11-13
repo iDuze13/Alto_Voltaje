@@ -4,115 +4,127 @@ headerTienda($data);
 $flash = isset($data['flash']) ? $data['flash'] : null;
 ?>
 
-<div class="container p-t-80 p-b-50">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
+<div class="split-auth-wrapper">
+    <div class="row g-0 min-vh-100">
+        <!-- Formulario centrado -->
+        <div class="col-12 auth-form-column">
             <?php if ($flash): ?>
-                <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?>" role="alert">
+                <div class="alert <?= $flash['type'] === 'success' ? 'alert-success' : 'alert-danger' ?> alert-dismissible fade show modern-alert" role="alert">
                     <?= htmlspecialchars($flash['msg']) ?>
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
                 </div>
             <?php endif; ?>
 
-            <div class="card">
-                <div class="card-body">
-                    <ul class="nav nav-tabs" id="authTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab">Login</a>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <a class="nav-link" id="registro-tab" data-toggle="tab" href="#registro" role="tab">Registro</a>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <a class="nav-link" id="empleado-tab" data-toggle="tab" href="#empleado" role="tab">Empleados</a>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab">Admin</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content p-t-20">
-                        <div class="tab-pane fade show active" id="login" role="tabpanel">
-                            <?php if (!empty($data['googleUrl'])): ?>
-                            <div class="mb-3">
-                                <a class="btn btn-light w-100 border" href="<?= htmlspecialchars($data['googleUrl']) ?>">
-                                    Continuar con Google
-                                </a>
-                            </div>
-                            <?php endif; ?>
-                            <form method="POST" action="<?= BASE_URL ?>/auth/doLogin">
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input class="form-control" type="email" name="email" required />
+            <div class="form-container">
+                <div class="modern-auth-card">
+                    <!-- Logo centrado -->
+                    <div class="auth-logo-wrapper-centered">
+                        <img src="<?= BASE_URL ?>/Assets/images/IogoAltoVoltaje.png" alt="Alto Voltaje" class="centered-logo-img">
+                    </div>
+
+                    <!-- Título dinámico -->
+                    <h2 class="auth-main-title" id="authTitle">Accede a tu cuenta</h2>
+                    <p class="auth-subtitle" id="authSubtitle">Completa los detalles para empezar</p>
+
+                    <div class="form-wrapper">
+                        <!-- FORM LOGIN -->
+                        <div class="auth-form-panel active" id="login">
+                            <form method="POST" action="<?= BASE_URL ?>/auth/doLogin" class="clean-form">
+                                <div class="form-group">
+                                    <label for="loginEmail">Dirección de email</label>
+                                    <input class="form-control clean-input" type="email" name="email" id="loginEmail" placeholder="nombre@ejemplo.com" required autocomplete="email" />
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Contraseña</label>
-                                    <div class="input-group">
-                                        <input class="form-control" type="password" name="password" id="loginPassword" required />
+                                
+                                <div class="form-group">
+                                    <label for="loginPassword">Contraseña</label>
+                                    <div class="password-field">
+                                        <input class="form-control clean-input" type="password" name="password" id="loginPassword" placeholder="Ingresa tu contraseña" required autocomplete="current-password" />
+                                        <button type="button" class="password-eye" id="toggleLoginPassword">
+                                            <i class="fa fa-eye" id="loginPasswordIcon"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+
+                                <div class="form-extras">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="rememberMe">
+                                        <label class="custom-control-label" for="rememberMe">Recordarme</label>
+                                    </div>
+                                    <a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
+                                </div>
+                                
+                                <button class="btn btn-block clean-btn-primary" type="submit">
+                                    Iniciar sesión
+                                </button>
+
+                                <?php if (!empty($data['googleUrl'])): ?>
+                                <div class="separator-text">O CONTINUAR CON</div>
+                                
+                                <div class="social-buttons">
+                                    <a class="btn btn-social-clean" href="<?= htmlspecialchars($data['googleUrl']) ?>">
+                                        <img src="https://www.google.com/favicon.ico" alt="Google" width="18" height="18">
+                                        Google
+                                    </a>
+                                </div>
+                                <?php endif; ?>
+
+                                <div class="bottom-text">
+                                    ¿No tienes una cuenta? <a href="#" id="switchToRegister" class="signup-link">Regístrate aquí</a>
+                                </div>
                             </form>
                         </div>
 
-                        <div class="tab-pane fade" id="registro" role="tabpanel">
-                            <?php if (!empty($data['googleUrl'])): ?>
-                            <div class="mb-3">
-                                <a class="btn btn-light w-100 border" href="<?= htmlspecialchars($data['googleUrl']) ?>">
-                                    Registrarse con Google
-                                </a>
-                            </div>
-                            <?php endif; ?>
-                            <form method="POST" action="<?= BASE_URL ?>/auth/register">
-                                <div class="mb-3">
-                                    <label class="form-label">Nombre</label>
-                                    <input class="form-control" type="text" name="nombre" required />
+                        <!-- FORM REGISTRO -->
+                        <div class="auth-form-panel" id="registro">
+                            <form method="POST" action="<?= BASE_URL ?>/auth/register" class="clean-form">
+                                <div class="form-group">
+                                    <label for="registerNombre">Nombre completo</label>
+                                    <input class="form-control clean-input" type="text" name="nombre" id="registerNombre" placeholder="Ingresa tu nombre" required />
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input class="form-control" type="email" name="email" required />
+                                
+                                <div class="form-group">
+                                    <label for="registerEmail">Email</label>
+                                    <input class="form-control clean-input" type="email" name="email" id="registerEmail" placeholder="nombre@ejemplo.com" required autocomplete="email" />
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Contraseña (mín. 6 caracteres)</label>
-                                    <div class="input-group">
-                                        <input class="form-control" type="password" name="password" id="registerPassword" minlength="6" required />
+                                
+                                <div class="form-group">
+                                    <label for="registerPassword">Contraseña</label>
+                                    <div class="password-field">
+                                        <input class="form-control clean-input" type="password" name="password" id="registerPassword" placeholder="Mínimo 6 caracteres" minlength="6" required autocomplete="new-password" />
+                                        <button type="button" class="password-eye" id="toggleRegisterPassword">
+                                            <i class="fa fa-eye" id="registerPasswordIcon"></i>
                                         </button>
                                     </div>
+                                    <small class="form-help">La contraseña debe tener al menos 6 caracteres</small>
                                 </div>
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="terminos" id="terminos" required />
-                                    <label class="form-check-label" for="terminos">Acepto los términos y condiciones</label>
+                                
+                                <div class="custom-control custom-checkbox mb-3">
+                                    <input class="custom-control-input" type="checkbox" name="terminos" id="terminos" required />
+                                    <label class="custom-control-label" for="terminos">
+                                        Acepto los <a href="#" class="link-primary" id="openTerminos">términos y condiciones</a>
+                                    </label>
                                 </div>
-                                <button class="btn btn-success w-100" type="submit">Registrarme</button>
-                            </form>
-                        </div>
+                                
+                                <button class="btn btn-block clean-btn-primary" type="submit">
+                                    Crear cuenta
+                                </button>
 
-                        <div class="tab-pane fade" id="empleado" role="tabpanel">
-                            <form method="POST" action="<?= BASE_URL ?>/auth/empleado">
-                                <div class="mb-3">
-                                    <label class="form-label">ID de Empleado</label>
-                                    <input class="form-control" type="text" name="id_Empleado" required />
+                                <?php if (!empty($data['googleUrl'])): ?>
+                                <div class="separator-text">O CONTINUAR CON</div>
+                                
+                                <div class="social-buttons">
+                                    <a class="btn btn-social-clean" href="<?= htmlspecialchars($data['googleUrl']) ?>">
+                                        <img src="https://www.google.com/favicon.ico" alt="Google" width="18" height="18">
+                                        Google
+                                    </a>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">CUIL</label>
-                                    <input class="form-control" type="text" name="cuil" maxlength="20" required />
-                                </div>
-                                <button class="btn btn-warning w-100" type="submit">Ingresar</button>
-                            </form>
-                        </div>
+                                <?php endif; ?>
 
-                        <div class="tab-pane fade" id="admin" role="tabpanel">
-                            <form method="POST" action="<?= BASE_URL ?>/auth/admin">
-                                <div class="mb-3">
-                                    <label class="form-label">Usuario (email)</label>
-                                    <input class="form-control" type="text" name="usuario" required />
+                                <div class="bottom-text">
+                                    ¿Ya tienes una cuenta? <a href="#" id="switchToLogin" class="signup-link">Iniciar sesión</a>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Contraseña</label>
-                                    <div class="input-group">
-                                        <input class="form-control" type="password" name="password" id="adminPassword" required />
-                                    </div>
-                                </div>
-                                <button class="btn btn-dark w-100" type="submit">Ingresar</button>
                             </form>
                         </div>
                     </div>
@@ -122,35 +134,695 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
     </div>
 </div>
 
+<!-- Modal de Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1" role="dialog" aria-labelledby="terminosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="terminosModalLabel">Términos y Condiciones de Uso</h5>
+            </div>
+            <div class="modal-body">
+                <div class="terminos-content">
+                    <h6>Última actualización: 12 de noviembre de 2025</h6>
+                    <p>Bienvenido/a a Alto Voltaje (<a href="https://altovoltaje.site/" target="_blank">https://altovoltaje.site/</a>), una plataforma administrada por Alto Voltaje S.R.L., con domicilio en Av. Arturo Frondizi 4566, Formosa Capital, Argentina.</p>
+                    <p>Al acceder o utilizar este sitio web, el usuario acepta los presentes Términos y Condiciones. Si no está de acuerdo con alguno de los puntos aquí establecidos, deberá abstenerse de utilizar el sitio.</p>
+                    
+                    <h6>1. Objeto</h6>
+                    <p>El presente documento regula el acceso y uso del sitio web Alto Voltaje, así como las condiciones de compra de los productos ofrecidos en él. El sitio tiene por finalidad ofrecer y comercializar artefactos electrónicos, eléctricos y afines, y facilitar la gestión de usuarios registrados.</p>
+                    
+                    <h6>2. Registro de usuarios</h6>
+                    <p>Para realizar compras o acceder a ciertos servicios, el usuario deberá registrarse proporcionando información veraz, completa y actualizada.</p>
+                    <p>El usuario es responsable de mantener la confidencialidad de su nombre de usuario y contraseña, así como de todas las actividades que se realicen bajo su cuenta.</p>
+                    <p>Alto Voltaje no se hace responsable de los daños derivados del uso indebido o negligente de las credenciales de acceso.</p>
+                    
+                    <h6>3. Compras y medios de pago</h6>
+                    <p>Los productos y precios publicados en el sitio son válidos únicamente para compras en línea y pueden variar sin previo aviso.</p>
+                    <p>Los pagos podrán realizarse mediante los medios habilitados en la plataforma (por ejemplo, tarjetas de crédito/débito, transferencias u otros sistemas de pago electrónico).</p>
+                    <p>Una vez confirmada la operación y validado el pago, se notificará al usuario a través del correo electrónico registrado.</p>
+                    
+                    <h6>4. Entrega y envíos</h6>
+                    <p>Los productos adquiridos serán enviados al domicilio indicado por el usuario, conforme a las condiciones de envío vigentes.</p>
+                    <p>Los plazos de entrega son estimativos y pueden variar según la ubicación del comprador y la disponibilidad del producto.</p>
+                    <p>En caso de imposibilidad de entrega por causas ajenas a Alto Voltaje (dirección incorrecta, ausencia del destinatario, etc.), los costos adicionales correrán por cuenta del usuario.</p>
+                    
+                    <h6>5. Cambios, devoluciones y garantías</h6>
+                    <p>Alto Voltaje cumple con la legislación vigente en materia de defensa del consumidor (Ley N.º 24.240 – Argentina).</p>
+                    <p>El usuario podrá solicitar el cambio o devolución de productos defectuosos o dañados dentro de los 10 días hábiles posteriores a la recepción, siempre que el producto no haya sido manipulado indebidamente.</p>
+                    <p>Las solicitudes deberán realizarse mediante el formulario de contacto o al correo <a href="mailto:soporte@altovoltaje.site">soporte@altovoltaje.site</a>.</p>
+                    
+                    <h6>6. Propiedad intelectual</h6>
+                    <p>Todos los contenidos del sitio (diseño, código, textos, imágenes, logotipos, bases de datos, etc.) son propiedad de Alto Voltaje S.R.L. o de sus respectivos titulares, y están protegidos por las leyes de propiedad intelectual.</p>
+                    <p>No se permite la reproducción, distribución o modificación sin autorización expresa y por escrito de Alto Voltaje.</p>
+                    
+                    <h6>7. Privacidad y protección de datos</h6>
+                    <p>El tratamiento de los datos personales de los usuarios se realiza conforme a la Ley N.º 25.326 de Protección de Datos Personales (Argentina).</p>
+                    <p>La información proporcionada será utilizada únicamente para gestionar las compras, mejorar los servicios y enviar comunicaciones relacionadas.</p>
+                    <p>Los usuarios pueden ejercer sus derechos de acceso, rectificación o supresión escribiendo a <a href="mailto:privacidad@altovoltaje.site">privacidad@altovoltaje.site</a>.</p>
+                    
+                    <h6>8. Enlaces externos</h6>
+                    <p>El sitio puede incluir enlaces a páginas de terceros. Alto Voltaje no se hace responsable por los contenidos, políticas o prácticas de dichos sitios externos.</p>
+                    
+                    <h6>9. Limitación de responsabilidad</h6>
+                    <p>Alto Voltaje no garantiza la disponibilidad continua del sitio ni se responsabiliza por daños derivados de:</p>
+                    <ul>
+                        <li>Errores técnicos, interrupciones o fallas del sistema.</li>
+                        <li>Uso indebido del sitio o de sus contenidos.</li>
+                        <li>Virus o software malicioso ajeno a la empresa.</li>
+                    </ul>
+                    <p>El uso del sitio se realiza bajo exclusiva responsabilidad del usuario.</p>
+                    
+                    <h6>10. Modificaciones</h6>
+                    <p>Alto Voltaje se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento. Los cambios entrarán en vigor a partir de su publicación en esta página, sin necesidad de previo aviso.</p>
+                    
+                    <h6>11. Legislación aplicable y jurisdicción</h6>
+                    <p>Estos Términos se regirán e interpretarán conforme a las leyes de la República Argentina.</p>
+                    <p>Cualquier controversia derivada de la interpretación o cumplimiento de los mismos será resuelta ante los tribunales ordinarios de la ciudad de Formosa Capital, renunciando las partes a cualquier otro fuero o jurisdicción.</p>
+                    
+                    <h6>Contacto:</h6>
+                    <p>
+                        📍 Av. Arturo Frondizi 4566, Formosa Capital, Argentina<br>
+                        🌐 <a href="https://altovoltaje.site" target="_blank">https://altovoltaje.site</a><br>
+                        ✉️ <a href="mailto:soporte@altovoltaje.site">soporte@altovoltaje.site</a> / <a href="mailto:privacidad@altovoltaje.site">privacidad@altovoltaje.site</a>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-terminos-reject" data-dismiss="modal">Rechazar</button>
+                <button type="button" class="btn btn-terminos-accept" id="acceptTerminos">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-.input-group .btn-outline-secondary {
-    border-color: #ced4da;
+/* ============================================
+   SPLIT SCREEN AUTH - ALTO VOLTAJE
+   ============================================ */
+
+/* Wrapper principal */
+.split-auth-wrapper {
+    min-height: 100vh;
+    background: #fff;
 }
 
-.input-group .btn-outline-secondary:hover {
-    background-color: #f8f9fa;
-    border-color: #adb5bd;
+.g-0 {
+    margin: 0;
+    padding: 0;
 }
 
-.input-group .btn-outline-secondary:focus {
-    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+/* Columna Izquierda - Branding */
+.auth-brand-column {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
 }
 
-.input-group .btn-outline-secondary i {
+.brand-content {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    max-width: 480px;
+}
+
+.brand-logo {
+    margin-bottom: 60px;
+}
+
+.brand-logo i {
+    font-size: 48px;
+    color: #fff;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.brand-logo-img {
+    height: 60px;
+    width: auto;
+    margin-bottom: 16px;
+    display: block;
+    filter: brightness(0) invert(1);
+}
+
+.brand-logo h1 {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.feature-item {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.feature-item i {
+    font-size: 32px;
+    color: rgba(255, 255, 255, 0.9);
+    flex-shrink: 0;
+}
+
+.feature-item h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+}
+
+.feature-item p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Columna del Formulario - Centrada */
+.auth-form-column {
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 40px;
+    position: relative;
+    min-height: 100vh;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Card del formulario con altura fija */
+.modern-auth-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 48px 44px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Form wrapper para transiciones */
+.form-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-form-panel {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.auth-form-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Logo centrado en formulario */
+.auth-logo-wrapper-centered {
+    text-align: center;
+    margin-bottom: 0px;
+}
+
+.centered-logo-img {
+    height: 120px;
+    width: auto;
+    display: inline-block;
+}
+
+/* Títulos */
+.auth-main-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    text-align: center;
+    font-size: 15px;
     color: #6c757d;
+    margin-bottom: 32px;
+}
+
+
+
+/* Formulario */
+.clean-form .form-group {
+    margin-bottom: 20px;
+}
+
+.clean-form label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+/* Inputs limpios */
+.clean-input {
+    height: 48px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.clean-input:focus {
+    background: #fff;
+    border-color: #ffc107;
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    outline: none;
+}
+
+.clean-input::placeholder {
+    color: #adb5bd;
+}
+
+/* Password field */
+.password-field {
+    position: relative;
+}
+
+.password-field .clean-input {
+    padding-right: 48px;
+}
+
+.password-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 8px;
+    transition: color 0.3s ease;
+}
+
+.password-eye:hover {
+    color: #ffc107;
+}
+
+.password-eye:focus {
+    outline: none;
+}
+
+/* Form extras (checkbox y forgot) */
+.form-extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.forgot-password-link {
+    font-size: 13px;
+    color: #6c757d;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.forgot-password-link:hover {
+    color: #ffc107;
+    text-decoration: underline;
+}
+
+/* Botón principal */
+.clean-btn-primary {
+    height: 48px;
+    background: #ffc107;
+    color: #000;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.clean-btn-primary:hover {
+    background: #e6ac00;
+    color: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.clean-btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Separador de texto */
+.separator-text {
+    text-align: center;
+    color: #adb5bd;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 24px 0 16px;
+    position: relative;
+}
+
+.separator-text::before,
+.separator-text::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #e9ecef;
+}
+
+.separator-text::before {
+    left: 0;
+}
+
+.separator-text::after {
+    right: 0;
+}
+
+/* Botones sociales */
+.social-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.btn-social-clean {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    color: #495057;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-social-clean:hover {
+    background: #f8f9fa;
+    border-color: #ffc107;
+    color: #495057;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Bottom text */
+.bottom-text {
+    text-align: center;
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 24px;
+}
+
+.signup-link,
+.link-primary {
+    color: #ffc107;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.signup-link:hover,
+.link-primary:hover {
+    color: #e6ac00;
+    text-decoration: underline;
+}
+
+/* Form help text */
+.form-help {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* Checkbox */
+.custom-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+}
+
+.custom-control-input {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    cursor: pointer;
+    opacity: 1;
+    z-index: 1;
+}
+
+.custom-control-input:checked {
+    accent-color: #ffc107;
+}
+
+.custom-control-label {
+    font-size: 13px;
+    color: #6c757d;
+    font-weight: normal;
+    cursor: pointer;
+    margin-bottom: 0;
+    user-select: none;
+}
+
+/* Alertas */
+.modern-alert {
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 24px;
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .auth-brand-column {
+        display: none;
+    }
+    
+    .auth-form-column {
+        padding: 40px 30px;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-form-column {
+        padding: 30px 20px;
+    }
+    
+    .modern-auth-card {
+        padding: 32px 24px;
+        min-height: auto;
+    }
+
+    .auth-main-title {
+        font-size: 24px;
+    }
+
+    .auth-subtitle {
+        font-size: 14px;
+    }
+}
+
+/* Mejoras de accesibilidad */
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Modal de términos */
+.terminos-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #495057;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.terminos-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminos-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.terminos-content::-webkit-scrollbar-thumb {
+    background: #ffc107;
+    border-radius: 4px;
+}
+
+.terminos-content::-webkit-scrollbar-thumb:hover {
+    background: #e6ac00;
+}
+
+.terminos-content h6 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.terminos-content h6:first-child {
+    margin-top: 0;
+}
+
+.terminos-content p {
+    margin-bottom: 10px;
+}
+
+.terminos-content ul {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.terminos-content a {
+    color: #ffc107;
+    text-decoration: none;
+}
+
+.terminos-content a:hover {
+    color: #e6ac00;
+    text-decoration: underline;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #fff;
+}
+
+.modal-header .modal-title {
+    font-weight: 700;
+}
+
+.modal-header .close {
+    color: #fff;
+    opacity: 0.8;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+}
+
+.modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+}
+
+.modal-header {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+.modal-footer {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.btn-terminos-accept,
+.btn-terminos-reject {
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.btn-terminos-accept {
+    background: #28a745;
+    color: #fff;
+}
+
+.btn-terminos-accept:hover {
+    background: #218838;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-terminos-reject {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-terminos-reject:hover {
+    background: #c82333;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Función para alternar visibilidad de contraseña
-    function togglePasswordVisibility(inputId, iconId, toggleId) {
+    // Toggle password visibility
+    function setupPasswordToggle(inputId, iconId, buttonId) {
         const passwordInput = document.getElementById(inputId);
         const passwordIcon = document.getElementById(iconId);
-        const toggleButton = document.getElementById(toggleId);
+        const toggleButton = document.getElementById(buttonId);
         
         if (passwordInput && passwordIcon && toggleButton) {
-            toggleButton.addEventListener('click', function() {
+            toggleButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
                     passwordIcon.classList.remove('fa-eye');
@@ -164,10 +836,59 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Aplicar la funcionalidad a todos los campos de contraseña
-    togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
-    togglePasswordVisibility('registerPassword', 'registerPasswordIcon');
-    togglePasswordVisibility('adminPassword', 'adminPasswordIcon');
+    // Setup password toggles
+    setupPasswordToggle('loginPassword', 'loginPasswordIcon', 'toggleLoginPassword');
+    setupPasswordToggle('registerPassword', 'registerPasswordIcon', 'toggleRegisterPassword');
+    
+    // Auto-dismiss alerts
+    const alerts = document.querySelectorAll('.modern-alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            $(alert).fadeOut('slow');
+        }, 5000);
+    });
+    
+    // Switch to register
+    $('#switchToRegister').on('click', function(e) {
+        e.preventDefault();
+        $('.auth-form-panel').removeClass('active');
+        $('#registro').addClass('active');
+        $('#authTitle').text('Crear cuenta');
+        $('#authSubtitle').text('Completa el formulario para registrarte');
+    });
+    
+    // Switch to login
+    $('#switchToLogin').on('click', function(e) {
+        e.preventDefault();
+        $('.auth-form-panel').removeClass('active');
+        $('#login').addClass('active');
+        $('#authTitle').text('Accede a tu cuenta');
+        $('#authSubtitle').text('Completa los detalles para empezar');
+    });
+    
+    // Abrir modal de términos
+    $('#openTerminos').on('click', function(e) {
+        e.preventDefault();
+        $('#terminosModal').modal('show');
+    });
+    
+    // Aceptar términos desde el modal
+    $('#acceptTerminos').on('click', function() {
+        $('#terminos').prop('checked', true);
+        $('#terminosModal').modal('hide');
+    });
+    
+    // Validación del formulario de registro
+    $('form[action*="register"]').on('submit', function(e) {
+        const terminosChecked = $('#terminos').is(':checked');
+        
+        if (!terminosChecked) {
+            e.preventDefault();
+            alert('Debes aceptar los términos y condiciones para continuar.');
+            $('#terminosModal').modal('show');
+            return false;
+        }
+    });
 });
 </script>
 

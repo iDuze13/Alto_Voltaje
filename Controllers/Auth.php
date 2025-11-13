@@ -23,7 +23,7 @@ class Auth extends Controllers {
         $this->views->getView($this, 'login', $data);
     }
 
-    // Handle POST /auth/doLogin
+    // Handle POST /auth/doLogin - Unified login for Clientes, Empleados y Admin
     public function doLogin() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $this->redirect('auth/login'); }
         $email = isset($_POST['email']) ? trim($_POST['email']) : '';
@@ -32,17 +32,44 @@ class Auth extends Controllers {
             $this->flash('Por favor, ingresa un email válido y contraseña.', 'error');
             return $this->redirect('auth/login');
         }
-    $user = $this->model->findActiveUserByEmail($email);
+        
+        $user = $this->model->findActiveUserByEmail($email);
         if ($user && $this->verifyPassword($password, $user['Contrasena_Usuario'])) {
-            $_SESSION['usuario'] = [
-                'id' => (int)$user['id_Usuario'],
-                'email' => $user['Correo_Usuario'],
-                'nombre' => $user['Nombre_Usuario'],
-                'apellido' => $user['Apellido_Usuario'],
-                'rol' => $user['Rol_Usuario'],
-            ];
-            $_SESSION['login_success'] = 'Bienvenido ' . $user['Nombre_Usuario'] . '!';
-            return $this->redirect('dashboard/dashboard');
+            $rol = $user['Rol_Usuario'];
+            
+            // Configurar sesión según el rol del usuario
+            if ($rol === 'Admin') {
+                $_SESSION['admin'] = [
+                    'id' => (int)$user['id_Usuario'],
+                    'usuario' => $user['Correo_Usuario'],
+                    'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
+                    'nivel' => 1,
+                    'rol' => $rol
+                ];
+                $this->flash('Bienvenido Administrador ' . $user['Nombre_Usuario'] . '!', 'success');
+                return $this->redirect('dashboard/dashboard');
+            } 
+            elseif ($rol === 'Empleado') {
+                $_SESSION['empleado'] = [
+                    'id' => (int)$user['id_Usuario'],
+                    'cuil' => $user['CUIL_Usuario'],
+                    'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
+                    'rol' => $rol
+                ];
+                $this->flash('Bienvenido ' . $user['Nombre_Usuario'] . '!', 'success');
+                return $this->redirect('empleados/dashboard');
+            } 
+            else { // Cliente
+                $_SESSION['usuario'] = [
+                    'id' => (int)$user['id_Usuario'],
+                    'email' => $user['Correo_Usuario'],
+                    'nombre' => $user['Nombre_Usuario'],
+                    'apellido' => $user['Apellido_Usuario'],
+                    'rol' => $rol,
+                ];
+                $_SESSION['login_success'] = 'Bienvenido ' . $user['Nombre_Usuario'] . '!';
+                return $this->redirect('dashboard/dashboard');
+            }
         }
         $this->flash('Email o contraseña incorrectos.', 'error');
         return $this->redirect('auth/login');
