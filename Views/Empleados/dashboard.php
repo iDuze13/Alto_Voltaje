@@ -1,133 +1,97 @@
-<?php
-require_once(__DIR__ . '/../../Helpers/Helpers.php');
-// Use employee-specific header to avoid CSS conflicts with tienda template
-require_once(__DIR__ . '/../Template/headerEmpleado.php');
-$empleado = isset($data['empleado']) ? $data['empleado'] : null;
-$nombre = $empleado ? ($empleado['Nombre_Usuario'] . ' ' . ($empleado['Apellido_Usuario'] ?? '')) : 'Empleado';
-$idEmpleado = $empleado['id_Empleado'] ?? ($_SESSION['empleado']['id'] ?? '');
-$cuil = $empleado['CUIL'] ?? ($_SESSION['empleado']['cuil'] ?? '');
+<?php 
+require_once(__DIR__ . '/../../Helpers/DashboardHelpers.php');
+headerAdmin($data); 
 ?>
-
-<link rel="stylesheet" href="<?= media() ?>/css/empleado.css">
+<main class="app-content admin-dash">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1>¡Bienvenido Empleado <?= htmlspecialchars($data['empleado']['Nombre_Usuario']); ?>!</h1>
+      <p>Panel de control de ventas y operaciones</p>
+    </div>
+    <div class="welcome-stats">
+      <div class="quick-stat">
+        <span class="quick-stat-label">Hoy</span>
+        <span class="quick-stat-value"><?= date('d/m/Y'); ?></span>
+      </div>
+      <div class="quick-stat">
+        <span class="quick-stat-label">Hora</span>
+        <span class="quick-stat-value" id="currentTime"><?= date('H:i'); ?></span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="dashboard-container">
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="overview-section">
+        <h2>Acciones Rápidas</h2>
+        <div class="quick-actions-grid">
+          <a href="<?= base_url(); ?>/empleados/productos" class="action-card">
+            <i class="fa-solid fa-box"></i>
+            <h3>Gestionar Productos</h3>
+            <p>Ver y administrar inventario</p>
+          </a>
+          <a href="<?= base_url(); ?>/pedidos/listar" class="action-card">
+            <i class="fa-solid fa-shopping-cart"></i>
+            <h3>Ver Pedidos</h3>
+            <p>Consultar pedidos de clientes</p>
+          </a>
+          <a href="<?= base_url(); ?>/ventas/nueva" class="action-card">
+            <i class="fa-solid fa-plus-circle"></i>
+            <h3>Nueva Venta</h3>
+            <p>Registrar una nueva venta</p>
+          </a>
+          <a href="<?= base_url(); ?>/perfil" class="action-card">
+            <i class="fa-solid fa-user"></i>
+            <h3>Mi Perfil</h3>
+            <p>Ver información personal</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
 
 <style>
-.loading, .error {
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.action-card {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
   text-align: center;
-  padding: 40px;
-  font-size: 18px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.loading {
-  color: #007bff;
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.error {
-  color: #dc3545;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 5px;
-  margin: 20px 0;
+.action-card i {
+  font-size: 48px;
+  color: #3b82f6;
+  margin-bottom: 15px;
+}
+
+.action-card h3 {
+  margin: 10px 0;
+  color: #1e293b;
+}
+
+.action-card p {
+  color: #64748b;
+  font-size: 14px;
 }
 </style>
 
-<div class="emp-side-menu">
-  <div class="brand"><h1>Alto Voltaje</h1></div>
-  <ul>
-    <li onclick="loadSection('ventas')"><ion-icon name="logo-usd"></ion-icon> Ventas</li>
-    <li onclick="loadSection('productos')"><ion-icon name="pricetags"></ion-icon> Inventario</li>
-    <li onclick="loadSection('recibos')"><ion-icon name="paper"></ion-icon> Reportes</li>
-    <li onclick="loadSection('quejas')"><ion-icon name="filing"></ion-icon> Atención al Cliente</li>
-  </ul>
-  <div class="emp-logout-btn" onclick="logout()"><ion-icon name="log-out"></ion-icon> Cerrar Sesión</div>
-</div>
-
-<div class="emp-container">
-  <div class="emp-header">
-    <div class="nav">
-      <div class="emp-search">
-        <input type="text" placeholder="Buscar..." id="searchInput" />
-        <button type="button" onclick="performSearch()"><ion-icon name="search"></ion-icon></button>
-      </div>
-      <div class="emp-user">
-        <a class="emp-back-link" href="<?= BASE_URL ?>/home/home">← Volver a la tienda</a>
-        <div class="emp-user-info" style="margin-left:12px;"><ion-icon name="person"></ion-icon><span><?= htmlspecialchars($nombre) ?></span><span class="emp-badge">Empleado</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="emp-content" id="mainContent">
-    <div class="emp-welcome">
-      <h2>Bienvenido <?= htmlspecialchars($nombre) ?></h2>
-      <p>Selecciona una opción del menú lateral para comenzar a trabajar. Aquí podrás gestionar ventas, productos, reportes y quejas.</p>
-      <div class="emp-box">
-        <p><strong>ID de Empleado:</strong> <?= htmlspecialchars($idEmpleado) ?></p>
-        <p><strong>CUIL:</strong> <?= htmlspecialchars($cuil) ?></p>
-        <?php if ($empleado): ?>
-          <p><strong>Usuario ID:</strong> <?= htmlspecialchars($empleado['id_Usuario']) ?></p>
-        <?php endif; ?>
-      </div>
-    </div>
-    <div class="emp-grid">
-      <div class="emp-card emp-click" onclick="irAVentas()"><h3>Ventas</h3><p>Gestiona ventas del día.</p></div>
-      <div class="emp-card emp-click" onclick="irAProductos()"><h3>Inventario</h3><p>Control de stock.</p></div>
-      <div class="emp-card"><h3>Reportes</h3><p>Genera reportes y recibos.</p></div>
-      <div class="emp-card"><h3>Atención al Cliente</h3><p>Gestiona quejas y sugerencias.</p></div>
-    </div>
-  </div>
-</div>
-
-<script>
-function loadSection(section){
-  const mainContent = document.getElementById('mainContent');
-  
-  if(section==='ventas'){
-    mainContent.innerHTML=`<div class="emp-welcome"><h2>Gestión de Ventas</h2><p>Ver y gestionar ventas.</p></div>`
-  }
-  else if(section==='productos'){
-    // Cargar el contenido de productos vía AJAX
-    mainContent.innerHTML = '<div class="loading">Cargando gestión de productos...</div>';
-    
-    $.ajax({
-      url: '<?= BASE_URL ?>/empleados/loadProductosContent',
-      type: 'GET',
-      dataType: 'json',
-      success: function(response) {
-        if (response.status) {
-          mainContent.innerHTML = response.html;
-          
-          // Agregar el modal al body si no existe
-          if (!document.getElementById('modalFormProductos') && response.modal) {
-            document.body.insertAdjacentHTML('beforeend', response.modal);
-          }
-        } else {
-          mainContent.innerHTML = '<div class="error">Error al cargar la gestión de productos.</div>';
-        }
-      },
-      error: function() {
-        mainContent.innerHTML = '<div class="error">Error de conexión al cargar productos.</div>';
-      }
-    });
-  }
-  else if(section==='recibos'){
-    mainContent.innerHTML=`<div class="emp-welcome"><h2>Gestión de Recibos</h2><p>Consulta y administra recibos.</p></div>`
-  }
-  else if(section==='quejas'){
-    mainContent.innerHTML=`<div class="emp-welcome"><h2>Gestión de Quejas</h2><p>Atiende y resuelve quejas.</p></div>`
-  }
-}
-
-function performSearch(){const v=document.getElementById('searchInput').value;if(v.trim()!==''){alert('Buscando: '+v)}}
-function logout(){window.location.href='<?= BASE_URL ?>/auth/logout'}
-function irAProductos(){loadSection('productos');}
-function irAVentas(){window.location.href='<?= BASE_URL ?>/ventas/ventas'}
-document.getElementById('searchInput').addEventListener('keypress',e=>{if(e.key==='Enter'){performSearch()}})
-
-// Asegurar que jQuery esté disponible
-if (typeof $ === 'undefined') {
-  var script = document.createElement('script');
-  script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-  document.head.appendChild(script);
-}
-</script>
-
-<?php require_once(__DIR__ . '/../Template/footerEmpleado.php'); ?>
+<?php footerAdmin($data); ?>

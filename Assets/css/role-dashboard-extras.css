@@ -1,0 +1,61 @@
+/* Estilos adicionales para funcionalidad de roles */
+
+/* Quick Actions para Empleados */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  color: white;
+  text-decoration: none;
+}
+
+.quick-action-btn i {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.quick-action-btn span {
+  flex: 1;
+}
+
+/* Ajustes para empleado en métricas */
+.metric-card.sales {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .quick-actions {
+    padding: 12px;
+  }
+  
+  .quick-action-btn {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  
+  .quick-action-btn i {
+    font-size: 18px;
+  }
+}

@@ -28,8 +28,6 @@ class Auth extends Controllers {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $this->redirect('auth/login'); }
         $email = isset($_POST['email']) ? trim($_POST['email']) : '';
         $password = isset($_POST['password']) ? $_POST['password'] : '';
-        $remember = isset($_POST['remember']);
-        
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $password === '') {
             $this->flash('Por favor, ingresa un email válido y contraseña.', 'error');
             return $this->redirect('auth/login');
@@ -37,81 +35,41 @@ class Auth extends Controllers {
         
         $user = $this->model->findActiveUserByEmail($email);
         if ($user && $this->verifyPassword($password, $user['Contrasena_Usuario'])) {
-            // Manejar cookie de "Recordarme"
-            if ($remember) {
-                // Guardar email por 30 días
-                setcookie('remember_email', $email, time() + (86400 * 30), '/', '', false, true);
-            } else {
-                // Eliminar cookie si existe
-                if (isset($_COOKIE['remember_email'])) {
-                    setcookie('remember_email', '', time() - 3600, '/', '', false, true);
-                }
-            }
-            
             $rol = $user['Rol_Usuario'];
             
-            // ✅ VERIFICACIÓN 2FA AUTOMÁTICA PARA EMPLEADO/ADMIN
-            if ($rol === 'Admin' || $rol === 'Empleado') {
-                // Cargar modelo de códigos y helper de email
-                require_once __DIR__ . '/../Models/CodigosModel.php';
-                require_once __DIR__ . '/../Helpers/EmailHelper.php';
-                
-                $codigosModel = new CodigosModel();
-                
-                // Generar código de verificación
-                error_log("2FA: Generando código para $email ($rol)");
-                $resultadoCodigo = $codigosModel->generarCodigo($email, $rol);
-                
-                if ($resultadoCodigo) {
-                    error_log("2FA: Código generado exitosamente: " . $resultadoCodigo['codigo']);
-                    
-                    // Enviar código por email
-                    $nombreCompleto = $user['Nombre_Usuario'] . ' ' . $user['Apellido_Usuario'];
-                    error_log("2FA: Intentando enviar email a $email para $nombreCompleto");
-                    
-                    $emailEnviado = enviarCodigo2FA($email, $resultadoCodigo['codigo'], $nombreCompleto, $rol);
-                    
-                    error_log("2FA: Resultado de envío de email: " . ($emailEnviado ? 'ÉXITO' : 'FALLO'));
-                    
-                    if ($emailEnviado) {
-                        // Guardar datos pendientes de 2FA en sesión
-                        $_SESSION['pending_2fa'] = [
-                            'email' => $email,
-                            'user_data' => $user,
-                            'rol' => $rol,
-                            'codigo_id' => $resultadoCodigo['id'],
-                            'expiracion' => $resultadoCodigo['expiracion']
-                        ];
-                        
-                        // Marcar que se requiere 2FA
-                        $_SESSION['2fa_required'] = true;
-                        
-                        $this->flash('Se ha enviado un código de verificación a tu email.', 'info');
-                        return $this->redirect('auth/login');
-                    } else {
-                        // Error al enviar email
-                        error_log("Error al enviar email 2FA a: " . $email);
-                        $this->flash('Error al enviar el código de verificación. Intenta nuevamente.', 'error');
-                        return $this->redirect('auth/login');
-                    }
-                } else {
-                    // Error al generar código
-                    error_log("Error al generar código 2FA para: " . $email);
-                    $this->flash('Error en el sistema de verificación. Intenta nuevamente.', 'error');
-                    return $this->redirect('auth/login');
-                }
+            // Configurar sesión según el rol del usuario
+            if ($rol === 'Admin') {
+                $_SESSION['admin'] = [
+                    'id' => (int)$user['id_Usuario'],
+                    'usuario' => $user['Correo_Usuario'],
+                    'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
+                    'nivel' => 1,
+                    'rol' => $rol
+                ];
+                $this->flash('Bienvenido Administrador ' . $user['Nombre_Usuario'] . '!', 'success');
+                return $this->redirect('dashboard/dashboard');
+            } 
+            elseif ($rol === 'Empleado') {
+                $_SESSION['empleado'] = [
+                    'id' => (int)$user['id_Usuario'],
+                    'cuil' => $user['CUIL_Usuario'],
+                    'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
+                    'rol' => $rol
+                ];
+                $this->flash('Bienvenido ' . $user['Nombre_Usuario'] . '!', 'success');
+                return $this->redirect('dashboard/dashboard');
+            } 
+            else { // Cliente
+                $_SESSION['usuario'] = [
+                    'id' => (int)$user['id_Usuario'],
+                    'email' => $user['Correo_Usuario'],
+                    'nombre' => $user['Nombre_Usuario'],
+                    'apellido' => $user['Apellido_Usuario'],
+                    'rol' => $rol,
+                ];
+                $_SESSION['login_success'] = 'Bienvenido ' . $user['Nombre_Usuario'] . '!';
+                return $this->redirect('dashboard/dashboard');
             }
-            
-            // Cliente - Login directo SIN 2FA
-            $_SESSION['usuario'] = [
-                'id' => (int)$user['id_Usuario'],
-                'email' => $user['Correo_Usuario'],
-                'nombre' => $user['Nombre_Usuario'],
-                'apellido' => $user['Apellido_Usuario'],
-                'rol' => $rol,
-            ];
-            $_SESSION['login_success'] = 'Bienvenido ' . $user['Nombre_Usuario'] . '!';
-            return $this->redirect('dashboard/dashboard');
         }
         $this->flash('Email o contraseña incorrectos.', 'error');
         return $this->redirect('auth/login');
@@ -205,7 +163,7 @@ class Auth extends Controllers {
             $debugLog = "LOGIN EXITOSO: " . date('Y-m-d H:i:s') . "\n";
             file_put_contents('empleado_debug.log', $debugLog, FILE_APPEND);
             
-            return $this->redirect('empleados/dashboard');
+            return $this->redirect('dashboard/dashboard');
         }
         
         $debugLog = "LOGIN FALLIDO: Empleado no encontrado\n";
@@ -251,141 +209,6 @@ class Auth extends Controllers {
         session_destroy();
         return $this->redirect('auth/login');
     }
-
-    // ============ ENDPOINTS 2FA ============
-
-    /**
-     * Verifica el código 2FA ingresado por el usuario
-     */
-    public function verificar2FA() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('auth/login');
-        }
-
-        // Verificar que haya un proceso de 2FA pendiente
-        if (!isset($_SESSION['2fa_required']) || !isset($_SESSION['pending_2fa'])) {
-            $this->flash('No hay proceso de verificación pendiente.', 'error');
-            return $this->redirect('auth/login');
-        }
-
-        $codigo = isset($_POST['codigo_2fa']) ? trim($_POST['codigo_2fa']) : '';
-        
-        if (strlen($codigo) !== 6 || !ctype_digit($codigo)) {
-            $this->flash('El código debe tener 6 dígitos numéricos.', 'error');
-            return $this->redirect('auth/login');
-        }
-
-        require_once __DIR__ . '/../Models/CodigosModel.php';
-        $codigosModel = new CodigosModel();
-        
-        $pendingData = $_SESSION['pending_2fa'];
-        $email = $pendingData['email'];
-        
-        // Validar código
-        $codigoValido = $codigosModel->validarCodigo($email, $codigo);
-        
-        if ($codigoValido) {
-            // Código correcto - Completar login
-            $user = $pendingData['user_data'];
-            $rol = $pendingData['rol'];
-            
-            // Marcar código como verificado y eliminarlo
-            $codigosModel->marcarVerificado($codigoValido['id_Codigo']);
-            
-            // Limpiar datos de 2FA
-            unset($_SESSION['2fa_required']);
-            unset($_SESSION['pending_2fa']);
-            
-            // Configurar sesión según el rol
-            if ($rol === 'Admin') {
-                $_SESSION['admin'] = [
-                    'id' => (int)$user['id_Usuario'],
-                    'usuario' => $user['Correo_Usuario'],
-                    'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
-                    'nivel' => 1,
-                    'rol' => $rol
-                ];
-                $this->flash('Verificación exitosa. Bienvenido Administrador ' . $user['Nombre_Usuario'] . '!', 'success');
-                return $this->redirect('dashboard/dashboard');
-            } 
-            elseif ($rol === 'Empleado') {
-                $_SESSION['empleado'] = [
-                    'id' => (int)$user['id_Usuario'],
-                    'cuil' => $user['CUIL_Usuario'],
-                    'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
-                    'rol' => $rol
-                ];
-                $this->flash('Verificación exitosa. Bienvenido ' . $user['Nombre_Usuario'] . '!', 'success');
-                return $this->redirect('empleados/dashboard');
-            }
-        } else {
-            // Código incorrecto o expirado
-            $this->flash('Código incorrecto o expirado. Intenta nuevamente.', 'error');
-            return $this->redirect('auth/login');
-        }
-    }
-
-    /**
-     * Reenvía el código 2FA al email del usuario
-     */
-    public function reenviarCodigo2FA() {
-        if (!isset($_SESSION['2fa_required']) || !isset($_SESSION['pending_2fa'])) {
-            echo json_encode(['success' => false, 'message' => 'No hay proceso de verificación pendiente.']);
-            return;
-        }
-
-        require_once __DIR__ . '/../Models/CodigosModel.php';
-        require_once __DIR__ . '/../Helpers/EmailHelper.php';
-        
-        $codigosModel = new CodigosModel();
-        $pendingData = $_SESSION['pending_2fa'];
-        $email = $pendingData['email'];
-        $rol = $pendingData['rol'];
-        $user = $pendingData['user_data'];
-        
-        // Generar nuevo código
-        $resultadoCodigo = $codigosModel->generarCodigo($email, $rol);
-        
-        if ($resultadoCodigo) {
-            $nombreCompleto = $user['Nombre_Usuario'] . ' ' . $user['Apellido_Usuario'];
-            $emailEnviado = enviarCodigo2FA($email, $resultadoCodigo['codigo'], $nombreCompleto, $rol);
-            
-            if ($emailEnviado) {
-                // Actualizar datos en sesión
-                $_SESSION['pending_2fa']['codigo_id'] = $resultadoCodigo['id'];
-                $_SESSION['pending_2fa']['expiracion'] = $resultadoCodigo['expiracion'];
-                
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Se ha enviado un nuevo código a tu email.'
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Error al enviar el código. Intenta más tarde.'
-                ]);
-            }
-        } else {
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Error al generar el código.'
-            ]);
-        }
-    }
-
-    /**
-     * Cancela el proceso de 2FA y vuelve al login normal
-     */
-    public function cancelar2FA() {
-        // Limpiar sesión de 2FA
-        unset($_SESSION['2fa_required']);
-        unset($_SESSION['pending_2fa']);
-        
-        $this->flash('Proceso de verificación cancelado.', 'info');
-        return $this->redirect('auth/login');
-    }
-
-    // ============ FIN ENDPOINTS 2FA ============
 
     // --- Google OAuth ---
     public function google() {

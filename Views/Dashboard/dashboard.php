@@ -6,8 +6,14 @@ headerAdmin($data);
   <!-- Welcome Section -->
   <div class="welcome-section">
     <div class="welcome-content">
-      <h1>¡Bienvenido al Panel de Alto Voltaje!</h1>
-      <p>Resumen completo de tu negocio en tiempo real</p>
+      <h1>¡Bienvenido <?= $data['user_role']; ?> <?= htmlspecialchars(explode(' ', $data['user_name'])[0]); ?>!</h1>
+      <p>
+        <?php if ($data['is_admin']): ?>
+          Resumen completo de tu negocio en tiempo real
+        <?php else: ?>
+          Panel de control de ventas y operaciones
+        <?php endif; ?>
+      </p>
     </div>
     <div class="welcome-stats">
       <div class="quick-stat">
@@ -37,6 +43,7 @@ headerAdmin($data);
         
         <!-- Key Metrics Row -->
         <div class="key-metrics">
+          <!-- Métrica 1: Inventario (Ambos) -->
           <div class="metric-card profit active" data-chart="profit">
             <div class="metric-icon"><i class="fa-solid fa-warehouse"></i></div>
             <div class="metric-info">
@@ -46,6 +53,8 @@ headerAdmin($data);
             </div>
             <div class="metric-toggle"></div>
           </div>
+          
+          <!-- Métrica 2: Productos (Ambos) -->
           <div class="metric-card orders" data-chart="orders">
             <div class="metric-icon"><i class="fa-solid fa-box"></i></div>
             <div class="metric-info">
@@ -61,28 +70,48 @@ headerAdmin($data);
             </div>
             <div class="metric-toggle"></div>
           </div>
-          <div class="metric-card impression" data-chart="impression">
-            <div class="metric-icon"><i class="fa-solid fa-users"></i></div>
-            <div class="metric-info">
-              <span class="metric-label">Usuarios Totales</span>
-              <span class="metric-value"><?= formatLargeNumber($data['metrics']['users_stats']['total_users'] ?? 0); ?></span>
-              <span class="metric-change positive">
-                <?= $data['metrics']['users_stats']['total_clients'] ?? 0; ?> clientes, 
-                <?= $data['metrics']['users_stats']['total_employees'] ?? 0; ?> empleados
-              </span>
+          
+          <!-- Métrica 3: Usuarios (Solo Admin) o Ventas (Empleado) -->
+          <?php if ($data['is_admin']): ?>
+            <div class="metric-card impression" data-chart="impression">
+              <div class="metric-icon"><i class="fa-solid fa-users"></i></div>
+              <div class="metric-info">
+                <span class="metric-label">Usuarios Totales</span>
+                <span class="metric-value"><?= formatLargeNumber($data['metrics']['users_stats']['total_users'] ?? 0); ?></span>
+                <span class="metric-change positive">
+                  <?= $data['metrics']['users_stats']['total_clients'] ?? 0; ?> clientes, 
+                  <?= $data['metrics']['users_stats']['total_employees'] ?? 0; ?> empleados
+                </span>
+              </div>
+              <div class="metric-toggle"></div>
             </div>
-            <div class="metric-toggle"></div>
-          </div>
+          <?php else: ?>
+            <div class="metric-card impression" data-chart="impression">
+              <div class="metric-icon"><i class="fa-solid fa-chart-line"></i></div>
+              <div class="metric-info">
+                <span class="metric-label">Pedidos Totales</span>
+                <span class="metric-value"><?= formatLargeNumber(count($data['recent_orders'] ?? [])); ?></span>
+                <span class="metric-change positive">Órdenes procesadas</span>
+              </div>
+              <div class="metric-toggle"></div>
+            </div>
+          <?php endif; ?>
         </div>
 
         <!-- Chart Area -->
         <div class="chart-section">
           <div class="chart-header">
-            <h4 id="chartTitle">Tendencias de Ganancias</h4>
+            <h4 id="chartTitle">
+              <?= $data['is_admin'] ? 'Tendencias de Ganancias' : 'Tendencias de Ventas'; ?>
+            </h4>
             <div class="chart-controls">
-              <button class="chart-btn active" data-chart="profit">Ganancias</button>
+              <button class="chart-btn active" data-chart="profit">
+                <?= $data['is_admin'] ? 'Ganancias' : 'Ventas'; ?>
+              </button>
               <button class="chart-btn" data-chart="orders">Pedidos</button>
-              <button class="chart-btn" data-chart="impression">Interacciones</button>
+              <button class="chart-btn" data-chart="impression">
+                <?= $data['is_admin'] ? 'Interacciones' : 'Productos'; ?>
+              </button>
             </div>
           </div>
           <div class="chart-container">
@@ -92,7 +121,7 @@ headerAdmin($data);
         </div>
       </div>
 
-      <!-- Recent Orders Section -->
+      <!-- Recent Orders Section (Ambos) -->
       <div class="orders-section">
         <div class="section-header">
           <h3>Últimas órdenes</h3>
@@ -134,7 +163,8 @@ headerAdmin($data);
         </div>
       </div>
 
-      <!-- Recent Reviews Section -->
+      <!-- Recent Reviews Section (Solo Admin) -->
+      <?php if ($data['is_admin']): ?>
       <div class="reviews-section">
         <div class="section-header">
           <h3>Últimas reseñas</h3>
@@ -172,9 +202,13 @@ headerAdmin($data);
           <?php endif; ?>
         </div>
       </div>
-    </div>    <!-- Sidebar -->
+      <?php endif; ?>
+    </div>
+    
+    <!-- Sidebar -->
     <div class="sidebar">
-      <!-- Sales Target -->
+      <!-- Sales Target (Solo Admin) -->
+      <?php if ($data['is_admin']): ?>
       <div class="sidebar-card">
         <div class="card-header">
           <h3>Objetivo de ventas</h3>
@@ -200,8 +234,9 @@ headerAdmin($data);
           </div>
         </div>
       </div>
+      <?php endif; ?>
 
-      <!-- Top Products -->
+      <!-- Top Products (Ambos) -->
       <div class="sidebar-card">
         <div class="card-header">
           <h3>Productos más Vendidos</h3>
@@ -244,74 +279,31 @@ headerAdmin($data);
         </div>
       </div>
 
-      <!-- Database Statistics
+      <!-- Recent Activity (Empleados) o System Stats (Admin) -->
+      <?php if ($data['is_empleado']): ?>
       <div class="sidebar-card">
         <div class="card-header">
-          <h3>Estadísticas del Sistema</h3>
+          <h3>Acciones Rápidas</h3>
         </div>
-        <div class="system-stats">
-          <div class="stat-item">
-            <div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <div class="stat-info">
-              <span class="stat-value"><?= formatLargeNumber($data['metrics']['total_products'] ?? 0); ?></span>
-              <span class="stat-label">Productos Activos</span>
-            </div>
-          </div>
-          
-          <div class="stat-item">
-            <div class="stat-icon"><i class="fa-solid fa-exclamation-triangle"></i></div>
-            <div class="stat-info">
-              <span class="stat-value <?= ($data['metrics']['low_stock_products'] ?? 0) > 0 ? 'warning' : ''; ?>">
-                <?= formatLargeNumber($data['metrics']['low_stock_products'] ?? 0); ?>
-              </span>
-              <span class="stat-label">Stock Bajo</span>
-            </div>
-          </div>
-          
-          <div class="stat-item">
-            <div class="stat-icon"><i class="fa-solid fa-tags"></i></div>
-            <div class="stat-info">
-              <span class="stat-value"><?= formatLargeNumber(count($data['metrics']['products_by_category'] ?? [])); ?></span>
-              <span class="stat-label">Categorías</span>
-            </div>
-          </div>
-          
-          <div class="stat-item">
-            <div class="stat-icon"><i class="fa-solid fa-truck"></i></div>
-            <div class="stat-info">
-              <span class="stat-value"><?= formatLargeNumber(count($data['providers'] ?? [])); ?></span>
-              <span class="stat-label">Proveedores</span>
-            </div>
-          </div>
-        </div>
-        
-      <!-- Recent Activity -->
-      <div class="sidebar-card">
-        <div class="card-header">
-          <h3>Actividad Reciente</h3>
-        </div>
-        <div class="activity-list">
-          <?php if (!empty($data['metrics']['recent_activity'])): ?>
-            <?php foreach ($data['metrics']['recent_activity'] as $activity): ?>
-              <div class="activity-item">
-                <div class="activity-icon">
-                  <i class="fa-solid <?= $activity['icon']; ?>"></i>
-                </div>
-                <div class="activity-info">
-                  <span class="activity-message"><?= htmlspecialchars($activity['message']); ?></span>
-                  <span class="activity-date"><?= date('d/m/Y H:i', strtotime($activity['date'])); ?></span>
-                </div>
-              </div>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <div class="no-activity">
-              <p style="color: #64748b; text-align: center; padding: 20px;">No hay actividad reciente</p>
-            </div>
-          <?php endif; ?>
+        <div class="quick-actions">
+          <a href="<?= base_url(); ?>/productos" class="quick-action-btn">
+            <i class="fa-solid fa-box"></i>
+            <span>Ver Productos</span>
+          </a>
+          <a href="<?= base_url(); ?>/pedidos" class="quick-action-btn">
+            <i class="fa-solid fa-shopping-cart"></i>
+            <span>Ver Pedidos</span>
+          </a>
+          <a href="<?= base_url(); ?>/ventas" class="quick-action-btn">
+            <i class="fa-solid fa-cash-register"></i>
+            <span>Nueva Venta</span>
+          </a>
         </div>
       </div>
+      <?php endif; ?>
 
-      <!-- Channel Revenue -->
+      <!-- Channel Revenue (Solo Admin) -->
+      <?php if ($data['is_admin']): ?>
       <div class="sidebar-card">
         <div class="card-header">
           <h3>Ingresos por canal</h3>
@@ -365,6 +357,7 @@ headerAdmin($data);
           </div>
         </div>
       </div>
+      <?php endif; ?>
     </div>
   </div>
 </main>

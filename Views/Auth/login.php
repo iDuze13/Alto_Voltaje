@@ -19,22 +19,88 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
 
             <div class="form-container">
                 <div class="modern-auth-card">
-                    <!-- Logo centrado -->
-                    <div class="auth-logo-wrapper-centered">
-                        <img src="<?= BASE_URL ?>/Assets/images/IogoAltoVoltaje.png" alt="Alto Voltaje" class="centered-logo-img">
-                    </div>
+                    <?php if (isset($_SESSION['2fa_required']) && $_SESSION['2fa_required'] === true): ?>
+                        <!-- Logo centrado -->
+                        <div class="auth-logo-wrapper-centered">
+                            <img src="<?= BASE_URL ?>/Assets/images/IogoAltoVoltaje.png" alt="Alto Voltaje" class="centered-logo-img">
+                        </div>
 
-                    <!-- Título dinámico -->
-                    <h2 class="auth-main-title" id="authTitle">Accede a tu cuenta</h2>
-                    <p class="auth-subtitle" id="authSubtitle">Completa los detalles para empezar</p>
+                        <!-- Título para 2FA -->
+                        <h2 class="auth-main-title">Accede a tu cuenta</h2>
+                        <p class="auth-subtitle" style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px; color: #666; font-size: 13px;">Verificación de Seguridad</p>
+                    <?php else: ?>
+                        <!-- Logo centrado -->
+                        <div class="auth-logo-wrapper-centered">
+                            <img src="<?= BASE_URL ?>/Assets/images/IogoAltoVoltaje.png" alt="Alto Voltaje" class="centered-logo-img">
+                        </div>
+
+                        <!-- Título dinámico -->
+                        <h2 class="auth-main-title" id="authTitle">Accede a tu cuenta</h2>
+                        <p class="auth-subtitle" id="authSubtitle">Completa los detalles para empezar</p>
+                    <?php endif; ?>
 
                     <div class="form-wrapper">
+                        <?php if (isset($_SESSION['2fa_required']) && $_SESSION['2fa_required'] === true): ?>
+                        <!-- FORM VERIFICACIÓN 2FA -->
+                        <div class="auth-form-panel active" id="verificacion2fa">
+                            <div class="verification-2fa-body">
+                                <p class="verification-greeting">Hola <?= isset($_SESSION['pending_2fa']['user_data']['Nombre_Usuario']) ? htmlspecialchars($_SESSION['pending_2fa']['user_data']['Nombre_Usuario']) : '' ?>,</p>
+                                
+                                <p class="verification-message">
+                                    Se ha solicitado acceso a tu cuenta de <strong><?= isset($_SESSION['pending_2fa']['rol']) ? htmlspecialchars($_SESSION['pending_2fa']['rol']) : '' ?></strong> en Alto Voltaje.
+                                </p>
+                                
+                                <p class="verification-instruction">
+                                    Para completar el inicio de sesión, utiliza el siguiente código de verificación:
+                                </p>
+
+                                <form method="POST" action="<?= BASE_URL ?>/auth/verificar2FA" class="clean-form" id="form2FA">
+                                    <div class="verification-code-box">
+                                        <input 
+                                            class="verification-code-input" 
+                                            type="text" 
+                                            name="codigo_2fa" 
+                                            id="codigo_2fa" 
+                                            placeholder="000000" 
+                                            maxlength="6"
+                                            pattern="[0-9]{6}"
+                                            required 
+                                            autocomplete="off"
+                                        />
+                                        <div class="verification-code-label">Código de Verificación</div>
+                                    </div>
+                                    
+                                    <div class="verification-warning">
+                                        <i class="fa fa-clock"></i> Este código expirará en 10 minutos.
+                                    </div>
+                                    
+                                    <button class="btn btn-block clean-btn-primary" type="submit" style="margin-top: 20px;">
+                                        Verificar código
+                                    </button>
+                                </form>
+
+                                <div class="verification-alert">
+                                    <p><strong><i class="fa fa-exclamation-triangle"></i> Importante:</strong></p>
+                                    <p style="margin: 5px 0 0 0;">
+                                        Si no solicitaste este código, ignora este mensaje. 
+                                        Nunca compartas este código con nadie.
+                                    </p>
+                                </div>
+
+                                <div class="verification-footer">
+                                    <p>Si tienes problemas con el inicio de sesión, 
+                                    <button type="button" class="link-button" id="btnReenviarCodigo">reenvía el código</button> o 
+                                    <a href="<?= BASE_URL ?>/auth/cancelar2FA">cancela el proceso</a>.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <?php else: ?>
                         <!-- FORM LOGIN -->
                         <div class="auth-form-panel active" id="login">
                             <form method="POST" action="<?= BASE_URL ?>/auth/doLogin" class="clean-form">
                                 <div class="form-group">
                                     <label for="loginEmail">Dirección de email</label>
-                                    <input class="form-control clean-input" type="email" name="email" id="loginEmail" placeholder="nombre@ejemplo.com" required autocomplete="email" />
+                                    <input class="form-control clean-input" type="email" name="email" id="loginEmail" placeholder="nombre@ejemplo.com" required autocomplete="email" value="<?= isset($_COOKIE['remember_email']) ? htmlspecialchars($_COOKIE['remember_email']) : '' ?>" />
                                 </div>
                                 
                                 <div class="form-group">
@@ -49,7 +115,7 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
 
                                 <div class="form-extras">
                                     <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="rememberMe">
+                                        <input type="checkbox" class="custom-control-input" id="rememberMe" name="remember" <?= isset($_COOKIE['remember_email']) ? 'checked' : '' ?>>
                                         <label class="custom-control-label" for="rememberMe">Recordarme</label>
                                     </div>
                                     <a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
@@ -127,6 +193,7 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
                                 </div>
                             </form>
                         </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -809,6 +876,127 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
+
+/* ============ ESTILOS 2FA ============ */
+.verification-2fa-body {
+    padding: 0;
+}
+
+.verification-greeting {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.verification-message {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    margin: 10px 0;
+}
+
+.verification-instruction {
+    font-size: 14px;
+    color: #555;
+    margin: 15px 0;
+}
+
+.verification-code-box {
+    background: #ffffff;
+    border: 3px solid #ffc107;
+    border-radius: 4px;
+    padding: 25px;
+    text-align: center;
+    margin: 25px 0;
+}
+
+.verification-code-input {
+    width: 100%;
+    font-size: 36px;
+    font-weight: bold;
+    color: #000;
+    letter-spacing: 10px;
+    font-family: "Courier New", monospace;
+    text-align: center;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 10px;
+}
+
+.verification-code-input::placeholder {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.verification-code-label {
+    color: #333;
+    font-size: 12px;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+.verification-warning {
+    background-color: #fffbea;
+    border-left: 3px solid #ffc107;
+    padding: 12px 15px;
+    font-size: 13px;
+    margin: 20px 0;
+    color: #666;
+}
+
+.verification-warning i {
+    margin-right: 8px;
+}
+
+.verification-alert {
+    background-color: #ffe5e5;
+    border-left: 3px solid #ff5252;
+    padding: 12px 15px;
+    font-size: 13px;
+    margin: 20px 0;
+    color: #721c24;
+}
+
+.verification-alert strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.verification-alert i {
+    margin-right: 5px;
+}
+
+.verification-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 13px;
+    color: #666;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: #ffc107;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+}
+
+.link-button:hover {
+    color: #ff9800;
+}
+
+.verification-footer a {
+    color: #ffc107;
+    text-decoration: underline;
+}
+
+.verification-footer a:hover {
+    color: #ff9800;
+}
+/* ============ FIN ESTILOS 2FA ============ */
 </style>
 
 <script>
@@ -889,6 +1077,81 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
     });
+
+    // ============ 2FA HANDLERS ============
+    
+    // Validar solo números en código 2FA
+    $('#codigo_2fa').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    
+    // Reenviar código 2FA
+    $('#btnReenviarCodigo').on('click', function(e) {
+        e.preventDefault();
+        const $btn = $(this);
+        
+        // Deshabilitar botón temporalmente
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Enviando...');
+        
+        $.ajax({
+            url: '<?= BASE_URL ?>/auth/reenviarCodigo2FA',
+            type: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Mostrar mensaje de éxito
+                    showFlashMessage(response.message, 'success');
+                    
+                    // Rehabilitar botón después de 30 segundos
+                    let countdown = 30;
+                    const interval = setInterval(function() {
+                        countdown--;
+                        $btn.html('<i class="fa fa-clock"></i> Espera ' + countdown + 's');
+                        
+                        if (countdown <= 0) {
+                            clearInterval(interval);
+                            $btn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> Reenviar código');
+                        }
+                    }, 1000);
+                } else {
+                    showFlashMessage(response.message || 'Error al reenviar código', 'error');
+                    $btn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> Reenviar código');
+                }
+            },
+            error: function() {
+                showFlashMessage('Error de conexión. Intenta nuevamente.', 'error');
+                $btn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> Reenviar código');
+            }
+        });
+    });
+    
+    // Función helper para mostrar mensajes flash
+    function showFlashMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show modern-alert" role="alert">
+                ${message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        `;
+        
+        // Remover alertas existentes
+        $('.modern-alert').remove();
+        
+        // Agregar nueva alerta
+        $('.auth-form-column').prepend(alertHtml);
+        
+        // Auto-dismiss
+        setTimeout(function() {
+            $('.modern-alert').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
+    
+    // ============ FIN 2FA HANDLERS ============
 });
 </script>
 
