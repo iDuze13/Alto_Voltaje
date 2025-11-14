@@ -15,7 +15,7 @@ class Ventas extends Controllers {
         $isAuthenticated = false;
         
         if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['rol'])) {
-            $isAuthenticated = in_array($_SESSION['usuario']['rol'], ['empleado', 'administrador', 'Empleado', 'Admin']);
+            $isAuthenticated = in_array($_SESSION['usuario']['rol'], ['Administrador', 'Vendedor', 'Bodega']);
         }
         elseif (isset($_SESSION['empleado']) || isset($_SESSION['admin'])) {
             $isAuthenticated = true;

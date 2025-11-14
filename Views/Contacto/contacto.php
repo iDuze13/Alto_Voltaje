@@ -15,17 +15,23 @@
         <div class="flex-w flex-tr">
             <div class="size-210 bor10 p-lr-70 p-t-55 p-b-70 p-lr-15-lg w-full-md">
                 <form>
+                    
                     <h4 class="mtext-105 cl2 txt-center p-b-30">
                         Envianos un mensaje
                     </h4>
 
-                    <div class="bor8 m-b-20 how-pos4-parent">
-                        <input class="stext-111 cl2 plh3 size-116 p-l-62 p-r-30" type="text" name="email" placeholder="Tu dirección de correo electrónico">
-                        <img class="how-pos4 pointer-none" src="<?= media() ?>/tiendaOnline/images/icons/icon-email.png" alt="ICON">
+                    <div class="bor8 m-b-20" style="display: flex; align-items: center; gap: 15px;">
+                        <img src="<?= media() ?>/tiendaOnline/images/icons/icon-name.png" alt="ICON" style="width:28px; height:28px; flex-shrink: 0;">
+                        <input class="stext-111 cl2 plh3 bor8 p-lr-28 p-tb-15" type="text" name="name" id="nombreContacto" placeholder="Tu nombre completo" style="flex: 1;">
                     </div>
 
-                    <div class="bor8 m-b-30">
-                        <textarea class="stext-111 cl2 plh3 size-120 p-lr-28 p-tb-25" name="msg" placeholder="¿Cómo te podemos ayudar?"></textarea>
+                    <div class="bor8 m-b-20" style="display: flex; align-items: center; gap: 15px;">
+                        <img src="<?= media() ?>/tiendaOnline/images/icons/icon-email.png" alt="ICON">
+                        <input class="stext-111 cl2 plh3 bor8 p-lr-28 p-tb-15" type="text" name="email" id="emailContacto" placeholder="Tu dirección de correo electrónico" style="flex: 1;">
+                    </div>
+
+                    <div class="bor8 m-b-30" style="display: flex; align-items: center; gap: 15px;">
+                        <textarea class="stext-111 cl2 plh3 bor8 p-lr-28 p-tb-15" id="mensaje" name="mensaje" rows="5" placeholder="¿Cómo te podemos ayudar?" style= "outline: none; width: 100%; resize: vertical; min-height: 100px; word-wrap: break-word; overflow-wrap: break-word; box-sizing: border-box; white-space: pre-wrap;"></textarea>
                     </div>
 
                     <button class="flex-c-m stext-101 cl0 size-121 bg3 bor1 hov-btn3 p-lr-15 trans-04 pointer">

@@ -53,6 +53,7 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
                                 <p class="verification-instruction">
                                     Para completar el inicio de sesión, utiliza el siguiente código de verificación:
                                 </p>
+<<<<<<< Updated upstream
 
                                 <form method="POST" action="<?= BASE_URL ?>/auth/verificar2FA" class="clean-form" id="form2FA">
                                     <div class="verification-code-box">
@@ -86,6 +87,49 @@ $flash = isset($data['flash']) ? $data['flash'] : null;
                                         Nunca compartas este código con nadie.
                                     </p>
                                 </div>
+=======
+                                
+                                <?php if (isset($_SESSION['2fa_codigo_dev'])): ?>
+                                <div style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 8px; text-align: center;">
+                                    <strong style="color: #856404;">🔧 MODO DESARROLLO</strong><br>
+                                    <span style="font-size: 24px; font-weight: bold; color: #856404; letter-spacing: 3px;"><?= $_SESSION['2fa_codigo_dev'] ?></span>
+                                    <p style="font-size: 12px; color: #856404; margin-top: 10px;">Configurar SMTP en EmailHelper.php para envío real</p>
+                                </div>
+                                <?php endif; ?>
+
+                                <form method="POST" action="<?= BASE_URL ?>/auth/verificar2FA" class="clean-form" id="form2FA">
+                                    <div class="verification-code-box">
+                                        <input 
+                                            class="verification-code-input" 
+                                            type="text" 
+                                            name="codigo_2fa" 
+                                            id="codigo_2fa" 
+                                            placeholder="000000" 
+                                            maxlength="6"
+                                            pattern="[0-9]{6}"
+                                            required 
+                                            autocomplete="off"
+                                        />
+                                        <div class="verification-code-label">Código de Verificación</div>
+                                    </div>
+                                    
+                                    <div class="verification-warning">
+                                        <i class="fa fa-clock"></i> Este código expirará en 10 minutos.
+                                    </div>
+                                    
+                                    <button class="btn btn-block clean-btn-primary" type="submit" style="margin-top: 20px;">
+                                        Verificar código
+                                    </button>
+                                </form>
+
+                                <div class="verification-alert">
+                                    <p><strong><i class="fa fa-exclamation-triangle"></i> Importante:</strong></p>
+                                    <p style="margin: 5px 0 0 0;">
+                                        Si no solicitaste este código, ignora este mensaje. 
+                                        Nunca compartas este código con nadie.
+                                    </p>
+                                </div>
+>>>>>>> Stashed changes
 
                                 <div class="verification-footer">
                                     <p>Si tienes problemas con el inicio de sesión, 

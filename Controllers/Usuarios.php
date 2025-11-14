@@ -31,9 +31,13 @@ class Usuarios extends Controllers {
     }
     public function getSelectRoles() {
         $htmlOptions = "";
-        $arrData = array('Admin', 'Cliente', 'Empleado');
-        foreach ($arrData as $rol) {
-            $htmlOptions .= '<option value="'.$rol.'">'.$rol.'</option>';
+        // Obtener roles activos de la base de datos
+        $arrData = $this->model->selectRolesActivos();
+        if(!empty($arrData)){
+            foreach ($arrData as $rol) {
+                // Usar idrol como value y nombrerol como texto visible
+                $htmlOptions .= '<option value="'.$rol['idrol'].'">'.$rol['nombrerol'].'</option>';
+            }
         }
         echo $htmlOptions;
         die();
@@ -47,6 +51,11 @@ class Usuarios extends Controllers {
         
         // Set proper JSON content type
         header('Content-Type: application/json; charset=utf-8');
+        
+        // LOG: Ver qué está recibiendo
+        error_log('========== SET USUARIO ==========');
+        error_log('POST completo: ' . print_r($_POST, true));
+        error_log('listRolId recibido: ' . ($_POST['listRolId'] ?? 'NO EXISTE'));
         
         try {
             if ($_POST) {
@@ -66,6 +75,8 @@ class Usuarios extends Controllers {
                         $strTipoUsuario = strClean($_POST['listRolId']);
                         $intEstado = intval(strClean($_POST['listEstado']));
                         $strPassword = hash("SHA256", strClean($_POST['txtPassword']));
+                        
+                        error_log('strTipoUsuario después de strClean: ' . $strTipoUsuario);
                         
                         $request_user = $this->model->insertUsuario($idUsuario, $strCUIL, $strNombre, $strApellido, $strEmail, $strTelefono, $strTipoUsuario, $intEstado, $strPassword);
                         

@@ -257,20 +257,30 @@ class DashboardModel extends Msql
 
     public function getRecentPedidos(int $limit = 10): array
     {
-        $sql = "SELECT p.idPedido, p.Estado_Pedido, p.Total_Pedido, p.Fecha_Pedido, p.Metodo_Pago,
-                       dc.Domicilio_Cliente, dc.Ciudad_Cliente,
-                       u.Nombre_Usuario, u.Apellido_Usuario
+        $sql = "SELECT p.idpedido, p.status, p.monto, p.fecha,
+                       per.nombres, per.apellidos, per.email_user
                 FROM pedido p
-                JOIN direccion_cliente dc ON p.Direccion_Cliente_id_Direccion_Cliente = dc.id_Direcciones_Clientes
-                JOIN cliente c ON dc.Cliente_id_Cliente = c.id_Cliente
-                JOIN usuario u ON c.Usuario_id_Usuario = u.id_Usuario
-                ORDER BY p.Fecha_Pedido DESC
+                LEFT JOIN persona per ON p.personaid = per.idpersona
+                ORDER BY p.fecha DESC
                 LIMIT {$limit}";
         
         $pedidos = $this->select_all($sql) ?: [];
         
+        // Format the data to match expected structure
+        $formattedPedidos = [];
+        foreach ($pedidos as $pedido) {
+            $formattedPedidos[] = [
+                'idPedido' => '#' . $pedido['idpedido'],
+                'Estado_Pedido' => strtoupper($pedido['status'] ?? 'PENDIENTE'),
+                'Fecha_Pedido' => $pedido['fecha'],
+                'Nombre_Usuario' => $pedido['nombres'] ?? 'N/A',
+                'Apellido_Usuario' => $pedido['apellidos'] ?? '',
+                'Total_Pedido' => $pedido['monto'] ?? 0
+            ];
+        }
+        
         // If no real orders, return simulated data
-        if (empty($pedidos)) {
+        if (empty($formattedPedidos)) {
             return [
                 [
                     'idPedido' => '#90210',
@@ -299,7 +309,7 @@ class DashboardModel extends Msql
             ];
         }
         
-        return $pedidos;
+        return $formattedPedidos;
     }
 }
 ?>

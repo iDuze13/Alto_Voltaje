@@ -10,7 +10,11 @@ class Dashboard extends Controllers {
     }
     
     public function dashboard() {
+<<<<<<< Updated upstream
         // Verificar autenticación - permitir tanto admin como empleado
+=======
+        // Verificar autenticación de administrador o empleado
+>>>>>>> Stashed changes
         if (empty($_SESSION['admin']) && empty($_SESSION['empleado'])) {
             header('Location: ' . BASE_URL . '/auth/login');
             exit();

@@ -4,14 +4,18 @@
         public $model;
         /** @var MercadoPagoModel */
         public $mercadoPagoModel;
+        /** @var PedidosModel */
+        public $pedidosModel;
         
         public function __construct() 
         {
             parent::__construct();
             require_once __DIR__ . '/../Models/ProductosModel.php';
             require_once __DIR__ . '/../Models/MercadoPagoModel.php';
+            require_once __DIR__ . '/../Models/PedidosModel.php';
             $this->model = new ProductosModel();
             $this->mercadoPagoModel = new MercadoPagoModel();
+            $this->pedidosModel = new PedidosModel();
         }
         
         public function checkout()
@@ -128,20 +132,41 @@
                         error_log("Checkout::procesar - Resultado de MercadoPago: " . json_encode($vexorResult));
                         
                         if ($vexorResult['success']) {
-                            $response = [
-                                'status' => true,
-                                'msg' => 'Redirigiendo a la plataforma de pago',
-                                'data' => [
-                                    'numero_pedido' => $numeroPedido,
-                                    'total' => $total,
-                                    'metodo_pago' => 'mercadopago_directo',
-                                    'mercadopago' => [
-                                        'payment_id' => $vexorResult['payment_id'],
-                                        'payment_url' => $vexorResult['payment_url'],
-                                        'preference_id' => $vexorResult['preference_id']
+                            // ✅ GUARDAR PEDIDO EN BASE DE DATOS
+                            try {
+                                $idPedido = $this->pedidosModel->insertPedido(
+                                    $datosEnvio, // datos del cliente
+                                    $productos,  // productos del carrito
+                                    $total,      // total del pedido
+                                    'mercadopago', // tipo de pago
+                                    $datosEnvio,   // datos de envío
+                                    $vexorResult['preference_id'], // referencia
+                                    $vexorResult['payment_id']     // ID transacción
+                                );
+                                
+                                error_log("✅ Pedido guardado en BD con ID: " . $idPedido);
+                                
+                                $response = [
+                                    'status' => true,
+                                    'msg' => 'Redirigiendo a la plataforma de pago',
+                                    'data' => [
+                                        'pedido_id' => $idPedido,
+                                        'numero_pedido' => $numeroPedido,
+                                        'total' => $total,
+                                        'metodo_pago' => 'mercadopago_directo',
+                                        'mercadopago' => [
+                                            'payment_id' => $vexorResult['payment_id'],
+                                            'payment_url' => $vexorResult['payment_url'],
+                                            'preference_id' => $vexorResult['preference_id']
+                                        ]
                                     ]
-                                ]
-                            ];
+                                ];
+                                
+                            } catch (Exception $e) {
+                                error_log("❌ Error guardando pedido: " . $e->getMessage());
+                                throw new Exception('Error procesando el pedido: ' . $e->getMessage());
+                            }
+                            
                         } else {
                             throw new Exception('Error creando pago con MercadoPago: ' . $vexorResult['error']);
                         }
@@ -149,15 +174,35 @@
                         // Otros métodos de pago tradicionales
                         error_log("Checkout::procesar - ⚠️ Procesando con método tradicional: '" . $metodoPago['tipo'] . "'");
                         
-                        $response = [
-                            'status' => true,
-                            'msg' => 'Pedido procesado correctamente',
-                            'data' => [
-                                'numero_pedido' => $numeroPedido,
-                                'total' => $total,
-                                'metodo_pago' => $metodoPago['tipo']
-                            ]
-                        ];
+                        // ✅ GUARDAR PEDIDO EN BASE DE DATOS para métodos tradicionales
+                        try {
+                            $idPedido = $this->pedidosModel->insertPedido(
+                                $datosEnvio, // datos del cliente
+                                $productos,  // productos del carrito
+                                $total,      // total del pedido
+                                $metodoPago['tipo'], // tipo de pago
+                                $datosEnvio,   // datos de envío
+                                $numeroPedido, // referencia
+                                null           // sin ID transacción para métodos tradicionales
+                            );
+                            
+                            error_log("✅ Pedido tradicional guardado en BD con ID: " . $idPedido);
+                            
+                            $response = [
+                                'status' => true,
+                                'msg' => 'Pedido procesado correctamente',
+                                'data' => [
+                                    'pedido_id' => $idPedido,
+                                    'numero_pedido' => $numeroPedido,
+                                    'total' => $total,
+                                    'metodo_pago' => $metodoPago['tipo']
+                                ]
+                            ];
+                            
+                        } catch (Exception $e) {
+                            error_log("❌ Error guardando pedido tradicional: " . $e->getMessage());
+                            throw new Exception('Error procesando el pedido: ' . $e->getMessage());
+                        }
                     }
                     
                 } catch (Exception $e) {

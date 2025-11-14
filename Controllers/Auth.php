@@ -50,8 +50,13 @@ class Auth extends Controllers {
             
             $rol = $user['Rol_Usuario'];
             
+<<<<<<< Updated upstream
             // ✅ VERIFICACIÓN 2FA AUTOMÁTICA PARA EMPLEADO/ADMIN
             if ($rol === 'Admin' || $rol === 'Empleado') {
+=======
+            // ✅ VERIFICACIÓN 2FA AUTOMÁTICA PARA ADMINISTRADOR/VENDEDOR/BODEGA
+            if ($rol === 'Administrador' || $rol === 'Vendedor' || $rol === 'Bodega') {
+>>>>>>> Stashed changes
                 // Cargar modelo de códigos y helper de email
                 require_once __DIR__ . '/../Models/CodigosModel.php';
                 require_once __DIR__ . '/../Helpers/EmailHelper.php';
@@ -73,6 +78,7 @@ class Auth extends Controllers {
                     
                     error_log("2FA: Resultado de envío de email: " . ($emailEnviado ? 'ÉXITO' : 'FALLO'));
                     
+<<<<<<< Updated upstream
                     if ($emailEnviado) {
                         // Guardar datos pendientes de 2FA en sesión
                         $_SESSION['pending_2fa'] = [
@@ -94,6 +100,32 @@ class Auth extends Controllers {
                         $this->flash('Error al enviar el código de verificación. Intenta nuevamente.', 'error');
                         return $this->redirect('auth/login');
                     }
+=======
+                    // Si el email falla, guardar código en logs (sin mostrarlo en pantalla)
+                    if (!$emailEnviado) {
+                        error_log("⚠️ CÓDIGO 2FA PARA $email: " . $resultadoCodigo['codigo']);
+                        // $_SESSION['2fa_codigo_dev'] = $resultadoCodigo['codigo']; // DESACTIVADO
+                    }
+                    
+                    // Guardar datos pendientes de 2FA en sesión (permitir continuar aunque falle email)
+                    $_SESSION['pending_2fa'] = [
+                        'email' => $email,
+                        'user_data' => $user,
+                        'rol' => $rol,
+                        'codigo_id' => $resultadoCodigo['id'],
+                        'expiracion' => $resultadoCodigo['expiracion']
+                    ];
+                    
+                    // Marcar que se requiere 2FA
+                    $_SESSION['2fa_required'] = true;
+                    
+                    if ($emailEnviado) {
+                        $this->flash('Se ha enviado un código de verificación a tu email.', 'info');
+                    } else {
+                        $this->flash('El código se mostrará a continuación. Configurar SMTP para envío real.', 'warning');
+                    }
+                    return $this->redirect('auth/login');
+>>>>>>> Stashed changes
                 } else {
                     // Error al generar código
                     error_log("Error al generar código 2FA para: " . $email);
@@ -110,8 +142,11 @@ class Auth extends Controllers {
                 'apellido' => $user['Apellido_Usuario'],
                 'rol' => $rol,
             ];
+            // Compatibilidad con vistas antiguas
+            $_SESSION['login'] = true;
             $_SESSION['login_success'] = 'Bienvenido ' . $user['Nombre_Usuario'] . '!';
-            return $this->redirect('dashboard/dashboard');
+            // Redirigir clientes a la tienda, no al dashboard de admin
+            return $this->redirect('tienda');
         }
         $this->flash('Email o contraseña incorrectos.', 'error');
         return $this->redirect('auth/login');
@@ -295,28 +330,69 @@ class Auth extends Controllers {
             // Limpiar datos de 2FA
             unset($_SESSION['2fa_required']);
             unset($_SESSION['pending_2fa']);
+<<<<<<< Updated upstream
             
             // Configurar sesión según el rol
             if ($rol === 'Admin') {
+=======
+            unset($_SESSION['2fa_codigo_dev']); // Limpiar código de desarrollo
+            
+            // Obtener rolid desde la tabla usuario/persona
+            require_once __DIR__ . '/../Models/UsuariosModel.php';
+            $usuariosModel = new UsuariosModel();
+            $userData = $usuariosModel->selectUsuario($user['id_Usuario']);
+            $rolid = $userData['idrol'] ?? null;
+            
+            // Cargar permisos del rol
+            require_once __DIR__ . '/../Models/PermisosModel.php';
+            $permisosModel = new PermisosModel();
+            if ($rolid) {
+                $_SESSION['permisos_modulos'] = $permisosModel->permisosModulo($rolid);
+                $_SESSION['rolid'] = $rolid;
+            } else {
+                $_SESSION['permisos_modulos'] = [];
+                $_SESSION['rolid'] = null;
+            }
+            
+            // Configurar sesión según el rol
+            if ($rol === 'Administrador') {
+>>>>>>> Stashed changes
                 $_SESSION['admin'] = [
                     'id' => (int)$user['id_Usuario'],
                     'usuario' => $user['Correo_Usuario'],
                     'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
                     'nivel' => 1,
+<<<<<<< Updated upstream
                     'rol' => $rol
+=======
+                    'rol' => $rol,
+                    'rolid' => $rolid
+>>>>>>> Stashed changes
                 ];
                 $this->flash('Verificación exitosa. Bienvenido Administrador ' . $user['Nombre_Usuario'] . '!', 'success');
                 return $this->redirect('dashboard/dashboard');
             } 
+<<<<<<< Updated upstream
             elseif ($rol === 'Empleado') {
+=======
+            elseif ($rol === 'Vendedor' || $rol === 'Bodega') {
+>>>>>>> Stashed changes
                 $_SESSION['empleado'] = [
                     'id' => (int)$user['id_Usuario'],
                     'cuil' => $user['CUIL_Usuario'],
                     'nombre' => $user['Nombre_Usuario'].' '.$user['Apellido_Usuario'],
+<<<<<<< Updated upstream
                     'rol' => $rol
                 ];
                 $this->flash('Verificación exitosa. Bienvenido ' . $user['Nombre_Usuario'] . '!', 'success');
                 return $this->redirect('empleados/dashboard');
+=======
+                    'rol' => $rol,
+                    'rolid' => $rolid
+                ];
+                $this->flash('Verificación exitosa. Bienvenido ' . $user['Nombre_Usuario'] . ' (' . $rol . ')!', 'success');
+                return $this->redirect('dashboard/dashboard');
+>>>>>>> Stashed changes
             }
         } else {
             // Código incorrecto o expirado

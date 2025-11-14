@@ -199,11 +199,18 @@ function initBasicDataTable() {
                 "className": "text-center",
                 "render": function(data, type, row) {
                     let id = row.idProducto || 0;
-                    return '<div class="text-center">' +
+                    let buttons = '<div class="text-center">' +
                            '<button class="btn btn-sm btn-info" onclick="viewProduct(' + id + ')" title="Ver"><i class="fas fa-eye"></i></button> ' +
-                           '<button class="btn btn-sm btn-primary" onclick="editProduct(' + id + ')" title="Editar"><i class="fas fa-edit"></i></button> ' +
-                           '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + id + ')" title="Eliminar"><i class="fas fa-trash"></i></button>' +
-                           '</div>';
+                           '<button class="btn btn-sm btn-primary" onclick="editProduct(' + id + ')" title="Editar"><i class="fas fa-edit"></i></button> ';
+                    
+                    // Solo mostrar botón eliminar si tiene permiso (verificar en backend también)
+                    // Para admin siempre mostrar, para empleados verificar permisos_modulos[4].d
+                    if (typeof window.permisos_productos_eliminar !== 'undefined' && window.permisos_productos_eliminar) {
+                        buttons += '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + id + ')" title="Eliminar"><i class="fas fa-trash"></i></button>';
+                    }
+                    
+                    buttons += '</div>';
+                    return buttons;
                 }
             }
         ],

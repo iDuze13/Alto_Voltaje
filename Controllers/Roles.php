@@ -3,10 +3,62 @@
 	class Roles extends Controllers{
 		public function __construct() {
 			parent::__construct();
+			require_once __DIR__ . '/../Models/RolesModel.php';
+			require_once __DIR__ . '/../Helpers/Helpers.php';
+			$this->model = new RolesModel();
+			
+			// Verificar autenticación de administrador
+			if (empty($_SESSION['admin'])) {
+				header('Location: ' . BASE_URL . '/auth/login');
+				exit();
+			}
+			
+			// Agregar permisos para la vista
+			$_SESSION['permisosMod'] = ['r' => true, 'w' => true, 'u' => true, 'd' => true];
 		}
 
-		// NOTA: Este método ahora obtiene USUARIOS, no roles. Se podría renombrar a getUsers.
-		public function getRoles() {
+		public function Roles() {
+			$data['page_tag'] = "Roles y Permisos";
+			$data['page_title'] = "ROLES Y PERMISOS <small>Tienda Virtual</small>";
+			$data['page_name'] = "roles";
+			$data['page_functions_js'] = "functions_roles.js";
+			$this->views->getView($this, "roles", $data);
+		}
+
+		public function index() {
+			$this->Roles();
+		}
+
+	public function getRoles() {
+		// Limpiar cualquier salida previa
+		if (ob_get_length()) ob_clean();
+		
+		// Obtener roles de la tabla 'rol'
+		require_once __DIR__ . '/../Libraries/Core/Msql.php';
+		$db = new Msql();
+		$arrData = $db->select_all("SELECT idrol, nombrerol, descripcion, status FROM rol WHERE status != 0");
+		
+		for ($i=0; $i < count($arrData); $i++) {
+			// Formatear status
+			if($arrData[$i]['status'] == 1) {
+				$arrData[$i]['status'] = '<span class="badge badge-success">Activo</span>';
+			} else {
+				$arrData[$i]['status'] = '<span class="badge badge-danger">Inactivo</span>';
+			}
+
+			// Botones de acción
+			$btnPermisos = '<button class="btn btn-secondary btn-sm btnPermisosRol" onClick="fntPermisos('.$arrData[$i]['idrol'].')" title="Permisos"><i class="fas fa-key"></i></button>';
+			$btnEdit = '<button class="btn btn-primary btn-sm btnEditRol" onClick="fntEditRol('.$arrData[$i]['idrol'].')" title="Editar"><i class="fas fa-pencil-alt"></i></button>';
+			$btnDelete = '<button class="btn btn-danger btn-sm btnDelRol" onClick="fntDelRol('.$arrData[$i]['idrol'].')" title="Eliminar"><i class="fas fa-trash-alt"></i></button>';
+			
+			$arrData[$i]['options'] = '<div class="text-center">'.$btnPermisos.' '.$btnEdit.' '.$btnDelete.'</div>';
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode($arrData, JSON_UNESCAPED_UNICODE);
+		die();
+	}		// NOTA: Este método ahora obtiene USUARIOS, no roles. Se podría renombrar a getUsers.
+		public function getUsuariosRoles() {
 			if($_SESSION['permisosMod']['r']){
 				$btnView = '';
 				$btnEdit = '';
@@ -51,66 +103,108 @@
 			die();		
 		}
 
-		// Este método ahora obtiene un USUARIO por su ID
-		public function getRol(int $idusuario) {
-			if($_SESSION['permisosMod']['r']){
-				$intIdUsuario = intval(strClean($idusuario));
-				if($intIdUsuario > 0) {
-					// Asumimos que el modelo tiene un método para seleccionar un usuario
-					$arrData = $this->model->selectUsuario($intIdUsuario);
-					if(empty($arrData)) {
-						$arrResponse = array('estado' => false, 'msg' => 'Datos no encontrados.');
-					}else{
-						// Mapear nombres para compatibilidad con el frontend si es necesario
-						// Por ejemplo: $arrData['nombrerol'] = $arrData['Rol_Usuario'];
-						$arrResponse = array('estado' => true, 'data' => $arrData);
-					}
-					echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
+	// Este método obtiene un ROL por su ID
+	public function getRol(int $idrol) {
+		// Limpiar cualquier salida previa
+		if (ob_get_length()) ob_clean();
+		
+		if($_SESSION['permisosMod']['r']){
+			$intIdRol = intval(strClean($idrol));
+			if($intIdRol > 0) {
+				$arrData = $this->model->selectRol($intIdRol);
+				if(empty($arrData)) {
+					$arrResponse = array('status' => false, 'msg' => 'Datos no encontrados.');
+				}else{
+					$arrResponse = array('status' => true, 'data' => $arrData);
 				}
+				header('Content-Type: application/json');
+				echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
 			}
-			die();
+		}
+		die();
+	}
+	
+	// Actualiza un rol en la tabla rol
+	public function setRol(){
+		if (ob_get_length()) ob_clean();
+		
+		$intIdRol = intval($_POST['idRol']);
+		$strNombre = strClean($_POST['txtNombre']);
+		$strDescripcion = strClean($_POST['txtDescripcion']);
+		$intStatus = intval($_POST['listStatus']);
+		
+		if($intIdRol == 0) {
+			// Crear nuevo rol
+			if($_SESSION['permisosMod']['w']){
+				$request_rol = $this->model->insertRol($strNombre, $strDescripcion, $intStatus);
+				
+				if($request_rol > 0) {
+					$arrResponse = array('status' => true, 'msg' => 'Rol creado correctamente.');
+				} else {
+					$arrResponse = array('status' => false, 'msg' => 'No es posible crear el rol.');
+				}
+			} else {
+				$arrResponse = array('status' => false, 'msg' => 'No tiene permisos para crear roles.');
+			}
+		} else if($intIdRol > 0) {
+			// Actualizar rol existente
+			if($_SESSION['permisosMod']['u']){
+				$request_rol = $this->model->updateRol($intIdRol, $strNombre, $strDescripcion, $intStatus);
+				
+				if($request_rol) {
+					$arrResponse = array('status' => true, 'msg' => 'Rol actualizado correctamente.');
+				} else {
+					$arrResponse = array('status' => false, 'msg' => 'No es posible actualizar el rol.');
+				}
+			} else {
+				$arrResponse = array('status' => false, 'msg' => 'No tiene permisos para actualizar roles.');
+			}
+		} else {
+			$arrResponse = array('status' => false, 'msg' => 'ID de rol inválido.');
 		}
 		
-		// Este método ahora actualiza el ROL de un USUARIO
-		public function setRol(){
-			// El ID ahora es de usuario, no de rol.
-			$intIdUsuario = intval($_POST['idRol']); // El frontend envía 'idRol', pero es el id de usuario.
-			$strRol =  strClean($_POST['txtNombre']); // El frontend envía el nuevo rol en 'txtNombre'.
-			$intEstado = intval($_POST['listEstado']); // 1 para Activo, 2 para Inactivo/Bloqueado
-			
-			$request_rol = "";
-
-			// Convertir el estado numérico a string para la BD
-			$strEstado = ($intEstado == 1) ? 'Activo' : 'Bloqueado';
-
-			// Con el esquema actual, no se pueden "crear" roles, solo se pueden asignar a usuarios.
-			// Este método se enfocará en actualizar el rol de un usuario existente.
-			if($intIdUsuario > 0) {
-				//Actualizar
-				if($_SESSION['permisosMod']['u']){
-					// Asumimos que el modelo tiene un método para actualizar el rol y estado de un usuario
-					$request_rol = $this->model->updateUsuarioRol($intIdUsuario, $strRol, $strEstado);
-					$option = 2; // Opción de actualización
-				}
-			} else {
-				// Crear un nuevo rol no es aplicable aquí. Se debería crear un nuevo usuario.
-				// Devolvemos un error si se intenta crear.
-				$arrResponse = array("status" => false, "msg" => 'No se puede crear un rol. Debe asignarlo a un usuario.');
-				echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
-				die();
-			}
-
-			if($request_rol > 0 ) {
-				$arrResponse = array('status' => true, 'msg' => 'Datos actualizados correctamente.');
-			} else if($request_rol == 'exist'){
-				// Esta validación podría no ser necesaria si solo se actualiza.
-				$arrResponse = array('status' => false, 'msg' => '¡Atención! El usuario ya tiene ese rol.');
-			} else {
-				$arrResponse = array("status" => false, "msg" => 'No es posible almacenar los datos.');
-			}
-			echo json_encode($arrResponse,JSON_UNESCAPED_UNICODE);
-			die();
-		}
-
+		header('Content-Type: application/json');
+		echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+		die();
 	}
+
+public function delRol(){
+	// Limpiar buffer y suprimir warnings
+	while (ob_get_level()) {
+		ob_end_clean();
+	}
+	ob_start();
+	
+	if($_POST){
+		if($_SESSION['permisosMod']['d']){
+			// Verificar que idRol exista en POST
+			if(!isset($_POST['idRol'])){
+				$arrResponse = array('status' => false, 'msg' => 'Parámetro idRol no recibido.');
+			} else {
+				$intIdRol = intval($_POST['idRol']);
+				
+				if($intIdRol > 0){
+					$requestDelete = $this->model->deleteRol($intIdRol);
+					
+					if($requestDelete){
+						$arrResponse = array('status' => true, 'msg' => 'Rol eliminado correctamente.');
+					}else{
+						$arrResponse = array('status' => false, 'msg' => 'No es posible eliminar el rol.');
+					}
+				}else{
+					$arrResponse = array('status' => false, 'msg' => 'ID de rol inválido. Valor recibido: ' . $_POST['idRol']);
+				}
+			}
+		}else{
+			$arrResponse = array('status' => false, 'msg' => 'No tiene permisos para eliminar roles.');
+		}
+	}else{
+		$arrResponse = array('status' => false, 'msg' => 'Solicitud inválida.');
+	}
+	
+	ob_end_clean();
+	header('Content-Type: application/json');
+	echo json_encode($arrResponse, JSON_UNESCAPED_UNICODE);
+	die();
+}	}
  ?>

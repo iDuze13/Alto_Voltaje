@@ -2,11 +2,15 @@
     headerAdmin($data); 
     getModal('modalProductos',$data);
 ?>
+    <script>
+        // Pasar permisos de eliminación al JavaScript
+        window.permisos_productos_eliminar = <?= isset($data['permiso_eliminar']) && $data['permiso_eliminar'] ? 'true' : 'false' ?>;
+    </script>
     <main class="app-content">
       <div class="app-title">
         <div>
             <h1><i class="fas fa-box"></i> <?= $data['page_title'] ?>
-              <?php if(isset($_SESSION['admin'])) { ?>
+              <?php if(isset($_SESSION['admin']) || (isset($_SESSION['permisos_modulos'][4]) && $_SESSION['permisos_modulos'][4]['w'] == 1)) { ?>
                 <button class="btn btn-primary" type="button" onclick="openModal();" ><i class="fas fa-plus-circle"></i> Nuevo</button>
               <?php } ?> 
             </h1>

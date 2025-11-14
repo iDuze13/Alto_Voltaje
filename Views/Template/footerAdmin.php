@@ -56,5 +56,17 @@
   <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
   <script src="<?= media(); ?>/js/functions_productos.js"></script>
     <?php } ?>
+    <?php if($data['page_name'] == "clientes"){ ?>
+  <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
+  <script src="<?= media(); ?>/js/functions_clientes.js"></script>
+    <?php } ?>
+    <?php if($data['page_name'] == "roles"){ ?>
+  <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
+  <script src="<?= media(); ?>/js/functions_roles.js"></script>
+    <?php } ?>
+    <?php if($data['page_name'] == "pedidos"){ ?>
+  <script src="<?= media(); ?>/js/plugins/sweetalert.min.js"></script>
+  <script src="<?= media(); ?>/js/functions_pedidos.js"></script>
+    <?php } ?>
   </body>
 </html>

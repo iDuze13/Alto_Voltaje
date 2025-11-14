@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "ajax": {
             "url": base_url + "/Usuarios/getUsuarios",
             "dataSrc": "data",
+            "cache": false, // Desactivar caché del navegador
             "error": function(xhr, error, code) {
                 console.error('DataTables AJAX error:', error, code);
                 console.error('Response:', xhr.responseText);
@@ -154,8 +155,10 @@ document.addEventListener('DOMContentLoaded', function() {
         request.open("GET",ajaxUrl,true);
         request.onreadystatechange = function(){
             if(request.readyState == 4 && request.status == 200){
+                console.log('Roles HTML recibido:', request.responseText);
                 document.querySelector('#listRolId').innerHTML = request.responseText;
                 $('#listRolId').selectpicker('refresh');
+                console.log('Select actualizado, valor actual:', document.querySelector('#listRolId').value);
             }
         }
         request.send();
@@ -219,10 +222,12 @@ window.fntEditUsuario = function(idUsuario){
                 
                 // Set values after a small delay to ensure selectpickers are initialized
                 setTimeout(function() {
-                    document.querySelector("#listRolId").value = objData.data.Rol_Usuario;
+                    // Usar idrol en lugar de Rol_Usuario (nombre del rol)
+                    document.querySelector("#listRolId").value = objData.data.idrol || objData.data.Rol_Usuario;
                     document.querySelector("#listEstado").value = objData.data.Estado_Usuario == 'Activo' ? 1 : 2;
                     $('#listRolId').selectpicker('refresh');
                     $('#listEstado').selectpicker('refresh');
+                    console.log('Rol seleccionado para editar:', objData.data.idrol, 'Nombre:', objData.data.Rol_Usuario);
                 }, 100);
                 
             }else{
@@ -281,22 +286,27 @@ window.filterByRole = function(){
 function updateStats(data) {
     const totalUsers = data.length;
     const activeUsers = data.filter(user => user.Estado_Usuario === 'Activo').length;
-    const adminUsers = data.filter(user => user.Rol_Usuario === 'Admin').length;
+    const adminUsers = data.filter(user => user.Rol_Usuario === 'Admin' || user.Rol_Usuario === 'Administrador').length;
     const employeeUsers = data.filter(user => user.Rol_Usuario === 'Empleado').length;
     
-    // Update stat cards with animation
+    // Update stat cards with animation (solo si existen)
     animateCounter('totalUsers', totalUsers);
     animateCounter('activeUsers', activeUsers);
     animateCounter('adminUsers', adminUsers);
     animateCounter('employeeUsers', employeeUsers);
     
-    // Update users count
-    document.getElementById('usersCount').textContent = `${totalUsers} usuarios`;
+    // Update users count (solo si existe)
+    const usersCountEl = document.getElementById('usersCount');
+    if(usersCountEl) {
+        usersCountEl.textContent = `${totalUsers} usuarios`;
+    }
 }
 
 // Function to animate counters
 function animateCounter(elementId, targetValue) {
     const element = document.getElementById(elementId);
+    if(!element) return; // Si el elemento no existe, salir
+    
     const startValue = parseInt(element.textContent) || 0;
     const duration = 1000; // 1 second
     const startTime = Date.now();
